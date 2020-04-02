@@ -23,13 +23,25 @@ class VirusPropagationModel(object):
 		self.populationSubgroups_list = []
 		self.mitigationParams_list = []
 		self.timeConstants_list = []
-		self.
+
+		self.__healthy_list = []
+		self.__exposed_list = []
+		self.__infected_list = []
 
 		self.__populationSize = 1000
 		self.__timesteps = 100
 		self.__infectedAtT0 = 1
 
-		for infectedHuman in range(self.__infectedAtT0):
-			sick = 
 
-	def InitializeModel(self, chrToUseList, pathToUseList, noSteps=10):
+	## model functions
+	"""
+	InitializeModel initializes a number of human agents defined by population size and infected at t_0
+	"""
+	def InitializeModel(self, noSteps=100):
+		NoHealthy = self.__populationSize - self.__infectedAtT0
+		for num in range(self.__infectedAtT0):
+			sick = human(status='infected')
+			self.__infected_list.append(sick)
+		for num in range(NoHealthy):
+			healthy = human()
+			self.__healthy_list.append(healthy)
