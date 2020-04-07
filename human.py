@@ -3,58 +3,69 @@
 This class defines the a human agent to be used in a (Corona) Virus infection model.
 It defines the agents properties and the transitions between different stati.
 created April, 2nd, 2020 - 
-(c) Judith Wodke, PLEASE ADD YOUR NAME IF CONTRIBUTING!
+(c) Judith Wodke, Stephan O. Adler, PLEASE ADD YOUR NAME IF CONTRIBUTING!
 """
 
 ## import required libraries
 import numpy.random as npr ## numpy.random for generating random numbers
 import logging as log ## logging for allowing to keep track of code development and putative errors
 import sys ## sys 
+from location import *
 
 ## define the human agent class
-class human(object):
-	def __init__(self, status='safe', subgroup='none', mitig=1, k_s=1):
-		## define lists of possible statii and status transitions
-		self.statii_list = ['safe', 'exposed', 'infected', 'recovered', 'hospitalized', 'ICU', 'dead']
-		self.transitions_list['GetExposed', 'BecomeInfected', 'RecoverFromVirus', 'GetHospitalized', 'AddIntensiveCare', 'SubIntensiveCare', 'Die']
-		## list of upper age group limits: please add/change numbers to vary age groups
-		self.ageGroups_upperThresholds_list = [10,20,30,40,50,60,70,80,90,100]
-
+class Human(object):
+	def __init__(self, ID, age, schedule, loc, status='S'):
 		## initialize properties
-		self.__status = status ## all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
-		self.__age = npr.randint(0,100) ## if we get an age distribution, we should sample the age from that distribution
-## NOTE: not sure, but maybe the age distribution should also be a simulation parameter given for initialization of a human
-		self.__populationSubgroup = subgroup ## to account for medical personel, public transport workers, etc.
-		## extract respective ageGroup from ageGroups_upperThresholds_list
-		self.__ageGroup = 0
-		t_passed = 0
-		for t_age in self.ageGroups_upperThresholds_list:
-			if t_age > self.__age:
-				self.__ageGroup = t_passed
-			else:
-				t_passed = t_age
-		if t_passed == 100:
-			self.__ageGroup = 100
-		self.__exposureProbability = 1*mitig*k_s
+		self.ID = ID
+		self.status = status ## all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
+		self.age = age ## if we get an age distribution, we should sample the age from that distribution
+		self.schedule = schedule # dict of times and locations
+		self.loc = loc # current location
+		self.personal_risk = self.get_personal_risk(age) # todesrisiko
+		self.infection_time = 0
+		loc.enter(self)
+
 ##NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-	## getter/setter for human properties
-##NOTE: Do we want to use getter/setter?	
-	@property
-	def status(self):
-	    return self.__status
-	@protID.setter
-	def status(self, newStat):
-		if not isinstance(newStat, str):
-			raise TypeError('The status must be a string.')
-		elif newStat not in self.statii_list:
-			raise ValueError('The status must be listed in self.statii_list, ' + newStat + ' is not.')
+	def update_status(self, time): # this is not yet according to Eddas model
+		if self.status == 'R':
+			pass
+		elif self.status == 'S':
+			risk = self.loc.infection_risk()
+			self.GetInfected(risk, time)
+		elif self.status == 'I':
+			self.Die()
+			if self.status == 'I':
+				recover_prob = self.get_recover_prob(time)
+				self.Recover(recover_prob)
+
+	def move(self, time): # agent moves relative to global time
+	# {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
+		if time%24 in self.schedule['times']: # here i check for a 24h cycling schedule
+			self.loc.leave(self) # leave old location
+			new_loc = self.schedule['locs'][self.schedule['times'].index(time%24)]
+			self.loc = new_loc
+			new_loc.enter(self) # enter new location
 	
-		
+	def get_recover_prob(self, time): # this needs improvement and is preliminary
+		prob = (time - self.infection_time)/480. # probabitily increases hourly over 20 days (my preliminary random choice)
+		# am besten mit kummulativer gauss-verteilung
+		return prob
+
+	def get_personal_risk(self, age): # maybe there is data for that...
+		if age < 60:
+			risk = 0.001
+		elif age < 75:
+			risk = 0.005
+		else:
+			risk = 0.01
+		return risk
+
+
 	## status transitions humans can undergo
 	"""
 	GetExposed
-	"""
+	
 	def GetExposed(self):
 		if self.__status == 'safe':
 			tmpProb = npr.random_sample()
@@ -63,3 +74,21 @@ class human(object):
 				log.debug('status has changed to ' + str(self.__status))
 		else:
 			log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
+	"""
+
+	def GetInfected(self, risk, time):
+		if risk > npr.random_sample():
+			self.status = 'I'
+			self.infection_time = time
+
+	def Recover(self, recover_prob):
+		if recover_prob > npr.random_sample():
+			self.status = 'R'
+
+	def GetHospitalized(self):
+		self.status = 'H'
+		# set location to next hospital
+
+	def Die(self):
+		if self.personal_risk > npr.random_sample():
+			self.status = 'D'
