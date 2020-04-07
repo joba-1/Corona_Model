@@ -1,19 +1,19 @@
 class Location(object):
-	def __init__(self, ID, coordinates, location_type, people_present=set(), location_factor=0.001): # runs good with 50 people and 10 infected and 5 location
-		self.ID = ID
-		self.people_present = people_present
-		self.location_factor = location_factor
-		self.coordinates = coordinates
-		self.location_type = location_type
+	def __init__(self, ID_int, coordinates_tuple, location_type_str, people_present_set=set(), location_factor_float=0.001): # runs good with 50 people and 10 infected and 5 location
+		self.ID_int = ID_int
+		self.people_present_set = people_present_set
+		self.location_factor_float = location_factor_float
+		self.coordinates_tuple = coordinates_tuple
+		self.location_type_str = location_type_str
 
-	def enter(self, person):
-		self.people_present.add(person)
+	def Enter(self, person_hu):
+		self.people_present_set.add(person_hu)
 
-	def leave(self, person):
-		self.people_present.remove(person)
+	def Leave(self, person_hu):
+		self.people_present_set.remove(person_hu)
 
-	def infection_risk(self):	# this needs improvement, it's simple and preliminary
-		infected = sum([1 for p in self.people_present if p.status=='I']) #/float(len(self.people_present)) # get fraction of infected individuals in location
-		risk = self.location_factor*infected
-		return risk
+	def Infection_risk(self):	# this needs improvement, it's simple and preliminary
+		infected_int = sum([1 for p in self.people_present_set if p.status_str=='I']) #/float(len(self.people_present)) # get fraction of infected individuals in location
+		risk_float = self.location_factor_float*infected_int
+		return risk_float
 		
