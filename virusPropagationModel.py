@@ -15,6 +15,7 @@ from location import *
 ## import required libraries
 import numpy.random as npr ## numpy.random for generating random numbers
 import random
+import pandas as pd
 
 class VirusPropagationModel(object):
 	## define initial variables
@@ -22,25 +23,25 @@ class VirusPropagationModel(object):
 		## initialize variables, lists, dictionaries depending on the input parameters
 		self.locations = self.initialize_locs(number_of_locs)
 		self.people = self.initialize_people(number_of_people)
-		self.dead_people = set()
 		self.time = 0
-		self.timecourse = [] # [{'0':{'status':'S','loc_ID':1}, '1':{'status':'S','loc_ID':1}}]
+		self.timecourse = [] # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
 		self.infect(initial_infections)
 
+	def reset_model(self): # todo set model to origin 
+		pass	
+		
 	def simulate(self, timesteps):
 		for t in range(timesteps):
-			new_deads = [v for v in self.people if v.status=='D'] # get list of newly dead people
-			for p in new_deads:
-				self.dead_people.add(p) # add them to set of dead people
-				self.people.remove(p) # remove them from set of alive people
 			self.time+=1
-			for p in self.people:
+			for p in self.people: # 
 				p.update_status(self.time)
 			for p in self.people: # don't call if hospitalized
 				p.move(self.time)
-			self.store_state()
+				self.store_state(p)
+		return pd.DataFrame(self.timecourse)
 
-	def initialize_locs(self, number_of_locs):
+
+	def initialize_locs(self, number_of_locs): # todo 
 		locs = set()
 		for n in range(number_of_locs):
 			locs.add(Location(n, (0,0), 'dummy_loc'))
@@ -70,5 +71,8 @@ class VirusPropagationModel(object):
 		for p in to_infect:
 			p.status = 'I'
 
-	def store_state(self):
-		pass
+	def store_state(self, person):
+		stat = person.get_status()
+		stat['time'] = self.time # 
+		self.timecourse.append(stat)
+		

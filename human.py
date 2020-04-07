@@ -38,6 +38,9 @@ class Human(object):
 			if self.status == 'I':
 				recover_prob = self.get_recover_prob(time)
 				self.Recover(recover_prob)
+	
+	def get_status(self): # 	for storing simulation data 		
+		return {'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status}
 
 	def move(self, time): # agent moves relative to global time
 	# {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
