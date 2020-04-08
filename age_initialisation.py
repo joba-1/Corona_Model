@@ -33,20 +33,21 @@ ecdberlin_list = EmpCumDist(berlindf)
 ecdgermany_list = EmpCumDist(germanydf)
 
 # function to draw an age from the ecdf
-def RandomAge(loc='Berlin'):
+def RandomAge(loc_string='Berlin'):
     """
     samples from empirical age distribution
+    :param loc_string: string for which population, choose 'Berlin' or 'Germany'
     :return: age, an int
     """
+    locs_list = ['Germany', 'Berlin']
+    assert loc_string in locs_list, 'population from which age drawn not set. choose "Berlin" or "Germany"'
 
-    if loc == 'Berlin':
+    if loc_string == 'Berlin':
         cump_list = ecdberlin_list
-    elif loc == 'Germany':
+    elif loc_string == 'Germany':
         cump_list = ecdgermany_list
-    else:
-        assert , 'population from which age drawn not set. choose "Berlin" or "Germany"'
+
+
     v_float = np.random.random()
     age_int = np.searchsorted(cump_list, v_float, side='right')
     return age_int
-
-RandomAge()
