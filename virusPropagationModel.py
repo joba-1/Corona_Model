@@ -21,11 +21,16 @@ class VirusPropagationModel(object):
 	## define initial variables
 	def __init__(self, number_of_locs, number_of_people, initial_infections):
 		## initialize variables, lists, dictionaries depending on the input parameters
-		self.locations = self.initialize_locs(number_of_locs)
-		self.people = self.initialize_people(number_of_people)
+		
 		self.time = 0
 		self.timecourse = [] # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
+		self.world = World(number_of_locs)
+		self.locations = self.world.locations
+		#self.locations = self.initialize_locs(number_of_locs)
+		self.people = self.initialize_people(number_of_people)
 		self.infect(initial_infections)
+
+
 
 	def reset_model(self): # todo set model to origin 
 		pass	
@@ -41,11 +46,14 @@ class VirusPropagationModel(object):
 		return pd.DataFrame(self.timecourse)
 
 
-	def initialize_locs(self, number_of_locs): # todo 
-		locs = set()
-		for n in range(number_of_locs):
-			locs.add(Location(n, (0,0), 'dummy_loc'))
-		return locs
+	#def init_world(self, number_of_locs):
+	#	self.world = location.World(number_of_locs)
+
+	#def initialize_locs(self, number_of_locs): # todo 
+	#	locs = set()
+	#	for n in range(number_of_locs):
+	#		locs.add(Location(n, (0,0), 'dummy_loc'))
+	#	return locs
 
 	def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
 		people = set()
