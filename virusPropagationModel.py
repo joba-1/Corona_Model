@@ -22,13 +22,18 @@ class VirusPropagationModel(object):
 	## define initial variables
 	def __init__(self, number_of_locs_int, number_of_people_int, initial_infections_int):
 		## initialize variables, lists, dictionaries depending on the input parameters
-		self.locations_set = self.Initialize_locs(number_of_locs_int)
-		self.people_set = self.Initialize_people(number_of_people_int)
-		self.time_int = 0
-		self.timecourse_list = [] # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
-		self.Infect(initial_infections_int)
+		
+		self.time = 0
+		self.timecourse = [] # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
+		self.world = World(number_of_locs)
+		self.locations = self.world.locations
+		#self.locations = self.initialize_locs(number_of_locs)
+		self.people = self.initialize_people(number_of_people)
+		self.infect(initial_infections)
 
-	def Reset_model(self): # todo set model to origin 
+
+
+	def reset_model(self): # todo set model to origin 
 		pass	
 		
 	def Simulate(self, timesteps_int):
@@ -42,11 +47,14 @@ class VirusPropagationModel(object):
 		return pd.DataFrame(self.timecourse_list)
 
 
-	def Initialize_locs(self, number_of_locs_int): # todo 
-		locs_set = set()
-		for n in range(number_of_locs_int):
-			locs_set.add(Location(n, (0,0), 'dummy_loc'))
-		return locs_set
+	#def init_world(self, number_of_locs):
+	#	self.world = location.World(number_of_locs)
+
+	#def initialize_locs(self, number_of_locs): # todo 
+	#	locs = set()
+	#	for n in range(number_of_locs):
+	#		locs.add(Location(n, (0,0), 'dummy_loc'))
+	#	return locs
 
 	def Initialize_people(self, number_of_people_int): # idee martin: skalenfeiheit
 		people_set = set()
