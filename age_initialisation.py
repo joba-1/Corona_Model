@@ -8,8 +8,9 @@ heinsberg_df = pd.read_csv('datafiles/heinsbergpopulation.csv')
 
 def empirical_cumulative_distribution(df):
     """
-    take df with bin sizes and number per bin
-    return list of probabilities per age (0:99)
+    generate list of cumulative probabilities for random_age
+    :param df: pandas dataframe of age categories andd people per age category
+    :return: list with boundaries between probabilities eg [0.1, 0.7, 0.79]
     """
 
     n_per_bin = df['number_ppl_of_bin']
