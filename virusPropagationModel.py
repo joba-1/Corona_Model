@@ -12,7 +12,7 @@ from human import *
 from location import *
 #from parameters import * (to be written)
 ## import random age draw function
-from age_initialisation import RandomAge
+from age_initialisation import random_age
 ## import required libraries
 import numpy.random as npr ## numpy.random for generating random numbers
 import random
@@ -59,7 +59,7 @@ class VirusPropagationModel(object):
 	def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
 		people = set()
 		for n in range(number_of_people):
-			age = RandomAge()
+			age = random_age()
 			schedule = self.create_schedule(age, self.locations)
 			people.add(Human(n, age, schedule, schedule['locs'][0]))
 		return people
