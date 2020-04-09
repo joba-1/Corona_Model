@@ -77,11 +77,11 @@ class Location(object):
 		self.ids_of_location_types = {} # loc_id : distance 
 	 	
 
-	def Enter(self, person_hu):
-		self.people_present_set.add(person_hu)
+	def enter(self, person):
+		self.people_present.add(person)
 
-	def Leave(self, person_hu):
-		self.people_present_set.remove(person_hu)
+	def leave(self, person):
+		self.people_present.remove(person)
 
 	def infection_risk(self):	# this needs improvement, it's simple and preliminary
 		infected = sum([1 for p in self.people_present if p.status=='I']) #/float(len(self.people_present)) # get fraction of infected individuals in location

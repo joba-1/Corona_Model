@@ -20,7 +20,7 @@ import pandas as pd
 
 class VirusPropagationModel(object):
 	## define initial variables
-	def __init__(self, number_of_locs_int, number_of_people_int, initial_infections_int):
+	def __init__(self, number_of_locs, number_of_people, initial_infections):
 		## initialize variables, lists, dictionaries depending on the input parameters
 		
 		self.time = 0
@@ -36,15 +36,15 @@ class VirusPropagationModel(object):
 	def reset_model(self): # todo set model to origin 
 		pass	
 		
-	def Simulate(self, timesteps_int):
-		for t in range(timesteps_int):
-			self.time_int+=1
-			for p in self.people_set: # 
-				p.Update_status(self.time_int)
-			for p in self.people_set: # don't call if hospitalized
-				p.Move(self.time_int)
-				self.Store_state(p)
-		return pd.DataFrame(self.timecourse_list)
+	def simulate(self, timesteps):
+		for t in range(timesteps):
+			self.time+=1
+			for p in self.people: # 
+				p.update_status(self.time)
+			for p in self.people: # don't call if hospitalized
+				p.move(self.time)
+				self.store_state(p)
+		return pd.DataFrame(self.timecourse)
 
 
 	#def init_world(self, number_of_locs):
@@ -56,32 +56,33 @@ class VirusPropagationModel(object):
 	#		locs.add(Location(n, (0,0), 'dummy_loc'))
 	#	return locs
 
-	def Initialize_people(self, number_of_people_int): # idee martin: skalenfeiheit
-		people_set = set()
-		for n in range(number_of_people_int):
-			age_int = RandomAge()
-			schedule_dict = self.Create_schedule(age_int, self.locations_set)
-			people_set.add(Human(n, age_int, schedule_dict, schedule_dict['locs'][0]))
-		return people_set
+	def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
+		people = set()
+		for n in range(number_of_people):
+			age = RandomAge()
+			schedule = self.create_schedule(age, self.locations)
+			people.add(Human(n, age, schedule, schedule['locs'][0]))
+		return people
 
-	def Create_schedule(self, age_int, locations_set):
-		if age_int > 3 and age_int < 70:	# schedule has to depend on age, this is only preliminary
-			num_locs_int = 5
+	def create_schedule(self, age, locations):
+		if age > 3 and age < 70:	# schedule has to depend on age, this is only preliminary
+			num_locs = 5
 		else:
-			num_locs_int = 3
-		my_locs_list = random.sample(locations_set, num_locs_int) # draw random locations (preliminary) (random.sample() draws exclusively)
-		my_times_list = random.sample(range(24), num_locs_int)
-		my_times_list.sort()
-		sched_dict = {'times':my_times_list, 'locs':my_locs_list}
-		return sched_dict
+			num_locs = 3
+		my_locs = random.sample(locations, num_locs) # draw random locations (preliminary) (random.sample() draws exclusively)
+		my_times = random.sample(range(24), num_locs)
+		my_times.sort()
+		sched = {'times':my_times, 'locs':my_locs}
+		return sched
 
-	def Infect(self, number_int):
-		to_infect_list = random.sample(self.people_set, number_int) # randomly choose who to infect
-		for p in to_infect_list:
-			p.status_str = 'I'
 
-	def Store_state(self, person_hu):
-		stat_dict = person_hu.Get_status()
-		stat_dict['time'] = self.time_int # 
-		self.timecourse_list.append(stat_dict)
+	def infect(self, number):
+		to_infect = random.sample(self.people, number) # randomly choose who to infect
+		for p in to_infect:
+			p.status = 'I'
+
+	def store_state(self, person):
+		stat = person.get_status()
+		stat['time'] = self.time # 
+		self.timecourse.append(stat)
 		
