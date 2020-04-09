@@ -8,9 +8,9 @@ class World(object):
 
 
 	def initialize_locs(self):
-		locations = []
+		locations = {}
 		for n in range(self.number_of_locs):
-			locations.append(Location(n, (n,0), 'dummy_loc'))
+			locations[n]=Location(n, (n,0), 'dummy_loc')
 
 		locations[3] = Location(3, (3,0), 'hospital')
 		locations[0] = Location(0, (0,0), 'hospital')						
@@ -35,10 +35,10 @@ class Neighbourhood(object):
 	def calculate_proximity_matrix(self): #create distances
 		matrix = np.zeros((len(list(self.locations)),len(list(self.locations)))) # create  
 		
-		for i,x in enumerate(self.locations):			
+		for i,x in enumerate(self.locations.values()):			
 			ids = []
 			types = []
-			for k,y in enumerate(self.locations):
+			for k,y in enumerate(self.locations.values()):
 				ids.append(y.ID)
 				types.append(y.location_type)
 				matrix[i,k] = np.sqrt((x.coordinates[0]-y.coordinates[0])**2+(x.coordinates[1]-y.coordinates[1])**2)
@@ -90,7 +90,7 @@ class Location(object):
 	
 	def next_hospital(self):
 		'''returns ID of the closest hospital in neighbourhood'''
-		return self.closest_loc('hospital')
+		return self.closest_loc('hospital')[0]
 		
 
 	def closest_loc(self,loc_type):
@@ -102,8 +102,12 @@ class Location(object):
 			 return None
 		distances_loc = {loc_id : self.distance_loc(loc_id) for loc_id  in self.ids_of_location_types[loc_type]}
 		min_dist_index = list(distances_loc.values()).index(min(distances_loc.values()))
+		sorted_items = sorted((value, key) for (key,value) in distances_loc.items())
+		sorted_ids = [i for (v,i) in sorted_items]
+		#print(sorted_items)
+		#print(sorted_ids)
 		
-		return list(distances_loc.keys())[min_dist_index]
+		return sorted_ids #list(distances_loc.keys())[min_dist_index]
 
 	def distance_loc(self, location_ID):
 		#print(location_ID)

@@ -64,16 +64,30 @@ class VirusPropagationModel(object):
 			people.add(Human(n, age, schedule, schedule['locs'][0]))
 		return people
 
-	def create_schedule(self, age, locations):
+	def create_schedule(self, age, home):
+		'''
+		if age < 18:
+			home_time = npr.randint(17,22)
+			times = [8,15,home_time]
+			school_id = random.sample(home.closest_loc('school'))
+			locs = [self.locations['ID']school,public,home]
+		elif: age < 70:
+			worktime = npr.randint(7,12)
+			public_time = npr.randint(1,3)
+			times = [0,worktime, worktime+8, ]
+		else:
+
+		'''
 		if age > 3 and age < 70:	# schedule has to depend on age, this is only preliminary
 			num_locs = 5
 		else:
 			num_locs = 3
-		my_locs = random.sample(locations, num_locs) # draw random locations (preliminary) (random.sample() draws exclusively)
+		my_locs = random.sample(list(self.locations.values()), num_locs) # draw random locations (preliminary) (random.sample() draws exclusively)
 		my_times = random.sample(range(24), num_locs)
 		my_times.sort()
 		sched = {'times':my_times, 'locs':my_locs}
 		return sched
+		
 
 
 	def infect(self, number):
