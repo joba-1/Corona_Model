@@ -1,61 +1,62 @@
 import numpy as np
 import pandas as pd
 
-berlindf = pd.read_csv('datafiles/berlinbrandenburgpopulation.csv')
-germanydf = pd.read_csv('datafiles/germanypopulation.csv')
-heinsbergdf = pd.read_csv('datafiles/heinsbergpopulation.csv')
+berlin_df = pd.read_csv('datafiles/berlinbrandenburgpopulation.csv')
+germany_df = pd.read_csv('datafiles/germanypopulation.csv')
+heinsberg_df = pd.read_csv('datafiles/heinsbergpopulation.csv')
 
 
-def EmpCumDist(df):
+def empirical_cumulative_distribution(df):
     """
     take df with bin sizes and number per bin
     return list of probabilities per age (0:99)
     """
 
-    nperbin_list = df['number_ppl_of_bin']
+    n_per_bin = df['number_ppl_of_bin']
     # boundaries of bins where for each consecutive pair a bin exists with [a, b)
-    bins_list = [0] + list(df['upper_bounds_of_bins_not_incl'])
+    bins = [0] + list(df['upper_bounds_of_bins_not_incl'])
 
-    binsupperbounds_list = bins_list[1:]
-    pofbin_list = nperbin_list / np.sum(nperbin_list)  # probability of being in given bin
+    binsupperbounds_list = bins[1:]
+    p_of_bin = n_per_bin / np.sum(n_per_bin)  # probability of being in given bin
 
     # there are ages from [0, 99]
-    ages_array = np.arange(0, 100)
-    pofage_array = np.zeros(100)
+    ages = np.arange(0, 100)
+    p_of_age = np.zeros(100)
 
     # probability of having certain age
-    for index in range(len(bins_list) - 1):
+    for index in range(len(bins) - 1):
         # bin is [index, index+1)
-        binsize_int = bins_list[index + 1] - bins_list[index]
-        for i in np.arange(bins_list[index], bins_list[index + 1]):
-            pofage_array[i] = pofbin_list[index] / binsize_int
+        bin_size = bins[index + 1] - bins[index]
+        for i in np.arange(bins[index], bins[index + 1]):
+            p_of_age[i] = p_of_bin[index] / bin_size
 
     # ecdf of ages 
-    cumpofage_list = np.cumsum(pofage_array[:-1])
-    return cumpofage_list
+    cum_p_of_age = np.cumsum(p_of_age[:-1])
+    return cum_p_of_age
 
-ecdberlin_list = EmpCumDist(berlindf)
-ecdgermany_list = EmpCumDist(germanydf)
-ecdheinsberg_list = EmpCumDist(heinsbergdf)
+
+ecd_berlin = empirical_cumulative_distribution(berlin_df)
+ecd_germany = empirical_cumulative_distribution(germany_df)
+ecd_heinsberg = empirical_cumulative_distribution(heinsberg_df)
+
 
 # function to draw an age from the ecdf
-def RandomAge(loc_string='Heinsberg'):
+def random_age(loc_string='Heinsberg'):
     """
     samples from empirical age distribution
     :param loc_string: string for which population, choose 'Berlin' or 'Germany'
     :return: age, an int
     """
-    locs_list = ['Germany', 'Berlin', 'Heinsberg']
-    assert loc_string in locs_list, f'population from which age drawn not set. choose from {locs_list}'
+    locations = ['Germany', 'Berlin', 'Heinsberg']
+    assert loc_string in locations, f'population from which age drawn not set. choose from {locations}'
 
     if loc_string == 'Berlin':
-        cump_list = ecdberlin_list
+        cumulative_p = ecd_berlin
     elif loc_string == 'Germany':
-        cump_list = ecdgermany_list
+        cumulative_p = ecd_germany
     elif loc_string == 'Heinsberg':
-        cump_list = ecdheinsberg_list
+        cumulative_p = ecd_heinsberg
 
-
-    v_float = np.random.random()
-    age_int = np.searchsorted(cump_list, v_float, side='right')
-    return age_int
+    value = np.random.random()
+    age = np.searchsorted(cumulative_p, value, side='right')
+    return age
