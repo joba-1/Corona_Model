@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class World(object):
 	def __init__(self, number_of_locs):
@@ -10,7 +11,8 @@ class World(object):
 	def initialize_locs(self):
 		locations = {}
 		for n in range(self.number_of_locs):
-			locations[n]=Location(n, (n,0), 'dummy_loc')
+			loc_type = random.sample(['home','work','public_place','school'],1)[0]
+			locations[n]=Location(n, (n,0), loc_type)
 
 		locations[3] = Location(3, (3,0), 'hospital')
 		locations[0] = Location(0, (0,0), 'hospital')						
@@ -66,7 +68,7 @@ class Neighbourhood(object):
 # idea proximity map for location distances 
 
 class Location(object):
-	def __init__(self, ID, coordinates, location_type, people_present=set(), location_factor=0.001): # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
+	def __init__(self, ID, coordinates, location_type, people_present=set(), location_factor=0.0001): # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
 		self.ID = ID
 		self.people_present = people_present
 		self.location_factor = location_factor
