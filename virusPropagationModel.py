@@ -17,40 +17,38 @@ class ModeledPopulatedWorld(object):
         self.infect(self.initial_infections)
 
     def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
-		print(len([h for h in self.locations.values() if h.location_type=='home']))
-		print(len([h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]))
-		free_homes=[h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
-		people = set()
-		for n in range(number_of_people):
-			age = RandomAge()
-			home = random.sample(free_homes,1)[0]
-			schedule = self.create_schedule(age, home)
-			people.add(Human(n, age, schedule, home))
-		return people
+        free_homes=[h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
+        people = set()
+        for n in range(number_of_people):
+            age = random_age()
+            home = random.sample(free_homes,1)[0]
+            schedule = self.create_schedule(age, home)
+            people.add(Human(n, age, schedule, home))
+        return people
 
-	def create_schedule(self, age, home):
-		
-		if age < 18:	## underage
-			home_time = npr.randint(17,22)	## draw when to be back home from 17 to 22
-			times = [8,15,home_time]	## school is from 8 to 15, from 15 on there is public time
-			school_id = home.closest_loc('school')[0]	## go to closest school
-			public_id = random.sample(home.closest_loc('public_place')[:2],1)[0]	## draw public place from 2 closest
-			locs = [self.locations[school_id],self.locations[public_id],home]
-		elif age < 70:		## working adult
-			worktime = npr.randint(7,12)	## draw time between 7 and 12 to beginn work
-			public_duration = npr.randint(1,3)	## draw duration of stay at public place
-			times = [worktime, worktime+8, worktime+8+public_duration]
-			work_id = random.sample(home.closest_loc('work')[:3],1)[0] ## draw workplace from the 3 closest
-			public_id = random.sample(home.closest_loc('public_place')[:3],1)[0]	## draw public place from 3 closest
-			locs = [self.locations[work_id],self.locations[public_id],home]
-		else:	## senior, only goes to one public place each day
-			public_time = npr.randint(7,17)
-			public_duration = npr.randint(1,5)
-			times = [public_time, public_time+public_duration]
-			public_id = home.closest_loc('public_place')[0]
-			locs = [self.locations[public_id],home]
+    def create_schedule(self, age, home):
+        
+        if age < 18:    ## underage
+            home_time = npr.randint(17,22)  ## draw when to be back home from 17 to 22
+            times = [8,15,home_time]    ## school is from 8 to 15, from 15 on there is public time
+            school_id = home.closest_loc('school')[0]   ## go to closest school
+            public_id = random.sample(home.closest_loc('public_place')[:2],1)[0]    ## draw public place from 2 closest
+            locs = [self.locations[school_id],self.locations[public_id],home]
+        elif age < 70:      ## working adult
+            worktime = npr.randint(7,12)    ## draw time between 7 and 12 to beginn work
+            public_duration = npr.randint(1,3)  ## draw duration of stay at public place
+            times = [worktime, worktime+8, worktime+8+public_duration]
+            work_id = random.sample(home.closest_loc('work')[:3],1)[0] ## draw workplace from the 3 closest
+            public_id = random.sample(home.closest_loc('public_place')[:3],1)[0]    ## draw public place from 3 closest
+            locs = [self.locations[work_id],self.locations[public_id],home]
+        else:   ## senior, only goes to one public place each day
+            public_time = npr.randint(7,17)
+            public_duration = npr.randint(1,5)
+            times = [public_time, public_time+public_duration]
+            public_id = home.closest_loc('public_place')[0]
+            locs = [self.locations[public_id],home]
 
-		return {'times':times,'locs':locs}
+        return {'times':times,'locs':locs}
 
     def infect(self, amount):
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
