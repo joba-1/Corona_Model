@@ -70,7 +70,7 @@ class Simulation(object):
     def get_statuses_in_timecourse(self):
         return list(set(self.simulation_timecourse['status']))
 
-    def get_status_trajecories(self, specific_statuses=None):
+    def get_status_trajectories(self, specific_statuses=None):
         """
         :param specific_statuses: List. Optional arg for getting only a subset  of statuses
         :return: DataFrame. The time courses for the specified statuses
@@ -107,7 +107,7 @@ class Simulation(object):
             'D':  'Dead'
         }
 
-        trajectories = self.get_status_trajecories(specific_statuses)
+        trajectories = self.get_status_trajectories(specific_statuses)
         assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
                                                                "course "
         simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
