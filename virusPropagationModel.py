@@ -36,8 +36,8 @@ class ModeledPopulatedWorld(object):
         sched = {'times': my_times, 'locs': my_locs}
         return sched
 
-    def infect(self, number):
-        to_infect = random.sample(self.people, number)  # randomly choose who to infect
+    def infect(self, amount):
+        to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
             p.status = 'I'
 
