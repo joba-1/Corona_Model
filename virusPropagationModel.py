@@ -1,12 +1,6 @@
 from human import *
 from location import *
-#from parameters import * (to be written)
-## import random age draw function
 from age_initialisation import random_age
-## import required libraries
-import numpy.random as npr ## numpy.random for generating random numbers
-# from parameters import * (to be written)
-from age_initialisation import RandomAge
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -22,13 +16,13 @@ class ModeledPopulatedWorld(object):
         self.people = self.initialize_people(self.number_of_people)
         self.infect(self.initial_infections)
 
-	def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
-		people = set()
-		for n in range(number_of_people):
-			age = random_age()
-			schedule = self.create_schedule(age, self.locations)
-			people.add(Human(n, age, schedule, schedule['locs'][0]))
-		return people
+    def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
+        people = set()
+        for n in range(number_of_people):
+            age = random_age()
+            schedule = self.create_schedule(age, self.locations)
+            people.add(Human(n, age, schedule, schedule['locs'][0]))
+        return people
 
     def create_schedule(self, age, locations):
         if 3 < age < 70:  # schedule has to depend on age, this is only preliminary
@@ -127,10 +121,4 @@ class Simulation(object):
         if save_figure:
             plt.savefig('output_plot.png')
 
-# todo: plot location ID/type timecourse.
-
-'''# testing
-model = ModeledPopulatedWorld(100, 400, 5)
-simulation1 = Simulation(model, 100)
-simulation1.plot_status_timecourse()
-'''
+# todo: plot location ID/type cummulative timecourses for ticket #33
