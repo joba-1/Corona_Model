@@ -57,6 +57,8 @@ class Human(object):
         Agent is in ICU
     was_infected : bool
         Agent has ever been infected
+    infection_duration : int
+        The duration of the agent's infection.
 
     Methods
     ----------
@@ -161,6 +163,11 @@ class Human(object):
         Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
 
+    get_infectivity()
+        Returns the infectivity of infected agent.
+        Should theoretically be based on the duration of the infection.
+        For now it is set to the default-value of 1; so nothing changes,
+        with respect to the previous version.
     """
 
     def __init__(self, ID, age, schedule, loc, status='S'):
@@ -187,6 +194,7 @@ class Human(object):
         self.hospitalized = False
         self.icu = False
         self.was_infected = False
+        self.infection_duration = 0
         loc.enter(self)
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
@@ -202,6 +210,7 @@ class Human(object):
             risk = self.loc.infection_risk()
             self.get_infected(risk, time)
         elif self.status == 'I':
+            self.infection_duration = time-self.infection_time
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             self.die(time)
             if self.status == 'I':
@@ -416,3 +425,15 @@ class Human(object):
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
+
+    def get_infectivity(self):
+        """
+        Returns the infectivity of infected agent.
+        Should theoretically be based on the duration of the infection.
+        For now it is set to the default-value of 1; so nothing changes,
+        with respect to the previous version.
+        """
+        # infection_duration=self.infection_duration
+        ## use infection duration somehow to calculate infectivity ...##
+        infectivity = 1  # for now set to 1, should be function of infection-duration#
+        return(infectivity)
