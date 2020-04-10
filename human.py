@@ -88,6 +88,7 @@ class Human(object):
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
+        self.original_schedule = schedule
         self.loc = loc  # current location
         self.personal_risk = self.get_personal_risk(age)  # todesrisiko
         self.infection_time = 0
