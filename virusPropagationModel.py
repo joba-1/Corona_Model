@@ -83,14 +83,14 @@ class Simulation(object):
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
 
-        status_trajecories = {}
+        status_trajectories = {}
         for status in statuses:
-            status_trajecories[status] = [(t, len(self.simulation_timecourse[(self.simulation_timecourse['time'] == t)
+            status_trajectories[status] = [(t, len(self.simulation_timecourse[(self.simulation_timecourse['time'] == t)
                                                                              & (self.simulation_timecourse[
                                                                                     'status'] == status)]))
                                           for t in self.simulation_timecourse['time'].unique()]
-            status_trajecories[status] = pd.DataFrame(status_trajecories[status], columns=['time', status])
-        return status_trajecories
+            status_trajectories[status] = pd.DataFrame(status_trajectories[status], columns=['time', status])
+        return status_trajectories
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
