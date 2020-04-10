@@ -1,5 +1,10 @@
 from human import *
 from location import *
+#from parameters import * (to be written)
+## import random age draw function
+from age_initialisation import random_age
+## import required libraries
+import numpy.random as npr ## numpy.random for generating random numbers
 # from parameters import * (to be written)
 from age_initialisation import RandomAge
 import random
@@ -17,13 +22,13 @@ class ModeledPopulatedWorld(object):
         self.people = self.initialize_people(self.number_of_people)
         self.infect(self.initial_infections)
 
-    def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
-        people = set()
-        for n in range(number_of_people):
-            age = RandomAge()
-            schedule = self.create_schedule(age, self.locations)
-            people.add(Human(n, age, schedule, schedule['locs'][0]))
-        return people
+	def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
+		people = set()
+		for n in range(number_of_people):
+			age = random_age()
+			schedule = self.create_schedule(age, self.locations)
+			people.add(Human(n, age, schedule, schedule['locs'][0]))
+		return people
 
     def create_schedule(self, age, locations):
         if 3 < age < 70:  # schedule has to depend on age, this is only preliminary
