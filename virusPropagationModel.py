@@ -4,6 +4,7 @@ from age_initialisation import random_age
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class ModeledPopulatedWorld(object):
@@ -84,13 +85,16 @@ class Simulation(object):
             statuses = specific_statuses
 
         status_trajectories = {}
+        s_t = self.simulation_timecourse
+        s_t.loc[:, 'ones'] = np.ones(s_t.shape[0])
         for status in statuses:
-            status_trajectories[status] = [(t, len(self.simulation_timecourse[(self.simulation_timecourse['time'] == t)
-                                                                             & (self.simulation_timecourse[
-                                                                                    'status'] == status)]))
-                                          for t in self.simulation_timecourse['time'].unique()]
-            status_trajectories[status] = pd.DataFrame(status_trajectories[status], columns=['time', status])
-        return status_trajectories
+            df = s_t[s_t['status'] == status]
+            gdf = df.groupby('time')
+            stat_t = gdf.sum()['ones']
+            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t], axis=1).loc[1:].fillna(0)
+            df.columns = ['time', status]
+            status_trajectories[status] = df
+    return status_trajectories
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
