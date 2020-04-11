@@ -53,14 +53,16 @@ class ModeledPopulatedWorld(object):
     def infect(self, amount):
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            p.status = 'I'
+            #p.status = 'I'
+            p.get_infected(1.0, 0)
 
 
 class Simulation(object):
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time = 0
-        self.timecourse = []  # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
+        # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
+        self.timecourse = []
         self.time_steps = time_steps
         self.simulation_timecourse = self.run_simulation()
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
@@ -100,10 +102,11 @@ class Simulation(object):
         status_trajectories = {}
         for status in statuses:
             status_trajectories[status] = [(t, len(self.simulation_timecourse[(self.simulation_timecourse['time'] == t)
-                                                                             & (self.simulation_timecourse[
-                                                                                    'status'] == status)]))
-                                          for t in self.simulation_timecourse['time'].unique()]
-            status_trajectories[status] = pd.DataFrame(status_trajectories[status], columns=['time', status])
+                                                                              & (self.simulation_timecourse[
+                                                                                 'status'] == status)]))
+                                           for t in self.simulation_timecourse['time'].unique()]
+            status_trajectories[status] = pd.DataFrame(
+                status_trajectories[status], columns=['time', status])
         return status_trajectories
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
@@ -127,7 +130,8 @@ class Simulation(object):
         simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
 
         for status in trajectories.keys():
-            plt.plot(simulation_timepoints, trajectories[status][status].values, label=labels[status])
+            plt.plot(simulation_timepoints,
+                     trajectories[status][status].values, label=labels[status])
 
         plt.title('SecondPlot CoronaABM')
         plt.legend()
