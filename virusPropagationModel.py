@@ -85,7 +85,6 @@ class Simulation(object):
                 'specified statuses ('+str(set(specific_statuses))+') dont match those in  in the population (' + \
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
-
         status_trajectories = {}
         s_t = self.simulation_timecourse
         s_t.loc[:, 'ones'] = np.ones(s_t.shape[0])
@@ -96,7 +95,7 @@ class Simulation(object):
             df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t], axis=1).loc[1:].fillna(0)
             df.columns = ['time', status]
             status_trajectories[status] = df
-    return status_trajectories
+        return status_trajectories
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
