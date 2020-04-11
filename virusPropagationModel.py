@@ -44,14 +44,15 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections):
+    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):
+        self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
         self.initial_infections = initial_infections
-        self.world = World(self.number_of_locs)
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
-        self.infect(self.initial_infections)
+        self.initialize_infection(self.initial_infections)
 
     def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
         """
@@ -97,7 +98,7 @@ class ModeledPopulatedWorld(object):
 
         return {'times':times,'locs':locs}
 
-    def infect(self, amount):
+    def initialize_infection(self, amount):
         """
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect

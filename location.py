@@ -1,15 +1,21 @@
 import numpy as np
 import random
-
+import pandas as pd
 
 class World(object):
-    def __init__(self, number_of_locs):
-        self.number_of_locs = number_of_locs
-        self.locations = self.initialize_locs()
-        self.neighbourhoods = self.initialize_neighbourhoods()
+    def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', from_file=False, number_of_locs=100):
+		self.from_file = from_file
+		self.geofile_name = geofile_name
+		self.number_of_locs = number_of_locs
 
-    def initialize_locs(self):
-        locations = {}
+		if self.from_file:
+			self.locations = self.initialize_locs_from_file()
+		else:    
+			self.locations = self.initialize_locs_random()
+		self.neighbourhoods = self.initialize_neighbourhoods()    
+
+	def initialize_locs_random(self):# orginal
+		locations = {}
         for n in range(self.number_of_locs):
             loc_type = random.sample(['home','work','public_place','school'],1)[0]
             locations[n]=Location(n, (n,0), loc_type)
@@ -18,14 +24,39 @@ class World(object):
         locations[0] = Location(0, (0, 0), 'hospital')
         return locations
 
-    def initialize_neighbourhoods(self):
-        neighbourhoods = {1: Neighbourhood(self.locations)}
-        return neighbourhoods
+	def initialize_locs_from_file(self):
+		locations = {}
+		self.df_buildings = pd.read_csv(self.geofile_name)
 
-    def assign_neighbourhood(self, locations):
-        for n in self.neighbourhoods:
-            for loc in self.neighbourhoods[n].locations:
-                loc.neighbourhood_ID = self.neighbourhoods[n].ID
+		for i,x in enumerate(self.df_buildings.index):
+			row = self.df_buildings.loc[x]
+			try:
+				if np.isnan(row['amenity']):
+					building_type = 'residence'
+				else:
+					building_type = row['amenity']
+			except:
+				building_type = row['amenity']
+
+			#building_type = location_settings(row[col_names],work_place, healthcare)  
+			locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
+								building_type,
+								row['neighbourhood'],
+								row['building_area'],)
+		return locations
+
+	def location_settings(building_lst, workplace:list, healthcare:list):
+		building_type = 'Residence'
+		if any(elem in healthcare for elem in building_lst):
+			building_type = 'Healthcare'
+		elif any(elem in workplace for elem in building_lst):
+			building_type = 'Economy'
+		return building_type    	
+
+	def initialize_neighbourhoods(self):
+		neighbourhoods = {1: Neighbourhood(self.locations)}
+		return neighbourhoods
+
 
 
 class Neighbourhood(object):
@@ -33,9 +64,6 @@ class Neighbourhood(object):
         self.locations = locations
         self.proximity_matrix = self.calculate_proximity_matrix()
         self.ID = 1  # todo
-
-    def calculate_proximity_matrix(self):  # create distances
-        matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
 
     def calculate_proximity_matrix(self): #create distances
         matrix = np.zeros((len(list(self.locations)),len(list(self.locations)))) # create  
@@ -60,24 +88,17 @@ class Neighbourhood(object):
         return matrix
 
 
-# class neighbourhood(object):
-#   def __init__(self,ID):
-#       self.ID = ID
-#       self.locations = []
-# idea proximity map for location distances
-
-class Location(object):
-    def __init__(self, ID, coordinates, location_type, people_present=set(),
+    def __init__(self, ID, coordinates, location_type, neighbourhood, area, people_present=set(),
                  location_factor=0.001):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
         self.ID = ID
         self.people_present = people_present
         self.location_factor = location_factor
         self.coordinates = coordinates  # () tuples
         self.location_type = location_type  # add 'hospital'
-        self.neighbourhood_ID = 1
+        self.neighbourhood_ID = neighbourhood
         self.distances = {}
+        self.area = area
         self.ids_of_location_types = {}  # loc_id : distance
-
 
     def get_location_id(self):
         return self.ID
@@ -98,12 +119,11 @@ class Location(object):
         return risk
 
     def next_hospital(self):
-        '''returns ID of the closest hospital in neighbourhood'''
+        '''returns sorted list of IDs of the closest hospital in neighbourhood'''
         return self.closest_loc('hospital')[0]
         
-
     def closest_loc(self, loc_type):
-        ''' returns ID of the closest Location of type : loc_type, if type is identical the distance is 0'''
+        ''' returns sorted list ID of the closest Location of type : loc_type, if type is identical the distance is 0'''
         try:
             ids_of_type_in_neighbourhood = self.ids_of_location_types[loc_type]
         except:
@@ -119,4 +139,3 @@ class Location(object):
     def distance_loc(self, location_ID):
         # print(location_ID)
         return self.distances[location_ID]
-# maybe without sqrt
