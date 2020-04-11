@@ -11,7 +11,7 @@ class ModeledPopulatedWorld(object):
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
         self.initial_infections = initial_infections
-        self.world = World(self.number_of_locs)
+        self.world = World(from_file=True)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
         self.infect(self.initial_infections)
@@ -20,7 +20,7 @@ class ModeledPopulatedWorld(object):
         people = set()
         for n in range(number_of_people):
             age = random_age()
-            schedule = self.create_schedule(age, self.locations)
+            schedule = self.create_schedule(age, list(self.locations.values()))
             people.add(Human(n, age, schedule, schedule['locs'][0]))
         return people
 
