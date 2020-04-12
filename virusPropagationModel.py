@@ -176,13 +176,20 @@ class Simulation(object):
         subset  of statuses. if not specified, will plot all available statuses
         :return:
         """
-
+        labels = {
+            'S': 'Susceptible',
+            'R': 'Recovered',
+            'I':  'Infected',
+            'D':  'Dead'
+        }
         trajectories = self.get_status_trajectories(specific_statuses)
+        assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
+                                                               "course "
         simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
 
         for status in trajectories.keys():
             plt.plot(simulation_timepoints,
-                     trajectories[status][status].values, label=status)
+                     trajectories[status][status].values, label=labels[status])
 
         plt.title('status trajectories')
         plt.legend()
