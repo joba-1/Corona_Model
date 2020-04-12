@@ -90,21 +90,27 @@ class Simulation(object):
             the amount of time steps to simulate
         time : int
             the last point in time the time course of this simulation
-        timecourse : list
-            contains a dicts representing a snapshot of the population (humans)
-        locations: list of location objects of the class Location
-            the locations initialized in this world
+        simulation_timecourse : pd.DataFrame
+            contains a dataframe which includes all of the human state attributes
+        statuses_in_timecourse: list
+            list of the statuses
         people: set of human objects of the human class
+
     """
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
         self.time = 0
-        # [{'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status, 'time': time}]
         self.simulation_timecourse = self.run_simulation()
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def get_person_attributes_per_time(self, person, only_status=False):
+        """
+        gets the location, status, and flags of a human object along with the current time
+        :param person: object of the Human class
+        :param only_status: bool. set True in case you dont want to return the flags too
+        :return: dict. with all the attributes mentioned above
+        """
         if only_status:
             attr = person.get_status()
         else:
@@ -115,7 +121,7 @@ class Simulation(object):
     def run_simulation(self):
         """
         simulates the trajectories of all the attributes of the population
-        :return:
+        :return: DataFrame which contains the time course of the simulation
         """
         population_size = len(self.modeled_populated_world.people)
         timecourse = np.empty(population_size*self.time_steps, dtype=object)
@@ -131,10 +137,15 @@ class Simulation(object):
         return pd.DataFrame(list(timecourse))
 
     def get_statuses_in_timecourse(self):
+        """
+        gets a list of the statuses in the time course
+        :return: list. list of available statuses
+        """
         return list(set(self.simulation_timecourse['status']))
 
     def get_status_trajectories(self, specific_statuses=None):
         """
+        gets the commutative amount of each status per point in time as a trajectory
         :param specific_statuses: List. Optional arg for getting only a subset  of statuses
         :return: DataFrame. The time courses for the specified statuses
         """
@@ -146,7 +157,7 @@ class Simulation(object):
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
         status_trajectories = {}
-        s_t = self.simulation_timecourse
+        s_t = self.simulation_timecourse.copy()
         s_t.loc[:, 'ones'] = np.ones(s_t.shape[0])
         for status in statuses:
             df = s_t[s_t['status'] == status]
@@ -173,15 +184,30 @@ class Simulation(object):
             plt.plot(simulation_timepoints,
                      trajectories[status][status].values, label=status)
 
-        plt.title('SecondPlot CoronaABM')
+        plt.title('status trajectories')
         plt.legend()
         plt.show()
         if save_figure:
-            plt.savefig('output_plot.png')
+            plt.savefig('status_plot.png')
+
+    def plot_flags_timecourse(self,specific_flags=None,save_figure=False):
+        if specific_flags is None:
+            cols = list(self.simulation_timecourse.columns)
+            cols_of_interest = [ele for ele in cols if ele not in {'h_ID','loc','status'}]
+        else:
+            cols_of_interest = specific_flags + ['time']
+        df = self.simulation_timecourse[set(cols_of_interest)]
+        gdf = df.groupby('time')
+        flag_sums = gdf.sum()
+        simulation_timepoints = list(gdf.groups.keys())
+        for flag in flag_sums.columns:
+            plt.plot(simulation_timepoints,flag_sums[flag], label=str(flag))
+        plt.title('flags trajectories')
+        plt.legend()
+        plt.show()
+        if save_figure:
+            plt.savefig('flags_plot.png')
+
+
 
 # todo: plot location ID/type cummulative timecourses for ticket #33
-
-#testing
-modeledWorld1 = ModeledPopulatedWorld(100,400,5)
-simulation1 = Simulation(modeledWorld1,100)
-simulation1.plot_status_timecourse()
