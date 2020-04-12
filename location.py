@@ -73,6 +73,12 @@ class Location(object):
         self.distances = {}
         self.ids_of_location_types = {}  # loc_id : distance
 
+    def get_location_id(self):
+        return self.ID
+
+    def get_location_type(self):
+        return self.location_type
+
     def enter(self, person):
         self.people_present.add(person)
 

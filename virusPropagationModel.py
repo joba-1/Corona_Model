@@ -168,13 +168,27 @@ class Simulation(object):
             status_trajectories[status] = df
         return status_trajectories
 
+    def get_location_with_type_trajectory(self):
+        """
+        uses the location ids in the simulation timecourse to reconstruct location types
+        :return: DataFrame. Contains location ids, time, human ids and location types
+        """
+        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in self.modeled_populated_world.locations}
+        location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
+        loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
+        for i in range(len(loc_type_traj)):
+            loc_type_traj[i] = loc_id_to_type_dict[location_traj_df['loc'][i]]
+
+        location_traj_df['loc_type'] = loc_type_traj
+        return location_traj_df
+
+
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
         plots the time course for selected statuses
         :param save_figure:  Bool. Flag for saving the figure as an image
         :param specific_statuses:   List. Optional arg for getting only a
         subset  of statuses. if not specified, will plot all available statuses
-        :return:
         """
         labels = {
             'S': 'Susceptible',
@@ -197,24 +211,53 @@ class Simulation(object):
         if save_figure:
             plt.savefig('status_plot.png')
 
-    def plot_flags_timecourse(self,specific_flags=None,save_figure=False):
+    def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
+        """
+        plots the time course for the selected flags
+        :param specific_flags: list. given flags to be included in the plot
+        :param save_figure: bool. Flag for saving the figure as an image
+        """
         if specific_flags is None:
             cols = list(self.simulation_timecourse.columns)
-            cols_of_interest = [ele for ele in cols if ele not in {'h_ID','loc','status'}]
+            random_person = random.choice(list(self.modeled_populated_world.people))
+            status_cols = random_person.get_status().keys()
+            cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
         else:
             cols_of_interest = specific_flags + ['time']
-        df = self.simulation_timecourse[set(cols_of_interest)]
+        df = self.simulation_timecourse[set(cols_of_interest)].copy()
         gdf = df.groupby('time')
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         for flag in flag_sums.columns:
-            plt.plot(simulation_timepoints,flag_sums[flag], label=str(flag))
+            plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
         plt.title('flags trajectories')
         plt.legend()
         plt.show()
         if save_figure:
             plt.savefig('flags_plot.png')
 
-
-
-# todo: plot location ID/type cummulative timecourses for ticket #33
+    def plot_location_type_occupancy_timecourse(self,specific_types=None, save_figure=False):
+        """
+        plots the occupancy of the location types in the time course
+        :param specific_types: list. List of specific types to plot (only)
+        :param save_figure: bool. Whether to save the figure
+        """
+        locations_df = self.get_location_with_type_trajectory().copy()
+        available_loc_types = set(locations_df['loc_type'])
+        if specific_types is not None:
+            assert available_loc_types >= set(specific_types),\
+                " specific types provided (" + str(specific_types) + ") " \
+                "do not match those in the timecourse (" + str(available_loc_types) + " )"
+            loc_types = specific_types
+        else:
+            loc_types = available_loc_types
+        for loc_type in loc_types:
+            df = locations_df[['time', 'loc_type']]
+            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type':loc_type})
+            location_count = df_of_location.groupby('time').count()
+            plt.plot(list(location_count.index.values), location_count[loc_type], label=loc_type)
+        plt.title('location occupancy trajectories')
+        plt.legend()
+        plt.show()
+        if save_figure:
+            plt.savefig('loc_types_occupancy_plot.png')
