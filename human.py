@@ -309,17 +309,17 @@ class Human(object):
 
     # status transitions humans can undergo
     """
-	GetExposed
+    GetExposed
 
-	def GetExposed(self):
-		if self.__status == 'safe':
-			tmpProb = npr.random_sample()
-			if tmpProb < self.__exposureProbability:
-				self.__status = 'exposed'
-				log.debug('status has changed to ' + str(self.__status))
-		else:
-			log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
-	"""
+    def GetExposed(self):
+        if self.__status == 'safe':
+            tmpProb = npr.random_sample()
+            if tmpProb < self.__exposureProbability:
+                self.__status = 'exposed'
+                log.debug('status has changed to ' + str(self.__status))
+        else:
+            log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
+    """
 
     def get_infected(self, risk, time):
         """

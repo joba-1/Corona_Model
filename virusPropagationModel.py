@@ -4,37 +4,54 @@ from age_initialisation import random_age
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 class ModeledPopulatedWorld(object):
     """
-        A Class which initializes a world with location and humans (a static snapshot of its origin).
-        This class can be used as an object by the class Simulate to simulate this populated world's time course
+    A Class which initializes a world with location and humans (a static snapshot of its origin).
+    This class can be used as an object by the class Simulate to simulate this populated world's time course
 
-        Attributes
-        ----------
-        number_of_locs : int
-            The amount of location objects to initialize
-        number_of_people : int
-            The amount of human objects to initialize
-        initial_infections : int
-            The amount of human objects initially possibly infected (exact amount depends on a probability)
-        world: object of class World
-            the initialized world object assigned to this class object
-        locations: list of location objects of the class Location
-            the locations initialized in this world
-        people: set of human objects of the human class
+    Attributes
+    ----------
+    number_of_locs : int
+        The amount of location objects to initialize
+    number_of_people : int
+        The amount of human objects to initialize
+    initial_infections : int
+        The amount of human objects initially possibly infected (exact amount depends on a probability)
+    world: object of class World
+        the initialized world object assigned to this class object
+    locations: list of location objects of the class Location
+        the locations initialized in this world
+    people: set of human objects of the human class
+
+    Methods
+    ----------
+    initialize_people()
+        initializes a set of people (human objects) with assigned ages and schedules
+        :param number_of_people: int. The amount of people to initialize
+        :return people: set. a set of human objects
+
+    create_schedule()
+        creates a schedule, depending on a given age and locations
+        :param age: int. given age for a human from whom this schedule should be
+        :param locations: list of location objects to which the human can go
+        :return sched: dict. specifies times of transitions and assigned locations
+
+    infect()
+        infects people (list of humans) initially
+        :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections):
+    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):
+        self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
         self.initial_infections = initial_infections
-        self.world = World(self.number_of_locs)
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
-        self.infect(self.initial_infections)
+        self.initialize_infection(self.initial_infections)
 
     def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
         """
@@ -42,61 +59,55 @@ class ModeledPopulatedWorld(object):
         :param number_of_people: int. The amount of people to initialize
         :return people: set. a set of human objects
         """
+        free_homes=[h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
         people = set()
         for n in range(number_of_people):
             age = random_age()
-            schedule = self.create_schedule(age, self.locations)
-            people.add(Human(n, age, schedule, schedule['locs'][0]))
+            home = random.sample(free_homes,1)[0]
+            schedule = self.create_schedule(age, home)
+            people.add(Human(n, age, schedule, home))
         return people
 
-    def create_schedule(self, age, locations):
+    def create_schedule(self, age, home):
         """
         creates a schedule, depending on a given age and locations
         :param age: int. given age for a human from whom this schedule should be
         :param locations: list of location objects to which the human can go
         :return sched: dict. specifies times of transitions and assigned locations
         """
-        if 3 < age < 70:  # schedule has to depend on age, this is only preliminary
-            num_locs = 5
-        else:
-            num_locs = 3
-        my_locs = random.sample(locations,
-                                num_locs)  # draw random locations (preliminary) (random.sample() draws exclusively)
-        my_times = random.sample(range(24), num_locs)
-        my_times.sort()
-        sched = {'times': my_times, 'locs': my_locs}
-        return sched
+        if age < 18:    ## underage
+            home_time = npr.randint(17,22)  ## draw when to be back home from 17 to 22
+            times = [8,15,home_time]    ## school is from 8 to 15, from 15 on there is public time
+            school_id = home.closest_loc('school')[0]   ## go to closest school
+            public_id = random.sample(home.closest_loc('public_place')[:2],1)[0]    ## draw public place from 2 closest
+            locs = [self.locations[school_id],self.locations[public_id],home]
+        elif age < 70:      ## working adult
+            worktime = npr.randint(7,12)    ## draw time between 7 and 12 to beginn work
+            public_duration = npr.randint(1,3)  ## draw duration of stay at public place
+            times = [worktime, worktime+8, worktime+8+public_duration]
+            work_id = random.sample(home.closest_loc('work')[:3],1)[0] ## draw workplace from the 3 closest
+            public_id = random.sample(home.closest_loc('public_place')[:3],1)[0]    ## draw public place from 3 closest
+            locs = [self.locations[work_id],self.locations[public_id],home]
+        else:   ## senior, only goes to one public place each day
+            public_time = npr.randint(7,17)
+            public_duration = npr.randint(1,5)
+            times = [public_time, public_time+public_duration]
+            public_id = home.closest_loc('public_place')[0]
+            locs = [self.locations[public_id],home]
 
-    def infect(self, amount):
+        return {'times':times,'locs':locs}
+
+    def initialize_infection(self, amount):
         """
-        infects people (list of humans) at random with a certain probability
-        :param amount: int. amount of people to possibly infect
+        infects people (list of humans) initially
+        :param amount: int. amount of people to initially infect
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            # p.status = 'I'
-            p.get_infected(1.0, 0)
+            p.get_infected(1.0,0)
 
 
 class Simulation(object):
-    """
-        A Class which contains a simulation based on a specific ModeledPopulatedWorld object.
-
-        Attributes
-        ----------
-        modeled_populated_world : object of class ModeledPopulatedWorld
-            the initialized populated world that is to be simulated over time
-        time_steps: int
-            the amount of time steps to simulate
-        time : int
-            the last point in time the time course of this simulation
-        simulation_timecourse : pd.DataFrame
-            contains a dataframe which includes all of the human state attributes
-        statuses_in_timecourse: list
-            list of the statuses
-        people: set of human objects of the human class
-
-    """
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
@@ -116,7 +127,6 @@ class Simulation(object):
         else:
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
-
 
     def run_simulation(self):
         """
@@ -163,7 +173,8 @@ class Simulation(object):
             df = s_t[s_t['status'] == status]
             gdf = df.groupby('time')
             stat_t = gdf.sum()['ones']
-            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t], axis=1).loc[1:].fillna(0)
+            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t],
+                           axis=1).loc[1:].fillna(0)
             df.columns = ['time', status]
             status_trajectories[status] = df
         return status_trajectories
@@ -173,7 +184,8 @@ class Simulation(object):
         uses the location ids in the simulation timecourse to reconstruct location types
         :return: DataFrame. Contains location ids, time, human ids and location types
         """
-        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in self.modeled_populated_world.locations}
+        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in
+                               self.modeled_populated_world.locations.values()}
         location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
         loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
         for i in range(len(loc_type_traj)):
@@ -181,7 +193,6 @@ class Simulation(object):
 
         location_traj_df['loc_type'] = loc_type_traj
         return location_traj_df
-
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -236,7 +247,7 @@ class Simulation(object):
         if save_figure:
             plt.savefig('flags_plot.png')
 
-    def plot_location_type_occupancy_timecourse(self,specific_types=None, save_figure=False):
+    def plot_location_type_occupancy_timecourse(self, specific_types=None, save_figure=False):
         """
         plots the occupancy of the location types in the time course
         :param specific_types: list. List of specific types to plot (only)
@@ -253,7 +264,7 @@ class Simulation(object):
             loc_types = available_loc_types
         for loc_type in loc_types:
             df = locations_df[['time', 'loc_type']]
-            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type':loc_type})
+            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type': loc_type})
             location_count = df_of_location.groupby('time').count()
             plt.plot(list(location_count.index.values), location_count[loc_type], label=loc_type)
         plt.title('location occupancy trajectories')
