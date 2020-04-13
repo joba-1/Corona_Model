@@ -49,7 +49,7 @@ def random_age(loc_string='Heinsberg'):
     :return: age, an int
     """
     locations = ['Germany', 'Berlin', 'Heinsberg']
-    assert loc_string in locations, 'population from which age drawn not set. choose from {}'.format(locations)
+    assert loc_string in locations, f'population from which age drawn not set. choose from {locations}'
 
     if loc_string == 'Berlin':
         cumulative_p = ecd_berlin

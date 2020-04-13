@@ -1,7 +1,18 @@
+#!/usr/bin/python
+"""
+This class defines the a human agent to be used in a (Corona) Virus infection model.
+It defines the agents properties and the transitions between different stati.
+created April, 2nd, 2020 -
+(c) Judith Wodke, Stephan O. Adler, Oliver Bodeit, PLEASE ADD YOUR NAME IF CONTRIBUTING!
+"""
+
+# import required libraries
 import numpy.random as npr  # numpy.random for generating random numbers
 import logging as log  # logging for allowing to keep track of code development and putative errors
 import sys  # sys
 from location import *
+
+# define the human agent class
 
 
 class Human(object):
@@ -46,12 +57,6 @@ class Human(object):
         Agent is in ICU
     was_infected : bool
         Agent has ever been infected
-    infection_duration : int
-        The duration of the agent's infection.
-    behaviour_as_infected : float
-        Factor by which the infected can decrease infectivity by behaviour.
-    behaviour_as_susceptible = float
-        Factor by which the susceptible can avoid infection by behaviour.
 
     Methods
     ----------
@@ -59,7 +64,7 @@ class Human(object):
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
 
-    update_state()
+    update_status()
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
 
@@ -156,12 +161,6 @@ class Human(object):
         Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
 
-    get_infectivity()
-        Returns the infectivity of infected agent.
-        Should theoretically be based on the duration of the infection and
-        the personal behaviour.
-        For now it is set to the default-value of 1; so nothing changes,
-        with respect to the previous version.
     """
 
     def __init__(self, ID, age, schedule, loc, status='S'):
@@ -176,6 +175,7 @@ class Human(object):
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = schedule
         self.loc = loc  # current location
+        self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.infection_time = 0
         self.diagnosis_time = 0
         self.hospitalisation_time = 0
@@ -187,15 +187,11 @@ class Human(object):
         self.hospitalized = False
         self.icu = False
         self.was_infected = False
-        self.infection_duration = 0
-        self.behaviour_as_infected = 1
-        self.behaviour_as_susceptible = 1
         loc.enter(self)
-        self.personal_risk = self.get_personal_risk()  # todesrisiko
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-    def update_state(self, time):  # this is not yet according to Eddas model
+    def update_status(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
@@ -206,7 +202,6 @@ class Human(object):
             risk = self.loc.infection_risk()
             self.get_infected(risk, time)
         elif self.status == 'I':
-            self.infection_duration = time-self.infection_time
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             self.die(time)
             if self.status == 'I':
@@ -289,7 +284,7 @@ class Human(object):
         Calculates probability to recover.
         Arguments to provide are: time (int)
         """
-        prob = self.infection_duration / \
+        prob = (time - self.infection_time) / \
             480.  # probabitily increases hourly over 20 days (my preliminary random choice)
         # am besten mit kummulativer gauss-verteilung
         return prob
@@ -305,21 +300,21 @@ class Human(object):
             risk = 0.005
         else:
             risk = 0.01
-        return(risk*self.behaviour_as_susceptible)
+        return risk
 
     # status transitions humans can undergo
     """
-    GetExposed
+	GetExposed
 
-    def GetExposed(self):
-        if self.__status == 'safe':
-            tmpProb = npr.random_sample()
-            if tmpProb < self.__exposureProbability:
-                self.__status = 'exposed'
-                log.debug('status has changed to ' + str(self.__status))
-        else:
-            log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
-    """
+	def GetExposed(self):
+		if self.__status == 'safe':
+			tmpProb = npr.random_sample()
+			if tmpProb < self.__exposureProbability:
+				self.__status = 'exposed'
+				log.debug('status has changed to ' + str(self.__status))
+		else:
+			log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
+	"""
 
     def get_infected(self, risk, time):
         """
@@ -328,7 +323,7 @@ class Human(object):
         infection_time-attribute and sets was_infected-attribute to True.
         Arguments to provide are: risk (float), time (int)
         """
-        if risk >= npr.random_sample():
+        if risk > npr.random_sample():
             self.status = 'I'
             self.infection_time = time
             self.was_infected = True
@@ -340,7 +335,7 @@ class Human(object):
         diagnosis_time-attribute.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability > npr.random_sample():
             self.diagnosed = True
             self.diagnosis_time = time
 
@@ -353,7 +348,7 @@ class Human(object):
         Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
         """
-        if recover_prob >= npr.random_sample():
+        if recover_prob > npr.random_sample():
             self.recover_time = time
             self.status = 'R'
             self.icu = False
@@ -368,7 +363,7 @@ class Human(object):
         icu_time-attribute. Sets hospitalized-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability > npr.random_sample():
             self.icu = True
             self.hospitalized = False
             self.icu_time = time
@@ -381,7 +376,7 @@ class Human(object):
         rehospitalization_time-attribute. Sets icu-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability > npr.random_sample():
             self.hospitalized = True
             self.icu = False
             self.rehospitalization_time = time
@@ -396,7 +391,7 @@ class Human(object):
         CHANGE OF SCHEDULE MUST BE IMPLEMENTED HERE!!!
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability > npr.random_sample():
             self.hospitalized = True
             self.hospitalization_time = time
             if not self.diagnosed:
@@ -415,21 +410,9 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if self.personal_risk >= npr.random_sample():
+        if self.personal_risk > npr.random_sample():
             self.status = 'D'
             self.death_time = time
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
-
-    def get_infectivity(self):
-        """
-        Returns the infectivity of infected agent.
-        Should theoretically be based on the duration of the infection.
-        For now it is set to the default-value of 1; so nothing changes,
-        with respect to the previous version.
-        """
-        # infection_duration=self.infection_duration
-        ## use infection duration somehow to calculate infectivity ...##
-        infectivity = 1  # for now set to 1, should be function of infection-duration#
-        return(infectivity*self.behaviour_as_infected)
