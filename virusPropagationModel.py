@@ -4,7 +4,6 @@ from age_initialisation import random_age
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 class ModeledPopulatedWorld(object):
@@ -44,14 +43,15 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections):
+    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):
+        self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
         self.initial_infections = initial_infections
-        self.world = World(self.number_of_locs)
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
-        self.infect(self.initial_infections)
+        self.initialize_infection(self.initial_infections)
 
     def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
         """
@@ -97,78 +97,17 @@ class ModeledPopulatedWorld(object):
 
         return {'times':times,'locs':locs}
 
-    def infect(self, amount):
+    def initialize_infection(self, amount):
         """
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            # p.status = 'I'
-            p.get_infected(1.0, 0)
+            p.get_infected(1.0,0)
 
 
 class Simulation(object):
-    """
-    A Class which contains a simulation based on a specific ModeledPopulatedWorld object.
-
-    Attributes
-    ----------
-    modeled_populated_world : object of class ModeledPopulatedWorld
-        the initialized populated world that is to be simulated over time
-    time_steps: int
-        the amount of time steps to simulate
-    time : int
-        the last point in time the time course of this simulation
-    simulation_timecourse : pd.DataFrame
-        contains a dataframe which includes all of the human state attributes
-    statuses_in_timecourse: list
-        list of the statuses
-    people: set of human objects of the human class
-
-    Methods
-    ----------
-    get_person_attributes_per_time()
-        gets the location, status, and flags of a human object along with the current time
-        :param person: object of the Human class
-        :param only_status: bool. set True in case you dont want to return the flags too
-        :return: dict. with all the attributes mentioned above
-
-    run_simulation()
-        simulates the trajectories of all the attributes of the population
-        :return: DataFrame which contains the time course of the simulation
-
-    get_statuses_in_timecourse()
-        gets a list of the statuses in the time course
-        :return: list. list of available statuses
-
-    get_status_trajectories()
-        gets the commutative amount of each status per point in time as a trajectory
-        :param specific_statuses: List. Optional arg for getting only a subset  of statuses
-        :return: DataFrame. The time courses for the specified statuses
-
-    get_location_with_type_trajectory()
-        uses the location ids in the simulation timecourse to reconstruct location types
-        :return: DataFrame. Contains location ids, time, human ids and location types
-
-    plot_status_timecourse()
-        plots the time course for selected statuses
-        :param save_figure:  Bool. Flag for saving the figure as an image
-        :param specific_statuses:   List. Optional arg for getting only a
-        subset  of statuses. if not specified, will plot all available statuses
-
-    plot_flags_timecourse()
-        plots the time course for the selected flags
-        :param specific_flags: list. given flags to be included in the plot
-        :param save_figure: bool. Flag for saving the figure as an image
-
-    plot_location_type_occupancy_timecourse()
-        plots the occupancy of the location types in the time course
-        :param specific_types: list. List of specific types to plot (only)
-        :param save_figure: bool. Whether to save the figure
-
-    """
-
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
