@@ -34,17 +34,17 @@ class World(object):
                 if np.isnan(row['amenity']):
                     building_type = 'home'
                 else:
-                    building_type = 'work'#row['amenity']
+                    building_type = random.sample(['work','school','public_place'],1)[0]#row['amenity']
             except:
-                building_type = 'work'#row['amenity']
+                building_type = random.sample(['work','school','public_place'],1)[0]#row['amenity']
 
             #building_type = location_settings(row[col_names],work_place, healthcare)  
             locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
                                 building_type,
                                 row['neighbourhood'],
                                 row['building_area'],)
-            locations[0] = Location(0, (0, 0), 'public_place', 1, 1e-8)
-            locations[1] = Location(1, (0, 2), 'school', 1, 1e-8)
+            #locations[0] = Location(0, (0, 0), 'public_place', 1, 1e-8)
+            #locations[1] = Location(1, (0, 2), 'school', 1, 1e-8)
         return locations
 
     def location_settings(building_lst, workplace:list, healthcare:list):
@@ -56,9 +56,17 @@ class World(object):
         return building_type        
 
     def initialize_neighbourhoods(self):
-        neighbourhoods = {1: Neighbourhood(self.locations)}
+        if self.from_file:
+            neighbourhoods = {}
+            for loc in self.locations.values():
+                neighbourhood_id = loc.neighbourhood_ID
+                if neighbourhood_id in neighbourhoods.keys():
+                    neighbourhoods[neighbourhood_id][loc.ID] = loc
+                else:
+                    neighbourhoods[neighbourhood_id] = {loc.ID: loc}   ## 1 schould be neighbourhood_id
+        else:
+            neighbourhoods = {1: Neighbourhood(self.locations)}
         return neighbourhoods
-
 
 
 class Neighbourhood(object):
