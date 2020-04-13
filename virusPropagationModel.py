@@ -9,22 +9,39 @@ import numpy as np
 
 class ModeledPopulatedWorld(object):
     """
-        A Class which initializes a world with location and humans (a static snapshot of its origin).
-        This class can be used as an object by the class Simulate to simulate this populated world's time course
+    A Class which initializes a world with location and humans (a static snapshot of its origin).
+    This class can be used as an object by the class Simulate to simulate this populated world's time course
 
-        Attributes
-        ----------
-        number_of_locs : int
-            The amount of location objects to initialize
-        number_of_people : int
-            The amount of human objects to initialize
-        initial_infections : int
-            The amount of human objects initially possibly infected (exact amount depends on a probability)
-        world: object of class World
-            the initialized world object assigned to this class object
-        locations: list of location objects of the class Location
-            the locations initialized in this world
-        people: set of human objects of the human class
+    Attributes
+    ----------
+    number_of_locs : int
+        The amount of location objects to initialize
+    number_of_people : int
+        The amount of human objects to initialize
+    initial_infections : int
+        The amount of human objects initially possibly infected (exact amount depends on a probability)
+    world: object of class World
+        the initialized world object assigned to this class object
+    locations: list of location objects of the class Location
+        the locations initialized in this world
+    people: set of human objects of the human class
+
+    Methods
+    ----------
+    initialize_people()
+        initializes a set of people (human objects) with assigned ages and schedules
+        :param number_of_people: int. The amount of people to initialize
+        :return people: set. a set of human objects
+
+    create_schedule()
+        creates a schedule, depending on a given age and locations
+        :param age: int. given age for a human from whom this schedule should be
+        :param locations: list of location objects to which the human can go
+        :return sched: dict. specifies times of transitions and assigned locations
+
+    infect()
+        infects people (list of humans) initially
+        :param amount: int. amount of people to initially infect
     """
 
     def __init__(self, number_of_locs, number_of_people, initial_infections):
@@ -69,8 +86,8 @@ class ModeledPopulatedWorld(object):
 
     def infect(self, amount):
         """
-        infects people (list of humans) at random with a certain probability
-        :param amount: int. amount of people to possibly infect
+        infects people (list of humans) initially
+        :param amount: int. amount of people to initially infect
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
@@ -80,23 +97,65 @@ class ModeledPopulatedWorld(object):
 
 class Simulation(object):
     """
-        A Class which contains a simulation based on a specific ModeledPopulatedWorld object.
+    A Class which contains a simulation based on a specific ModeledPopulatedWorld object.
 
-        Attributes
-        ----------
-        modeled_populated_world : object of class ModeledPopulatedWorld
-            the initialized populated world that is to be simulated over time
-        time_steps: int
-            the amount of time steps to simulate
-        time : int
-            the last point in time the time course of this simulation
-        simulation_timecourse : pd.DataFrame
-            contains a dataframe which includes all of the human state attributes
-        statuses_in_timecourse: list
-            list of the statuses
-        people: set of human objects of the human class
+    Attributes
+    ----------
+    modeled_populated_world : object of class ModeledPopulatedWorld
+        the initialized populated world that is to be simulated over time
+    time_steps: int
+        the amount of time steps to simulate
+    time : int
+        the last point in time the time course of this simulation
+    simulation_timecourse : pd.DataFrame
+        contains a dataframe which includes all of the human state attributes
+    statuses_in_timecourse: list
+        list of the statuses
+    people: set of human objects of the human class
+
+    Methods
+    ----------
+    get_person_attributes_per_time()
+        gets the location, status, and flags of a human object along with the current time
+        :param person: object of the Human class
+        :param only_status: bool. set True in case you dont want to return the flags too
+        :return: dict. with all the attributes mentioned above
+
+    run_simulation()
+        simulates the trajectories of all the attributes of the population
+        :return: DataFrame which contains the time course of the simulation
+
+    get_statuses_in_timecourse()
+        gets a list of the statuses in the time course
+        :return: list. list of available statuses
+
+    get_status_trajectories()
+        gets the commutative amount of each status per point in time as a trajectory
+        :param specific_statuses: List. Optional arg for getting only a subset  of statuses
+        :return: DataFrame. The time courses for the specified statuses
+
+    get_location_with_type_trajectory()
+        uses the location ids in the simulation timecourse to reconstruct location types
+        :return: DataFrame. Contains location ids, time, human ids and location types
+
+    plot_status_timecourse()
+        plots the time course for selected statuses
+        :param save_figure:  Bool. Flag for saving the figure as an image
+        :param specific_statuses:   List. Optional arg for getting only a
+        subset  of statuses. if not specified, will plot all available statuses
+
+    plot_flags_timecourse()
+        plots the time course for the selected flags
+        :param specific_flags: list. given flags to be included in the plot
+        :param save_figure: bool. Flag for saving the figure as an image
+
+    plot_location_type_occupancy_timecourse()
+        plots the occupancy of the location types in the time course
+        :param specific_types: list. List of specific types to plot (only)
+        :param save_figure: bool. Whether to save the figure
 
     """
+
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
@@ -116,7 +175,6 @@ class Simulation(object):
         else:
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
-
 
     def run_simulation(self):
         """
@@ -163,7 +221,8 @@ class Simulation(object):
             df = s_t[s_t['status'] == status]
             gdf = df.groupby('time')
             stat_t = gdf.sum()['ones']
-            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t], axis=1).loc[1:].fillna(0)
+            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t],
+                           axis=1).loc[1:].fillna(0)
             df.columns = ['time', status]
             status_trajectories[status] = df
         return status_trajectories
@@ -173,7 +232,8 @@ class Simulation(object):
         uses the location ids in the simulation timecourse to reconstruct location types
         :return: DataFrame. Contains location ids, time, human ids and location types
         """
-        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in self.modeled_populated_world.locations}
+        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type()
+                               for loc in self.modeled_populated_world.locations}
         location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
         loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
         for i in range(len(loc_type_traj)):
@@ -181,7 +241,6 @@ class Simulation(object):
 
         location_traj_df['loc_type'] = loc_type_traj
         return location_traj_df
-
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -236,7 +295,7 @@ class Simulation(object):
         if save_figure:
             plt.savefig('flags_plot.png')
 
-    def plot_location_type_occupancy_timecourse(self,specific_types=None, save_figure=False):
+    def plot_location_type_occupancy_timecourse(self, specific_types=None, save_figure=False):
         """
         plots the occupancy of the location types in the time course
         :param specific_types: list. List of specific types to plot (only)
@@ -253,7 +312,7 @@ class Simulation(object):
             loc_types = available_loc_types
         for loc_type in loc_types:
             df = locations_df[['time', 'loc_type']]
-            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type':loc_type})
+            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type': loc_type})
             location_count = df_of_location.groupby('time').count()
             plt.plot(list(location_count.index.values), location_count[loc_type], label=loc_type)
         plt.title('location occupancy trajectories')
