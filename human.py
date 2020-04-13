@@ -1,18 +1,7 @@
-#!/usr/bin/python
-"""
-This class defines the a human agent to be used in a (Corona) Virus infection model.
-It defines the agents properties and the transitions between different stati.
-created April, 2nd, 2020 -
-(c) Judith Wodke, Stephan O. Adler, Oliver Bodeit, PLEASE ADD YOUR NAME IF CONTRIBUTING!
-"""
-
-# import required libraries
 import numpy.random as npr  # numpy.random for generating random numbers
 import logging as log  # logging for allowing to keep track of code development and putative errors
 import sys  # sys
 from location import *
-
-# define the human agent class
 
 
 class Human(object):
@@ -70,7 +59,7 @@ class Human(object):
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
 
-    update_status()
+    update_state()
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
 
@@ -206,7 +195,7 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-    def update_status(self, time):  # this is not yet according to Eddas model
+    def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
