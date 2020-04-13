@@ -59,7 +59,9 @@ class ModeledPopulatedWorld(object):
         :param number_of_people: int. The amount of people to initialize
         :return people: set. a set of human objects
         """
-        free_homes=[h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
+        free_homes = [h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
+        assert free_homes, 'not enough available homes in the simulation. Please simulate with more locations per ' \
+                           'person '
         people = set()
         for n in range(number_of_people):
             age = random_age()

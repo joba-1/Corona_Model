@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 
 class MyTestCase(unittest.TestCase):
     def test_ModeledPopulatedWorld_initialization(self):
-        modeledWorld1 = ModeledPopulatedWorld(100, 400, 5)
-        self.assertEqual(100, modeledWorld1.number_of_locs, "not all given amount of locations was initialized. # "
+        modeledWorld1 = ModeledPopulatedWorld(20, 800,50)
+        self.assertEqual(20, modeledWorld1.number_of_locs, "not all given amount of locations was initialized. # "
                                                                "initialized: " + str(modeledWorld1.number_of_locs))
-        self.assertEqual(400, modeledWorld1.number_of_people, "not all given amount of people was initialized. # "
+        self.assertEqual(800, modeledWorld1.number_of_people, "not all given amount of people was initialized. # "
                                                                "initialized: " + str(modeledWorld1.number_of_people))
 
     def test_ModeledPopulatedWorld_functions_no_errors(self):
-        modeledWorld1 = ModeledPopulatedWorld(100, 400, 5)
+        modeledWorld1 = ModeledPopulatedWorld(30, 800, 50)
+        modeledWorld2 = ModeledPopulatedWorld(100, 400, 5)
         simulation1 = Simulation(modeledWorld1, 100)
         simulation1.plot_status_timecourse()
         simulation1.plot_flags_timecourse()

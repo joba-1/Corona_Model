@@ -99,10 +99,10 @@ class Neighbourhood(object):
         return matrix
 
 class Location(object):
-    def __init__(self, ID, coordinates, location_type, neighbourhood, area, people_present=set(),
+    def __init__(self, ID, coordinates, location_type, neighbourhood, area,
                  location_factor=0.001):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
         self.ID = ID
-        self.people_present = people_present
+        self.people_present = set()
         self.location_factor = location_factor
         self.coordinates = coordinates  # () tuples
         self.location_type = location_type  # add 'hospital'
