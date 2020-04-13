@@ -1,0 +1,2 @@
+simpletest:
+    script: "python3 testrunner.py"
