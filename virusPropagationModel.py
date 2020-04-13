@@ -268,7 +268,7 @@ class Simulation(object):
         plt.legend()
         plt.show()
         if save_figure:
-            plt.savefig('status_plot.png')
+            plt.savefig('outputs/status_plot.png')
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
@@ -293,7 +293,7 @@ class Simulation(object):
         plt.legend()
         plt.show()
         if save_figure:
-            plt.savefig('flags_plot.png')
+            plt.savefig('outputs/flags_plot.png')
 
     def plot_location_type_occupancy_timecourse(self, specific_types=None, save_figure=False):
         """
@@ -319,7 +319,7 @@ class Simulation(object):
         plt.legend()
         plt.show()
         if save_figure:
-            plt.savefig('loc_types_occupancy_plot.png')
+            plt.savefig('outputs/loc_types_occupancy_plot.png')
 
     def export_time_courses_as_csvs(self, identifier=""):
         self.simulation_timecourse.to_csv('outputs/'+identifier+'-humans_time_course.csv')
