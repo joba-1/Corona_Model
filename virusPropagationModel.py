@@ -197,8 +197,6 @@ class Simulation(object):
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
-        for p in self.modeled_populated_world.people:
-            print(p.get_infection_info())
         return pd.DataFrame(list(timecourse))
 
     def get_statuses_in_timecourse(self):
