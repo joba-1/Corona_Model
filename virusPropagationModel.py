@@ -43,12 +43,12 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):
+    def __init__(self, number_of_locs, number_of_people, initial_infections):
         self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
         self.initial_infections = initial_infections
-        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
+        self.world = World(from_file=True, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
         self.initialize_infection(self.initial_infections)
