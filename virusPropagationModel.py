@@ -51,6 +51,7 @@ class ModeledPopulatedWorld(object):
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.number_of_people)
+        self.initialize_infection(self.initial_infections)
 
     def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
         """
@@ -103,6 +104,7 @@ class ModeledPopulatedWorld(object):
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
+            p.get_infected(1.0,0)
 
 
 class Simulation(object):
