@@ -43,7 +43,7 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False): #currently breaks when False
+    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):  # currently breaks when False
         self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
         self.number_of_people = number_of_people
@@ -59,13 +59,14 @@ class ModeledPopulatedWorld(object):
         :param number_of_people: int. The amount of people to initialize
         :return people: set. a set of human objects
         """
-        free_homes = [h for h in self.locations.values() if (h.location_type=='home' and len(h.people_present)<6)]
+        free_homes = [h for h in self.locations.values() if (
+            h.location_type == 'home' and len(h.people_present) < 6)]
         assert free_homes, 'not enough available homes in the simulation. Please simulate with more locations per ' \
                            'person '
         people = set()
         for n in range(number_of_people):
             age = random_age()
-            home = random.sample(free_homes,1)[0]
+            home = random.sample(free_homes, 1)[0]
             schedule = self.create_schedule(age, home, self.locations)
             people.add(Human(n, age, schedule, home))
         return people
@@ -77,56 +78,59 @@ class ModeledPopulatedWorld(object):
         :param locations: list of location objects to which the human can go
         :return sched: dict. specifies times of transitions and assigned locations
         """
-        workplaces = [l.ID for l in self.locations.values() if l.location_type=='work']
-        public_places = [l.ID for l in self.locations.values() if l.location_type=='public_place']
-        schools = [l.ID for l in self.locations.values() if l.location_type=='school']
+        workplaces = [l.ID for l in self.locations.values() if l.location_type == 'work']
+        public_places = [l.ID for l in self.locations.values() if l.location_type == 'public_place']
+        schools = [l.ID for l in self.locations.values() if l.location_type == 'school']
 
-        if age < 18:    ## underage
-            home_time = npr.randint(17,22)  ## draw when to be back home from 17 to 22
-            times = [8,15,home_time]    ## school is from 8 to 15, from 15 on there is public time
+        if age < 18:  # underage
+            home_time = npr.randint(17, 22)  # draw when to be back home from 17 to 22
+            times = [8, 15, home_time]  # school is from 8 to 15, from 15 on there is public time
 
             if home.closest_loc('school'):
-                school_id = home.closest_loc('school')[0]   ## go to closest school
+                school_id = home.closest_loc('school')[0]  # go to closest school
             else:
-                school_id = random.sample(schools,1)[0]
+                school_id = random.sample(schools, 1)[0]
 
             if home.closest_loc('public_place'):
-                public_id = random.sample(home.closest_loc('public_place')[:2],1)[0]    ## draw public place from 2 closest
+                public_id = random.sample(home.closest_loc('public_place')[:2], 1)[
+                    0]  # draw public place from 2 closest
             else:
-                public_id = random.sample(public_places,1)[0]
+                public_id = random.sample(public_places, 1)[0]
 
-            locs = [self.locations[school_id],self.locations[public_id],home]
+            locs = [self.locations[school_id], self.locations[public_id], home]
 
-        elif age < 70:      ## working adult
-            worktime = npr.randint(7,12)    ## draw time between 7 and 12 to beginn work
-            public_duration = npr.randint(1,3)  ## draw duration of stay at public place
+        elif age < 70:  # working adult
+            worktime = npr.randint(7, 12)  # draw time between 7 and 12 to beginn work
+            public_duration = npr.randint(1, 3)  # draw duration of stay at public place
             times = [worktime, worktime+8, worktime+8+public_duration]
 
             if home.closest_loc('work'):
-                work_id = random.sample(home.closest_loc('work')[:3],1)[0] ## draw workplace from the 3 closest
+                work_id = random.sample(home.closest_loc('work')[:3], 1)[
+                    0]  # draw workplace from the 3 closest
             else:
-                work_id = random.sample(workplaces,1)[0]
+                work_id = random.sample(workplaces, 1)[0]
 
             if home.closest_loc('public_place'):
-                public_id = random.sample(home.closest_loc('public_place')[:3],1)[0]    ## draw public place from 3 closest
+                public_id = random.sample(home.closest_loc('public_place')[:3], 1)[
+                    0]  # draw public place from 3 closest
             else:
-                public_id = random.sample(public_places,1)[0]
+                public_id = random.sample(public_places, 1)[0]
 
-            locs = [self.locations[work_id],self.locations[public_id],home]
+            locs = [self.locations[work_id], self.locations[public_id], home]
 
-        else:   ## senior, only goes to one public place each day
-            public_time = npr.randint(7,17)
-            public_duration = npr.randint(1,5)
+        else:  # senior, only goes to one public place each day
+            public_time = npr.randint(7, 17)
+            public_duration = npr.randint(1, 5)
             times = [public_time, public_time+public_duration]
 
             if home.closest_loc('public_place'):
-                public_id = home.closest_loc('public_place')[0]   ## draw public place from 3 closest
+                public_id = home.closest_loc('public_place')[0]  # draw public place from 3 closest
             else:
-                public_id = random.sample(public_places,1)[0]
+                public_id = random.sample(public_places, 1)[0]
 
-            locs = [self.locations[public_id],home]
+            locs = [self.locations[public_id], home]
 
-        return {'times':times,'locs':locs}
+        return {'times': times, 'locs': locs}
 
     def initialize_infection(self, amount):
         """
@@ -135,7 +139,7 @@ class ModeledPopulatedWorld(object):
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            p.get_infected(1.0,0)
+            p.get_infected(1.0, 0)
 
 
 class Simulation(object):
@@ -156,6 +160,7 @@ class Simulation(object):
     Methods
     ----------
     """
+
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
@@ -192,6 +197,8 @@ class Simulation(object):
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
+        for p in self.modeled_populated_world.people:
+            print(p.get_infection_info())
         return pd.DataFrame(list(timecourse))
 
     def get_statuses_in_timecourse(self):
@@ -329,5 +336,3 @@ class Simulation(object):
         concat_trajectory_df.to_csv('outputs/'+identifier+'-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
-
-
