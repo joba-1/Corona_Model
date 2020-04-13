@@ -37,7 +37,7 @@ class ModeledPopulatedWorld(object):
         self.infect(self.initial_infections)
 
     def initialize_people(self, number_of_people): # idee martin: skalenfeiheit
-            """
+        """
         initializes a set of people (human objects) with assigned ages and schedules
         :param number_of_people: int. The amount of people to initialize
         :return people: set. a set of human objects
@@ -186,7 +186,7 @@ class Simulation(object):
         uses the location ids in the simulation timecourse to reconstruct location types
         :return: DataFrame. Contains location ids, time, human ids and location types
         """
-        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in self.modeled_populated_world.locations}
+        loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in self.modeled_populated_world.locations.values()}
         location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
         loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
         for i in range(len(loc_type_traj)):
