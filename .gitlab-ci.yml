@@ -1,2 +1,4 @@
 simpletest:
-    script: "python3 testrunner.py"
+    script:
+        - pwd
+        - python3 testrunner.py
