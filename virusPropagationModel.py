@@ -139,6 +139,23 @@ class ModeledPopulatedWorld(object):
 
 
 class Simulation(object):
+    """
+    A Class which contains a simulated time course of a given ModeledPopulatedWorld object
+
+    Attributes
+    ----------
+    modeled_populated_world : ModeledPopulatedWorld object
+        the initialized populated world used as basis for the simulation
+    time_steps : int
+        The amount of time steps to simulate (hours)
+    time: int
+        the current in-silico time in the simulation in its current state
+    statuses_in_timecourse: list
+        a list of all the statuses available in the time course (e.g. I, for "infected")
+
+    Methods
+    ----------
+    """
     def __init__(self, modeled_populated_world, time_steps):
         self.modeled_populated_world = modeled_populated_world
         self.time_steps = time_steps
@@ -303,3 +320,14 @@ class Simulation(object):
         plt.show()
         if save_figure:
             plt.savefig('loc_types_occupancy_plot.png')
+
+    def export_time_courses_as_csvs(self, identifier=""):
+        self.simulation_timecourse.to_csv('outputs/'+identifier+'-humans_time_course.csv')
+        statuses_trajectories = self.get_status_trajectories().values()
+        dfs = [df.set_index('time') for df in statuses_trajectories]
+        concat_trajectory_df = pd.concat(dfs, axis=1)
+        concat_trajectory_df.to_csv('outputs/'+identifier+'-commutative_status_time_course.csv')
+        locations_traj = self.get_location_with_type_trajectory()
+        locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
+
+
