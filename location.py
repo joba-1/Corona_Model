@@ -72,10 +72,11 @@ class Neighbourhood(object):
             ids = []
             types = []
             for k,y in enumerate(self.locations.values()):
-                ids.append(y.ID)
-                types.append(y.location_type)
-                matrix[i, k] = np.sqrt(
-                    (x.coordinates[0] - y.coordinates[0]) ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
+            	if y.location_type != 'residence':
+	                ids.append(y.ID)
+	                types.append(y.location_type)
+	                matrix[i, k] = np.sqrt(
+	                    (x.coordinates[0] - y.coordinates[0]) ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
             x.distances = dict(zip(ids, list(matrix[i, :])))
             location_types_in_neighbourhood = dict(zip(ids, types))
             ids_of_location_types = {}
