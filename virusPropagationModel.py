@@ -344,9 +344,14 @@ class Simulation(object):
             loc_types = available_loc_types
         for loc_type in loc_types:
             df = locations_df[['time', 'loc_type']]
+            zero_occupancy_array = df['time'].copy().unique()
             df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type': loc_type})
-            location_count = df_of_location.groupby('time').count()
-            plt.plot(list(location_count.index.values), location_count[loc_type], label=loc_type)
+            time_grouped_location_count = df_of_location.groupby('time').count()
+            zero_occupancy_df = pd.DataFrame({'time': zero_occupancy_array, loc_type: np.zeros(
+                len(zero_occupancy_array))}).set_index('time')
+            merged_df = time_grouped_location_count.merge(zero_occupancy_df, left_index=True, right_index=True,
+                                                          suffixes=('', '_zeros'), how='right').fillna(0)
+            plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
         plt.title('location occupancy trajectories')
         plt.legend()
         plt.show()
