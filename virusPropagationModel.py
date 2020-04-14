@@ -44,28 +44,30 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False): #currently breaks when False
+    # currently breaks when False
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False):
         self.world_from_file = world_from_file
+        self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
         self.initial_infections = initial_infections
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         #self.people = self.initialize_people(self.number_of_people)
-        self.people = self.initialize_people()
+        self.people = self.initialize_people(self.agent_agent_infection)
         self.initialize_infection(self.initial_infections)
 
-    def initialize_people(self):
+    def initialize_people(self, agent_agent_infection):
         """
         initializes a set of people (human objects) with assigned ages and schedules
         :return people: set. a set of human objects
         """
         people = set()
-        for home in [h for h in self.locations.values() if h.location_type=='home']:
+        for home in [h for h in self.locations.values() if h.location_type == 'home']:
             home_type, home_size, ages = initialize_household()
             for age in ages:
                 n = len(people)+1
                 schedule = self.create_schedule(age, home, self.locations)
-                people.add(Human(n, age, schedule, home))
+                people.add(Human(n, age, schedule, home, infection_interaction=agent_agent_infection))
         return people
 
     def create_schedule(self, age, home, locations):

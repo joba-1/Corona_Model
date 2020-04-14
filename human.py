@@ -170,7 +170,7 @@ class Human(object):
         on the times and place of certain events
     """
 
-    def __init__(self, ID, age, schedule, loc, status='S', infection_interaction=False):
+    def __init__(self, ID, age, schedule, loc, status='S', infection_interaction):
         """
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
