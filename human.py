@@ -2,6 +2,7 @@ import numpy.random as npr  # numpy.random for generating random numbers
 import logging as log  # logging for allowing to keep track of code development and putative errors
 import sys  # sys
 from location import *
+import copy
 
 
 class Human(object):
@@ -192,7 +193,7 @@ class Human(object):
         self.behaviour_as_susceptible = 1
         loc.enter(self)
         self.personal_risk = self.get_personal_risk()  # todesrisiko
-
+        self.preliminary_status = 'S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -329,7 +330,7 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         if risk >= npr.random_sample():
-            self.status = 'I'
+            self.preliminary_status = 'I'
             self.infection_time = time
             self.was_infected = True
 
@@ -355,7 +356,7 @@ class Human(object):
         """
         if recover_prob >= npr.random_sample():
             self.recover_time = time
-            self.status = 'R'
+            self.preliminary_status = 'R'
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
@@ -416,7 +417,7 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if self.personal_risk >= npr.random_sample():
-            self.status = 'D'
+            self.preliminary_status = 'D'
             self.death_time = time
             self.icu = False
             self.hospitalized = False
@@ -433,3 +434,6 @@ class Human(object):
         ## use infection duration somehow to calculate infectivity ...##
         infectivity = 1  # for now set to 1, should be function of infection-duration#
         return(infectivity*self.behaviour_as_infected)
+
+    def set_status_from_preliminary(self):
+        self.status = copy.copy(self.preliminary_status)
