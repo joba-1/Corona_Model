@@ -31,7 +31,7 @@ def empirical_cumulative_distribution(df):
         for i in np.arange(bins[index], bins[index + 1]):
             p_of_age[i] = p_of_bin[index] / bin_size
 
-    # ecdf of ages 
+    # ecdf of ages
     cum_p_of_age = np.cumsum(p_of_age[:-1])
     return cum_p_of_age
 
@@ -49,7 +49,8 @@ def random_age(loc_string='Heinsberg'):
     :return: age, an int
     """
     locations = ['Germany', 'Berlin', 'Heinsberg']
-    assert loc_string in locations, 'population from which age drawn not set. choose from {}'.format(locations)
+    assert loc_string in locations, 'population from which age drawn not set. choose from {}'.format(
+        locations)
 
     if loc_string == 'Berlin':
         cumulative_p = ecd_berlin

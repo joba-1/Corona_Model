@@ -247,6 +247,33 @@ class Simulation(object):
         location_traj_df['loc_type'] = loc_type_traj
         return location_traj_df
 
+    def get_durations(self):
+        """
+        Returns a pandas DataFrame with the durations of certain states of the agents.
+        Durations included so far (columns in the data-frame):
+        From infection to death ('infection_to_death'),
+        from infection to recovery ('infection_to_recovery'),
+        from infection to hospital ('infection_to_hospital') and
+        from hospital to ICU (hospital_to_icu).
+        """
+        df = pd.DataFrame()
+        for p in self.modeled_populated_world.people:
+            duration_dict = p.get_infection_info()
+            if not pd.isna(duration_dict['infection_time']):
+                if not pd.isna(duration_dict['recovery_time']):
+                    df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
+                        duration_dict['infection_time']
+                elif not pd.isna(duration_dict['death_time']):
+                    df.loc[p.ID, 'infection_to_death'] = duration_dict['death_time'] - \
+                        duration_dict['infection_time']
+                if not pd.isna(duration_dict['hospitalized_time']):
+                    df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
+                        duration_dict['infection_time']
+                    if not pd.isna(duration_dict['hospital_to_ICU_time']):
+                        df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
+                            duration_dict['hospitalized_time']
+        return(df)
+
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
         plots the time course for selected statuses
