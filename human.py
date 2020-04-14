@@ -2,6 +2,8 @@ import numpy.random as npr  # numpy.random for generating random numbers
 import logging as log  # logging for allowing to keep track of code development and putative errors
 import sys  # sys
 from location import *
+import copy
+import numpy
 
 
 class Human(object):
@@ -28,7 +30,7 @@ class Human(object):
         Time at which agent was infected
     diagnosistime : int
         Time at which agent was diagnosed
-    hospitalisation_time : int
+    hospitalization_time : int
         Time at which agent was hospitalised
     recover_time : int
         Time at which agent recovered
@@ -162,6 +164,10 @@ class Human(object):
         the personal behaviour.
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
+
+    get_infection_info()
+        Returns dictionary with agent-ID ('h_ID') and information
+        on the times and place of certain events
     """
 
     def __init__(self, ID, age, schedule, loc, status='S'):
@@ -176,13 +182,14 @@ class Human(object):
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = schedule
         self.loc = loc  # current location
-        self.infection_time = 0
-        self.diagnosis_time = 0
-        self.hospitalisation_time = 0
-        self.recover_time = 0
-        self.death_time = 0
-        self.icu_time = 0
-        self.rehospitalization_time = 0
+        self.place_of_infection = numpy.nan
+        self.infection_time = numpy.nan
+        self.diagnosis_time = numpy.nan
+        self.hospitalization_time = numpy.nan
+        self.recover_time = numpy.nan
+        self.death_time = numpy.nan
+        self.icu_time = numpy.nan
+        self.rehospitalization_time = numpy.nan
         self.diagnosed = False
         self.hospitalized = False
         self.icu = False
@@ -192,7 +199,7 @@ class Human(object):
         self.behaviour_as_susceptible = 1
         loc.enter(self)
         self.personal_risk = self.get_personal_risk()  # todesrisiko
-
+        self.preliminary_status = 'S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -206,21 +213,23 @@ class Human(object):
             risk = self.loc.infection_risk()
             self.get_infected(risk, time)
         elif self.status == 'I':
-            self.infection_duration = time-self.infection_time
+            self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
-            self.die(time)
-            if self.status == 'I':
-                recover_prob = self.get_recover_prob(time)
-                self.recover(recover_prob, time)
-            if self.status == 'I':
-                if not self.hospitalized:
-                    # hospitalization_prob_float = self.Get_hospitalization_risk(age_int)
-                    self.get_hospitalized(self.get_hospitalization_prob(), time)
+            recoverProb = self.get_recover_prob()
+            what_happens = npr.choice(['die', 'recover', 'stay_infected'], p=[
+                                      self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
+            if what_happens == 'die':
+                self.die(1.0, time)
+            elif what_happens == 'recover':
+                self.recover(1.0, time)
+            elif what_happens == 'stay_infected':
+                if self.icu:
+                    self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
-                    if not self.icu:
+                    if self.hospitalized:
                         self.get_ICUed(self.get_icu_prob(), time)
                     else:
-                        self.get_rehospitalized(self.get_rehospitalization_prob(), time)
+                        self.get_hospitalized(self.get_hospitalization_prob(), time)
 
     def get_status(self):  # for storing simulation data
         """
@@ -235,6 +244,22 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID, 'WasInfected': int(self.was_infected), 'Diagnosed': int(self.diagnosed), 'Hospitalized': int(self.hospitalized), 'ICUed': int(self.icu)}
+
+    def get_infection_info(self):  # for storing simulation data (flags)
+        """
+        Returns dictionary with agent-ID ('h_ID') and information
+        on the times and place of certain events
+        Arguments to provide are: none
+        """
+        return {'h_ID': self.ID,
+                'place_of_infection': self.place_of_infection,
+                'infection_time': self.infection_time,
+                'recovery_time':  self.recover_time,
+                'death_time':     self.death_time,
+                'diagnosis_time': self.diagnosis_time,
+                'hospitalized_time':    self.hospitalization_time,
+                'hospital_to_ICU_time': self.icu_time,
+                'ICU_to_hospital_time': self.rehospitalization_time}
 
     def move(self, time):  # agent moves relative to global time
         """
@@ -284,15 +309,18 @@ class Human(object):
         """
         return(0.25)
 
-    def get_recover_prob(self, time):  # this needs improvement and is preliminary
+    def get_recover_prob(self):  # this needs improvement and is preliminary
         """
         Calculates probability to recover.
-        Arguments to provide are: time (int)
+        Arguments to provide are: none
         """
-        prob = self.infection_duration / \
-            480.  # probabitily increases hourly over 20 days (my preliminary random choice)
+        # probabitily increases hourly over 20 days (my preliminary random choice)
         # am besten mit kummulativer gauss-verteilung
-        return prob
+        if self.icu:
+            return(0.0)
+        else:
+            prob = self.infection_duration/480.
+            return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
         """
@@ -329,8 +357,9 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         if risk >= npr.random_sample():
-            self.status = 'I'
+            self.preliminary_status = 'I'
             self.infection_time = time
+            self.place_of_infection = self.loc.ID
             self.was_infected = True
 
     def get_diagnosed(self, probability, time):
@@ -340,9 +369,10 @@ class Human(object):
         diagnosis_time-attribute.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
-            self.diagnosed = True
-            self.diagnosis_time = time
+        if not self.diagnosed:
+            if probability >= npr.random_sample():
+                self.diagnosed = True
+                self.diagnosis_time = time
 
     def recover(self, recover_prob, time):
         """
@@ -355,7 +385,7 @@ class Human(object):
         """
         if recover_prob >= npr.random_sample():
             self.recover_time = time
-            self.status = 'R'
+            self.preliminary_status = 'R'
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
@@ -399,15 +429,13 @@ class Human(object):
         if probability >= npr.random_sample():
             self.hospitalized = True
             self.hospitalization_time = time
-            if not self.diagnosed:
-                self.diagnosed = True
-                self.diagnosis_time = time
+            self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
             #hospital = self.loc.next_hospital()
             #locDict = {i.ID: i for i in self.loc.neighbourhood.locations}
             #self.schedule['locs'] = [locDict[hospital]]*len(list(self.schedule['times']))
 
-    def die(self, time):
+    def die(self, risk, time):
         """
         Determines whether an agent dies,
         based on personal_risk-probability.
@@ -415,8 +443,8 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if self.personal_risk >= npr.random_sample():
-            self.status = 'D'
+        if risk >= npr.random_sample():
+            self.preliminary_status = 'D'
             self.death_time = time
             self.icu = False
             self.hospitalized = False
@@ -433,3 +461,10 @@ class Human(object):
         ## use infection duration somehow to calculate infectivity ...##
         infectivity = 1  # for now set to 1, should be function of infection-duration#
         return(infectivity*self.behaviour_as_infected)
+
+    def set_status_from_preliminary(self):
+        """
+        Set status from preliminary status
+        Arguments to provide are: none
+        """
+        self.status = self.preliminary_status
