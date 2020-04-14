@@ -140,6 +140,7 @@ class ModeledPopulatedWorld(object):
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
             p.get_infected(1.0, 0)
+            p.set_status_from_preliminary()
 
 
 class Simulation(object):
@@ -194,6 +195,7 @@ class Simulation(object):
             for p in self.modeled_populated_world.people:  #
                 p.update_state(self.time)
             for p in self.modeled_populated_world.people:  # don't call if hospitalized
+                p.set_status_from_preliminary()
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
