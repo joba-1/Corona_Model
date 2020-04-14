@@ -7,8 +7,8 @@ import os
 class TestvPM(unittest.TestCase):
 
     def setUp(self):
-        self.modeledWorld1 = ModeledPopulatedWorld(40, 800, 50)
-        self.modeledWorld2 = ModeledPopulatedWorld(100, 400, 5)
+        self.modeledWorld1 = ModeledPopulatedWorld(40, 5)
+        self.modeledWorld2 = ModeledPopulatedWorld(100, 10)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
         self.simulation2 = Simulation(self.modeledWorld2, 10)
 
@@ -20,12 +20,7 @@ class TestvPM(unittest.TestCase):
         self.assertEqual(100, self.modeledWorld2.number_of_locs, "not all given amount of locations was initialized."
                                                                  " # initialized: " +
                                                                  str(self.modeledWorld2.number_of_locs))
-        self.assertEqual(800, self.modeledWorld1.number_of_people, "not all given amount of people was initialized."
-                                                                   " # initialized: " +
-                                                                   str(self.modeledWorld1.number_of_people))
-        self.assertEqual(400, self.modeledWorld2.number_of_people, "not all given amount of people was initialized."
-                                                                   "# initialized: " +
-                                                                   str(self.modeledWorld2.number_of_people))
+
     def test_simulation_class_methods_no_errors(self):
         self.simulation1.plot_status_timecourse()
         self.simulation1.plot_flags_timecourse()
