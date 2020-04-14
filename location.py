@@ -100,7 +100,7 @@ class Neighbourhood(object):
 
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
-                 location_factor=0.001):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
+                 location_factor=0.002):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
         self.ID = ID
         self.people_present = set()
         self.location_factor = location_factor

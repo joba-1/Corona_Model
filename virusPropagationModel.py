@@ -1,6 +1,7 @@
 from human import *
 from location import *
 from age_initialisation import random_age
+from initialize_households import initialize_household
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -43,32 +44,28 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, number_of_people, initial_infections, world_from_file=False):  # currently breaks when False
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False): #currently breaks when False
         self.world_from_file = world_from_file
         self.number_of_locs = number_of_locs
-        self.number_of_people = number_of_people
         self.initial_infections = initial_infections
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
-        self.people = self.initialize_people(self.number_of_people)
+        #self.people = self.initialize_people(self.number_of_people)
+        self.people = self.initialize_people()
         self.initialize_infection(self.initial_infections)
 
-    def initialize_people(self, number_of_people):  # idee martin: skalenfeiheit
+    def initialize_people(self):
         """
         initializes a set of people (human objects) with assigned ages and schedules
-        :param number_of_people: int. The amount of people to initialize
         :return people: set. a set of human objects
         """
-        free_homes = [h for h in self.locations.values() if (
-            h.location_type == 'home' and len(h.people_present) < 6)]
-        assert free_homes, 'not enough available homes in the simulation. Please simulate with more locations per ' \
-                           'person '
         people = set()
-        for n in range(number_of_people):
-            age = random_age()
-            home = random.sample(free_homes, 1)[0]
-            schedule = self.create_schedule(age, home, self.locations)
-            people.add(Human(n, age, schedule, home))
+        for home in [h for h in self.locations.values() if h.location_type=='home']:
+            home_type, home_size, ages = initialize_household()
+            for age in ages:
+                n = len(people)+1
+                schedule = self.create_schedule(age, home, self.locations)
+                people.add(Human(n, age, schedule, home))
         return people
 
     def create_schedule(self, age, home, locations):
