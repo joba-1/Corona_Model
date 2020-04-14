@@ -109,7 +109,7 @@ class Human(object):
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
 
-    get_infected()
+    get_infected_at_location()
         Determines whether an agent gets infected, based on personal risk.
         Changes status-attribute to 'I', writes current time to
         infection_time-attribute and sets was_infected-attribute to True.
@@ -170,12 +170,13 @@ class Human(object):
         on the times and place of certain events
     """
 
-    def __init__(self, ID, age, schedule, loc, status='S'):
+    def __init__(self, ID, age, schedule, loc, status='S', infection_interaction=False):
         """
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
         """
         # initialize properties
+        self.infection_interaction = infection_interaction
         self.ID = ID
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
@@ -210,8 +211,7 @@ class Human(object):
         if self.status == 'R':
             pass
         elif self.status == 'S':
-            risk = self.loc.infection_risk()
-            self.get_infected(risk, time)
+            self.get_infected()
         elif self.status == 'I':
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
@@ -349,18 +349,29 @@ class Human(object):
             log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
     """
 
-    def get_infected(self, risk, time):
+    def get_infected(self):
         """
         Determines whether an agent gets infected, based on personal risk.
         Changes status-attribute to 'I', writes current time to
         infection_time-attribute and sets was_infected-attribute to True.
-        Arguments to provide are: risk (float), time (int)
+        Arguments to provide are: risk (float)
         """
-        if risk >= npr.random_sample():
-            self.preliminary_status = 'I'
-            self.infection_time = time
-            self.place_of_infection = self.loc.ID
-            self.was_infected = True
+        if self.infection_interaction:
+            person = self.loc.infection_interaction()
+            if person != None:
+                if person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
+                    self.preliminary_status = 'I'
+                    self.infection_time = self.current_time
+                    self.was_infected = True
+                    self.got_infected_by = person.ID
+                    self.place_of_infection = self.loc.ID
+        else:
+            if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
+                self.preliminary_status = 'I'
+                self.infection_time = self.current_time
+                self.place_of_infection = self.loc.ID
+                self.got_infected_by = numpy.nan
+                self.was_infected = True
 
     def get_diagnosed(self, probability, time):
         """
