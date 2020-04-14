@@ -213,15 +213,13 @@ class Human(object):
             risk = self.loc.infection_risk()
             self.get_infected(risk, time)
         elif self.status == 'I':
-            self.infection_duration = time-self.infection_time
+            self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
-            recoverProb = self.get_recover_prob(time)
-            if self.icu:
-                recoverProb = 0
+            recoverProb = self.get_recover_prob()
             what_happens = npr.choice(['die', 'recover', 'stay_infected'], p=[
                                       self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
             if what_happens == 'die':
-                self.get_dead(time)
+                self.die(1.0, time)
             elif what_happens == 'recover':
                 self.recover(1.0, time)
             elif what_happens == 'stay_infected':
@@ -311,15 +309,18 @@ class Human(object):
         """
         return(0.25)
 
-    def get_recover_prob(self, time):  # this needs improvement and is preliminary
+    def get_recover_prob(self):  # this needs improvement and is preliminary
         """
         Calculates probability to recover.
-        Arguments to provide are: time (int)
+        Arguments to provide are: none
         """
-        prob = self.infection_duration / \
-            480.  # probabitily increases hourly over 20 days (my preliminary random choice)
+        # probabitily increases hourly over 20 days (my preliminary random choice)
         # am besten mit kummulativer gauss-verteilung
-        return prob
+        if self.icu:
+            return(0.0)
+        else:
+            prob = self.infection_duration/480.
+            return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
         """
@@ -434,7 +435,7 @@ class Human(object):
             #locDict = {i.ID: i for i in self.loc.neighbourhood.locations}
             #self.schedule['locs'] = [locDict[hospital]]*len(list(self.schedule['times']))
 
-    def get_dead(self, time):
+    def die(self, risk, time):
         """
         Determines whether an agent dies,
         based on personal_risk-probability.
@@ -442,21 +443,7 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        self.status = 'D'
-        self.death_time = time
-        self.icu = False
-        self.hospitalized = False
-        self.diagnosed = False
-
-    def die(self, time):
-        """
-        Determines whether an agent dies,
-        based on personal_risk-probability.
-        Changes status-attribute to 'D', records current time to death_time-attribute.
-        Sets icu-,hospitalized- and diagnosed-attribute to False.
-        Arguments to provide are: probability (float), time (int)
-        """
-        if self.personal_risk >= npr.random_sample():
+        if risk >= npr.random_sample():
             self.preliminary_status = 'D'
             self.death_time = time
             self.icu = False
@@ -476,4 +463,8 @@ class Human(object):
         return(infectivity*self.behaviour_as_infected)
 
     def set_status_from_preliminary(self):
-        self.status = copy.copy(self.preliminary_status)
+        """
+        Set status from preliminary status
+        Arguments to provide are: none
+        """
+        self.status = self.preliminary_status
