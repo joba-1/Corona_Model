@@ -170,12 +170,13 @@ class Human(object):
         on the times and place of certain events
     """
 
-    def __init__(self, ID, age, schedule, loc, status='S', infection_interaction):
+    def __init__(self, ID, age, schedule, loc, status='S', infection_interaction=False):
         """
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
         """
         # initialize properties
+        self.current_time = 0
         self.infection_interaction = infection_interaction
         self.ID = ID
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
@@ -208,6 +209,7 @@ class Human(object):
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
+        self.current_time = time
         if self.status == 'R':
             pass
         elif self.status == 'S':
@@ -349,6 +351,19 @@ class Human(object):
             log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
     """
 
+    def get_initially_infected(self):
+        """
+        Determines whether an agent gets infected, based on personal risk.
+        Changes status-attribute to 'I', writes current time to
+        infection_time-attribute and sets was_infected-attribute to True.
+        Arguments to provide are: risk (float)
+        """
+        self.status = 'I'
+        self.infection_time = 0
+        self.was_infected = True
+        self.got_infected_by = numpy.nan
+        self.place_of_infection = self.loc.ID
+
     def get_infected(self):
         """
         Determines whether an agent gets infected, based on personal risk.
@@ -357,6 +372,7 @@ class Human(object):
         Arguments to provide are: risk (float)
         """
         if self.infection_interaction:
+            print('Interaction')
             person = self.loc.infection_interaction()
             if person != None:
                 if person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
@@ -366,6 +382,7 @@ class Human(object):
                     self.got_infected_by = person.ID
                     self.place_of_infection = self.loc.ID
         else:
+            print('Location')
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
                 self.infection_time = self.current_time

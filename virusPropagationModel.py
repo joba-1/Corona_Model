@@ -138,8 +138,7 @@ class ModeledPopulatedWorld(object):
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            p.get_infected(1.0, 0)
-            p.set_status_from_preliminary()
+            p.get_initially_infected()
 
 
 class Simulation(object):
