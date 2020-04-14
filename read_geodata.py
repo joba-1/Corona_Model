@@ -15,7 +15,8 @@ def getOptions(args=sys.argv[1:]):
 	return options
 
 def reduce_GDF(gdf,cols):
-	cols = ['building','geometry','amenity','healthcare','healthcare:speciality','building:levels','school_type','type','members']
+	#cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels','school_type','type','members']
+	
 	return gdf[cols].copy()
 
 
@@ -78,8 +79,9 @@ streets = edges[['access','geometry']].copy() # saving without this caused probl
 
 
 # reduced columns
-cols = ['building','geometry','amenity','healthcare','healthcare:speciality','building:levels']
-
+cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels']
+for x in buildings.columns:
+	print(x)
 red_buildings = reduce_GDF(buildings,cols)
 
 centroid_coords = getCentromerCoordiantes(buildings)

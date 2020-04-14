@@ -24,19 +24,44 @@ class World(object):
         locations[0] = Location(0, (0, 0), 'hospital', 1, 1e-8)
         return locations
 
+    def location_classifier(self,df):
+        '''Build reference lists for location settings from given dataframe. 
+        Should be produced by read_geodata.py. 
+        
+        '''
+
+        healthcare = ['hospital']
+        
+        work_place = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office']\
+                +list(df['amenity'].unique())\
+                +list(df['shop'].unique())
+
+        public_place = ['public','chapel','church']\
+                      +list(df['leisure'].unique())\
+                      +list(df['sport'].unique())
+
+        
+        school = ['school','university','kindergarten'] 
+
+        public_place = [x for x in public_place if ~pd.isnull(x)]
+
+        for x in healthcare + [np.nan] + public_place + school:
+            while x in work_place: work_place.remove(x)  
+
+        return healthcare, work_place, public_place, school
+
     def initialize_locs_from_file(self):
         locations = {}
         self.df_buildings = pd.read_csv(self.geofile_name)
 
+        healthcare, work_place, public_place, school = self.location_classifier(self.df_buildings)
+
+        col_names=['building','amenity','shop','leisure', 'sport','healthcare']
+
         for i,x in enumerate(self.df_buildings.index):
             row = self.df_buildings.loc[x]
-            try:
-                if np.isnan(row['amenity']):
-                    building_type = 'home'
-                else:
-                    building_type = random.sample(['work','school','public_place'],1)[0]#row['amenity']
-            except:
-                building_type = random.sample(['work','school','public_place'],1)[0]#row['amenity']
+            
+            building_type = self.location_settings(row[col_names].dropna().unique(), healthcare, work_place, public_place, school)  
 
             #building_type = location_settings(row[col_names],work_place, healthcare)  
             locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
@@ -47,13 +72,22 @@ class World(object):
             #locations[1] = Location(1, (0, 2), 'school', 1, 1e-8)
         return locations
 
-    def location_settings(building_lst, workplace:list, healthcare:list):
+    def location_settings(self,building_lst:list, healthcare:list, workplace:list, publicplace:list, school:list):
+        '''set building type according to value in building_lst and where it matches with reference lists'''
         building_type = 'home'
+        
         if any(elem in healthcare for elem in building_lst):
-            building_type = 'Healthcare'
+            building_type = 'hospital'
         elif any(elem in workplace for elem in building_lst):
-            building_type = 'Economy'
-        return building_type        
+            building_type = 'work'
+        elif any(elem in publicplace for elem in building_lst):
+            building_type = 'public_place'
+        elif any(elem in school for elem in building_lst):
+            building_type = 'school'
+
+        return building_type
+
+    
 
     def initialize_neighbourhoods(self):
         if self.from_file:
