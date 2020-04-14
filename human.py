@@ -372,7 +372,6 @@ class Human(object):
         Arguments to provide are: risk (float)
         """
         if self.infection_interaction:
-            print('Interaction')
             person = self.loc.infection_interaction()
             if person != None:
                 if person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
@@ -382,7 +381,6 @@ class Human(object):
                     self.got_infected_by = person.ID
                     self.place_of_infection = self.loc.ID
         else:
-            print('Location')
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
                 self.infection_time = self.current_time
