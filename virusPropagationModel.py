@@ -259,6 +259,7 @@ class Simulation(object):
         df = pd.DataFrame()
         for p in self.modeled_populated_world.people:
             duration_dict = p.get_infection_info()
+            print(duration_dict)
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
