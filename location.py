@@ -76,6 +76,10 @@ class World(object):
         #start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
 
+        healthcare, work_place, public_place, school = self.location_classifier(self.df_buildings)
+
+        col_names=['building','amenity','shop','leisure', 'sport','healthcare']
+
         for i,x in enumerate(self.df_buildings.index):
             row = self.df_buildings.loc[x]
             
