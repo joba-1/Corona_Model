@@ -202,6 +202,7 @@ class Human(object):
         loc.enter(self)
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
+        self.got_infected_by = numpy.nan
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -254,6 +255,7 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
+                'infected_by': self.got_infected_by,
                 'place_of_infection': self.place_of_infection,
                 'infection_time': self.infection_time,
                 'recovery_time':  self.recover_time,
@@ -361,7 +363,6 @@ class Human(object):
         self.status = 'I'
         self.infection_time = 0
         self.was_infected = True
-        self.got_infected_by = numpy.nan
         self.place_of_infection = self.loc.ID
 
     def get_infected(self):
