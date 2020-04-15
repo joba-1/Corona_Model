@@ -44,28 +44,30 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False): #currently breaks when False
+    # currently breaks when False
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False):
         self.world_from_file = world_from_file
+        self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
         self.initial_infections = initial_infections
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
         #self.people = self.initialize_people(self.number_of_people)
-        self.people = self.initialize_people()
+        self.people = self.initialize_people(self.agent_agent_infection)
         self.initialize_infection(self.initial_infections)
 
-    def initialize_people(self):
+    def initialize_people(self, agent_agent_infection):
         """
         initializes a set of people (human objects) with assigned ages and schedules
         :return people: set. a set of human objects
         """
         people = set()
-        for home in [h for h in self.locations.values() if h.location_type=='home']:
+        for home in [h for h in self.locations.values() if h.location_type == 'home']:
             home_type, home_size, ages = initialize_household()
             for age in ages:
                 n = len(people)+1
                 schedule = self.create_schedule(age, home, self.locations)
-                people.add(Human(n, age, schedule, home))
+                people.add(Human(n, age, schedule, home, enable_infection_interaction=agent_agent_infection))
         return people
 
     def create_schedule(self, age, home, locations):
@@ -136,8 +138,7 @@ class ModeledPopulatedWorld(object):
         """
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
-            p.get_infected(1.0, 0)
-            p.set_status_from_preliminary()
+            p.get_initially_infected()
 
 
 class Simulation(object):
@@ -258,6 +259,7 @@ class Simulation(object):
         df = pd.DataFrame()
         for p in self.modeled_populated_world.people:
             duration_dict = p.get_infection_info()
+            print(duration_dict)
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
@@ -357,7 +359,7 @@ class Simulation(object):
         if save_figure:
             plt.savefig('outputs/loc_types_occupancy_plot.png')
 
-    def export_time_courses_as_csvs(self, identifier=""):
+    def export_time_courses_as_csvs(self, identifier="output"):
         self.simulation_timecourse.to_csv('outputs/'+identifier+'-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
