@@ -109,10 +109,11 @@ class Human(object):
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
 
-    get_infected_at_location()
-        Determines whether an agent gets infected, based on personal risk.
-        Changes status-attribute to 'I', writes current time to
-        infection_time-attribute and sets was_infected-attribute to True.
+    get_infected()
+        Determines whether an agent gets infected, at the current location and time.
+        Changes status-attribute to 'I', writes current location to 'place_of_infection',
+        writes current time to infection_time-attribute and sets was_infected-attribute to True.
+        If applicable writes name of agent infecting it to got_infected_by.
         Arguments to provide are: risk (float), time (int)
 
     get_diagnosed()
@@ -365,10 +366,11 @@ class Human(object):
 
     def get_infected(self, time):
         """
-        Determines whether an agent gets infected, based on personal risk.
-        Changes status-attribute to 'I', writes current time to
-        infection_time-attribute and sets was_infected-attribute to True.
-        Arguments to provide are: risk (float)
+        Determines whether an agent gets infected, at the current location and time.
+        Changes status-attribute to 'I', writes current location to 'place_of_infection',
+        writes current time to infection_time-attribute and sets was_infected-attribute to True.
+        If applicable writes name of agent infecting it to got_infected_by.
+        Arguments to provide are: risk (float), time (int)
         """
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
