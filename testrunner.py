@@ -8,16 +8,16 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(40, 5)
-        self.modeledWorld2 = ModeledPopulatedWorld(100, 10)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000, 200)
+        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_ModeledPopulatedWorld_initialization(self):
-        self.assertEqual(40, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
+        self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
                                                                 " # initialized: " +
                          str(self.modeledWorld1.number_of_locs))
 
-        self.assertEqual(100, self.modeledWorld2.number_of_locs, "not all given amount of locations was initialized."
+        self.assertEqual(500, self.modeledWorld2.number_of_locs, "not all given amount of locations was initialized."
                                                                  " # initialized: " +
                          str(self.modeledWorld2.number_of_locs))
 
@@ -40,9 +40,9 @@ class TestVPM(unittest.TestCase):
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
-        testWorld_1 = ModeledPopulatedWorld(40, 5)
-        testWorld_2 = ModeledPopulatedWorld(40, 5, agent_agent_infection=False)
-        testWorld_3 = ModeledPopulatedWorld(40, 5, agent_agent_infection=True)
+        testWorld_1 = self.modeledWorld1
+        testWorld_2 = ModeledPopulatedWorld(700, 150, agent_agent_infection=False)
+        testWorld_3 = ModeledPopulatedWorld(1200, 150, agent_agent_infection=True)
         test_simulation1 = Simulation(testWorld_1, 50)
         test_simulation2 = Simulation(testWorld_2, 50)
         test_simulation3 = Simulation(testWorld_3, 50)
