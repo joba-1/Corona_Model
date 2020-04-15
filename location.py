@@ -3,10 +3,11 @@ import random
 import pandas as pd
 
 class World(object):
-    def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', from_file=False, number_of_locs=100):
+    def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', from_file=True, number_of_locs=100):
         self.from_file = from_file
         self.geofile_name = geofile_name
         self.number_of_locs = number_of_locs
+        self.df_buildings = pd.read_csv(self.geofile_name)
 
         if self.from_file:
             self.locations = self.initialize_locs_from_file()
@@ -24,70 +25,95 @@ class World(object):
         locations[0] = Location(0, (0, 0), 'hospital', 1, 1e-8)
         return locations
 
-    def location_classifier(self,df):
-        '''Build reference lists for location settings from given dataframe. 
-        Should be produced by read_geodata.py. 
+    def assign_location_classifier(self):
+        '''Build reference lists for assign_building_type() from given dataframe. 
+        Should be produced by read_geodata.py.
+        Possible classes and therefore dictionary keys are:
+        'excluded_buildings' = buildings not included because they do not fit any class
+        'hospital' = hospitals
+        'work_place' = anything a person can work at
+        'public_place' = right now religous and sport buildings #FIXME-Discussion: restaurantes, bars, cafe?
+        'school' = places with a lot of young people
+        Sorting idea as of right now everything is work place if not in any other list 
+        : return: location class dictionary loc_class_dic['school'] = ['school','university','kindergarten']
         
         '''
-
-        healthcare = ['hospital']
+        loc_class_dic={}
         
-        work_place = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office']\
-                +list(df['amenity'].unique())\
-                +list(df['shop'].unique())
+        loc_class_dic['excluded_buildings']=['garage']
+        loc_class_dic['hospital']=['hospital']
+        
+        loc_class_dic['work_place'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office']\
+                                    +list(self.df_buildings['amenity'].unique())\
+                                    +list(self.df_buildings['shop'].unique())
 
-        public_place = ['public','chapel','church']\
-                      +list(df['leisure'].unique())\
-                      +list(df['sport'].unique())
+        #What is a public place or just work place e.g. restaurante, cafe...
+        
+        loc_class_dic['public_place'] = ['public','chapel','church']\
+                                        +list(self.df_buildings['leisure'].unique())\
+                                        +list(self.df_buildings['sport'].unique())
 
         
-        school = ['school','university','kindergarten'] 
+        loc_class_dic['school'] = ['school','university','kindergarten'] 
+        #Cleaning the list public place of nan
+        loc_class_dic['public_place'] = [x for x in loc_class_dic['public_place'] if ~pd.isnull(x)]
+        #Removing values from workplace_list that are in work place and in another list
+        for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public_place'] + loc_class_dic['school']:
+            while x in loc_class_dic['work_place']: loc_class_dic['work_place'].remove(x)  
 
-        public_place = [x for x in public_place if ~pd.isnull(x)]
-
-        for x in healthcare + [np.nan] + public_place + school:
-            while x in work_place: work_place.remove(x)  
-
-        return healthcare, work_place, public_place, school
+        return loc_class_dic
 
     def initialize_locs_from_file(self):
+        ''' Initialize locations from file. Right now .csv dataframe made from read_geodata.py
+        : return: dictionary with loaction objects: locations[int(ID)]: Loaction_Object
+
+        '''
         locations = {}
-        self.df_buildings = pd.read_csv(self.geofile_name)
 
-        healthcare, work_place, public_place, school = self.location_classifier(self.df_buildings)
-
-        col_names=['building','amenity','shop','leisure', 'sport','healthcare']
+        loc_class_dic = self.assign_location_classifier()
+        #Columns important to classify building type and therefore which location type it is
+        col_names = ['building','amenity','shop','leisure', 'sport','healthcare']
+        #start of boolcheck to see if at least one hospital in dataframe
+        hospital_bool = False
 
         for i,x in enumerate(self.df_buildings.index):
             row = self.df_buildings.loc[x]
             
-            building_type = self.location_settings(row[col_names].dropna().unique(), healthcare, work_place, public_place, school)  
-
-            #building_type = location_settings(row[col_names],work_place, healthcare)  
-            locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
-                                building_type,
-                                row['neighbourhood'],
-                                row['building_area'],)
-            #locations[0] = Location(0, (0, 0), 'public_place', 1, 1e-8)
-            #locations[1] = Location(1, (0, 2), 'school', 1, 1e-8)
+            building_type = self.assign_building_type(row[col_names].dropna().unique(), loc_class_dic)  
+            #check if hospital will be true if at least one in dataframe
+            if building_type == 'hospital':
+                hospital_bool = True
+            #create location in dictionary, except excluded buildings
+            if building_type != 'excluded_buildings':
+                locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
+                                    building_type,
+                                    row['neighbourhood'],
+                                    row['building_area'],)
+        #if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
+        if not hospital_bool:
+            distance = 0.00
+            
+            locations.update( {len(locations) : Location(len(locations), 
+                                                        max(self.df_buildings['building_coordinates_x'])+distance,
+                                                        max(self.df_buildings['building_coordinates_y'])+distance,
+                                                        'hospital',
+                                                        'no',
+                                                        9.321282e-08,)} )
         return locations
 
-    def location_settings(self,building_lst:list, healthcare:list, workplace:list, publicplace:list, school:list):
-        '''set building type according to value in building_lst and where it matches with reference lists'''
+    def assign_building_type(self, building_lst:list, loc_class_dic:dict):
+        '''set building type according to value in building_lst and where it matches with reference lists
+
+            : return: string with building type
+        '''
+        #auto assign is home
         building_type = 'home'
+        #if any entry of building_lst matches any location class entry: it is assigned to that class
+        for key in loc_class_dic:
+            if any(elem in loc_class_dic[key] for elem in building_lst):
+                building_type = key
         
-        if any(elem in healthcare for elem in building_lst):
-            building_type = 'hospital'
-        elif any(elem in workplace for elem in building_lst):
-            building_type = 'work'
-        elif any(elem in publicplace for elem in building_lst):
-            building_type = 'public_place'
-        elif any(elem in school for elem in building_lst):
-            building_type = 'school'
-
         return building_type
-
-    
 
     def initialize_neighbourhoods(self):
         if self.from_file:

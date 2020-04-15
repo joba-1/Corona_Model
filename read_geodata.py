@@ -80,8 +80,7 @@ streets = edges[['access','geometry']].copy() # saving without this caused probl
 
 # reduced columns
 cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels']
-for x in buildings.columns:
-	print(x)
+
 red_buildings = reduce_GDF(buildings,cols)
 
 centroid_coords = getCentromerCoordiantes(buildings)
