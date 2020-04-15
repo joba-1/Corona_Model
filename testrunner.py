@@ -39,6 +39,14 @@ class TestVPM(unittest.TestCase):
             self.assertTrue(os.path.exists(file) and os.path.getsize(file) > 0, "CSV is empty!")
             os.remove(file)  # files cleanup
 
+    def test_infection_mechanism(self):
+        testWorld_1 = ModeledPopulatedWorld(40, 5)
+        testWorld_2 = ModeledPopulatedWorld(40, 5, agent_agent_infection=False)
+        testWorld_3 = ModeledPopulatedWorld(40, 5, agent_agent_infection=True)
+        test_simulation1 = Simulation(testWorld_1, 50)
+        test_simulation2 = Simulation(testWorld_2, 50)
+        test_simulation3 = Simulation(testWorld_3, 50)
+
 
 if __name__ == '__main__':
     unittest.main()
