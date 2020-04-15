@@ -67,7 +67,7 @@ class ModeledPopulatedWorld(object):
             for age in ages:
                 n = len(people)+1
                 schedule = self.create_schedule(age, home, self.locations)
-                people.add(Human(n, age, schedule, home, infection_interaction=agent_agent_infection))
+                people.add(Human(n, age, schedule, home, enable_infection_interaction=agent_agent_infection))
         return people
 
     def create_schedule(self, age, home, locations):
@@ -359,7 +359,7 @@ class Simulation(object):
         if save_figure:
             plt.savefig('outputs/loc_types_occupancy_plot.png')
 
-    def export_time_courses_as_csvs(self, identifier=""):
+    def export_time_courses_as_csvs(self, identifier="output"):
         self.simulation_timecourse.to_csv('outputs/'+identifier+'-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
