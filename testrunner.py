@@ -1,5 +1,5 @@
 import unittest
-from virusPropagationModel import ModeledPopulatedWorld, Simulation
+from virusPropagationModel import ModeledPopulatedWorld, Simulation, load_object
 import matplotlib.pyplot as plt
 import glob
 import os
@@ -37,6 +37,18 @@ class TestVPM(unittest.TestCase):
         for file in glob.glob("outputs/testing*"):
             self.assertTrue(os.path.exists(file) and os.path.getsize(file) > 0, "CSV is empty!")
             os.remove(file)  # files cleanup
+
+    def test_import_export_objects(self):
+        self.modeledWorld1.save('testsavemw', date_suffix=False)
+        self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl')) 
+            != 0, "modeledWorld1 pickling failed")
+        load_object('testsavemw')
+        os.remove('saved_objects/testsavemw.pkl')
+        self.simulation1.save('testsavesim', date_suffix=False)
+        self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl')) 
+            != 0, "simulation1 pickling failed")
+        load_object('testsavesim')
+        os.remove('saved_objects/testsavesim.pkl')
 
     def test_infection_mechanism(self):
         self.testWorld_1 = self.modeledWorld1
