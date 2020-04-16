@@ -29,6 +29,12 @@ class ModeledPopulatedWorld(object):
 
     Methods
     ----------
+    save()
+    wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+
     initialize_people()
         initializes a set of people (human objects) with assigned ages and schedules
         :param number_of_people: int. The amount of people to initialize
@@ -168,6 +174,11 @@ class Simulation(object):
 
     Methods
     ----------
+    save()
+    wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
     """
 
     def __init__(self, modeled_populated_world, time_steps):
