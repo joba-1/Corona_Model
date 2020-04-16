@@ -2,7 +2,7 @@ import unittest
 from virusPropagationModel import *
 import glob
 import os
-
+import time
 
 class TestVPM(unittest.TestCase):
 
@@ -39,15 +39,19 @@ class TestVPM(unittest.TestCase):
 
     def test_import_export_objects(self):
         self.modeledWorld1.save('testsavemw', date_suffix=False)
+        time.sleep(1)
         self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl'))
                         != 0, "modeledWorld1 pickling failed")
         load_simulation_object('testsavemw.pkl')
         os.remove('saved_objects/testsavemw.pkl')
         self.simulation1.save('testsavesim', date_suffix=False)
+        time.sleep(1)
         self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl'))
                         != 0, "simulation1 pickling failed")
-        load_simulation_object('testsavesim.pkl')
+        loadedsim1 = load_simulation_object('testsavesim.pkl')
         os.remove('saved_objects/testsavesim.pkl')
+        self.simulation1.plot_status_timecourse()
+        loadedsim1.plot_status_timecourse()
 
     def test_infection_mechanism(self):
         self.testWorld_1 = self.modeledWorld1
