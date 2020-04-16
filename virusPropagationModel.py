@@ -5,7 +5,8 @@ from initialize_households import initialize_household
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import saveandloadobjects
+from saveandloadobjects import load_object
 
 class ModeledPopulatedWorld(object):
     """
@@ -55,6 +56,15 @@ class ModeledPopulatedWorld(object):
         #self.people = self.initialize_people(self.number_of_people)
         self.people = self.initialize_people(self.agent_agent_infection)
         self.initialize_infection(self.initial_infections)
+
+    def save(self, filename, date_suffix=True):
+        """
+        wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+        """
+        saveandloadobjects.save(self, filename, date_suffix)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -166,6 +176,15 @@ class Simulation(object):
         self.time = 0
         self.simulation_timecourse = self.run_simulation()
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+
+    def save(self, filename, date_suffix=True):
+        """
+        wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+        """
+        saveandloadobjects.save(self, filename, date_suffix)
 
     def get_person_attributes_per_time(self, person, only_status=False):
         """
