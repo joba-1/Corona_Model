@@ -45,12 +45,13 @@ class ModeledPopulatedWorld(object):
     """
 
     # currently breaks when False
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False):
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv'):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
         self.initial_infections = initial_infections
-        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
+        self.geofile_name = geofile_name
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,geofile_name = self.geofile_name)
         self.locations = self.world.locations
         #self.people = self.initialize_people(self.number_of_people)
         self.people = self.initialize_people(self.agent_agent_infection)
@@ -139,6 +140,14 @@ class ModeledPopulatedWorld(object):
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
             p.get_initially_infected()
+
+    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school']):  
+        location_counts = {}
+        for loc_type in loc_types:
+            location_counts[loc_type] = sum([1 for x in self.locations.values() if  x.location_type == loc_type])
+         
+        plt.bar(location_counts.keys(), location_counts.values())
+        return location_counts        
 
 
 class Simulation(object):
@@ -246,6 +255,27 @@ class Simulation(object):
 
         location_traj_df['loc_type'] = loc_type_traj
         return location_traj_df
+
+    def get_location_and_status(self):
+        """
+        processes simulation output to generate DataFrame
+        with location and sums of people for each status
+        :return: pandas dataframe 
+
+        :example:
+        status   loc     time    D        I       R       S
+        0          0      1      0.0     0.0     0.0     1.0
+        1          0      2      0.0     0.0     0.0     1.0
+        2          0      3      0.0     0.0     0.0     1.0
+        
+        """
+        df = self.simulation_timecourse.copy()
+        df.drop(columns= ['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        d=pd.pivot_table(df, values='h_ID', index=['loc','time'],
+                     columns=['status'],aggfunc='count')
+        table=d.reset_index().fillna(0)
+        return table
+   
 
     def get_durations(self):
         """
