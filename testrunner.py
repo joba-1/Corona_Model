@@ -33,19 +33,18 @@ class TestVPM(unittest.TestCase):
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
-        print()
         self.assertTrue(len(glob.glob("outputs/testing*")) != 0, "No CSVs exported!")
         for file in glob.glob("outputs/testing*"):
             self.assertTrue(os.path.exists(file) and os.path.getsize(file) > 0, "CSV is empty!")
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
-        testWorld_1 = self.modeledWorld1
-        testWorld_2 = ModeledPopulatedWorld(700, 150, agent_agent_infection=False)
-        testWorld_3 = ModeledPopulatedWorld(1200, 150, agent_agent_infection=True)
-        test_simulation1 = Simulation(testWorld_1, 50)
-        test_simulation2 = Simulation(testWorld_2, 50)
-        test_simulation3 = Simulation(testWorld_3, 50)
+        self.testWorld_1 = self.modeledWorld1
+        self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
+        self.simulation_a_a_inf = Simulation(self.testWorld_2, 100)
+        self.simulation_a_a_inf.plot_status_timecourse()
+        self.simulation_a_a_inf.plot_flags_timecourse()
+        self.simulation_a_a_inf.plot_location_type_occupancy_timecourse()
 
 
 if __name__ == '__main__':
