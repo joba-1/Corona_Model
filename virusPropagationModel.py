@@ -5,8 +5,8 @@ from initialize_households import initialize_household
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
-import saveandloadobjects
-from saveandloadobjects import load_object
+from VPM_save_and_load import *
+
 
 class ModeledPopulatedWorld(object):
     """
@@ -70,7 +70,7 @@ class ModeledPopulatedWorld(object):
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
         """
-        saveandloadobjects.save(self, filename, date_suffix)
+        save_simulation_object(self, filename, date_suffix)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -195,7 +195,7 @@ class Simulation(object):
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
         """
-        saveandloadobjects.save(self, filename, date_suffix)
+        save_simulation_object(self, filename, date_suffix)
 
     def get_person_attributes_per_time(self, person, only_status=False):
         """
@@ -397,3 +397,13 @@ class Simulation(object):
         concat_trajectory_df.to_csv('outputs/'+identifier+'-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
+
+#test
+'''modeledWorld1 = ModeledPopulatedWorld(1000, 200)
+modeledWorld1.save('testavivworld')
+sim1 = Simulation(modeledWorld1,50)
+sim1.save('testavivsim')
+sim1.plot_flags_timecourse()
+sim2 = Simulation(modeledWorld1,100)
+loadedsim1 = load_simulation_object('testavivsim')
+loadedsim1.plot_flags_timecourse()'''

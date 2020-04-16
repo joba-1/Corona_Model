@@ -1,6 +1,5 @@
 import unittest
-from virusPropagationModel import ModeledPopulatedWorld, Simulation, load_object
-import matplotlib.pyplot as plt
+from virusPropagationModel import *
 import glob
 import os
 
@@ -14,7 +13,7 @@ class TestVPM(unittest.TestCase):
 
     def test_ModeledPopulatedWorld_initialization(self):
         self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
-                                                                " # initialized: " +
+                                                                  " # initialized: " +
                          str(self.modeledWorld1.number_of_locs))
 
         self.assertEqual(500, self.modeledWorld2.number_of_locs, "not all given amount of locations was initialized."
@@ -40,14 +39,14 @@ class TestVPM(unittest.TestCase):
 
     def test_import_export_objects(self):
         self.modeledWorld1.save('testsavemw', date_suffix=False)
-        self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl')) 
-            != 0, "modeledWorld1 pickling failed")
-        load_object('testsavemw.pkl')
+        self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl'))
+                        != 0, "modeledWorld1 pickling failed")
+        load_simulation_object('testsavemw.pkl')
         os.remove('saved_objects/testsavemw.pkl')
         self.simulation1.save('testsavesim', date_suffix=False)
-        self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl')) 
-            != 0, "simulation1 pickling failed")
-        load_object('testsavesim.pkl')
+        self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl'))
+                        != 0, "simulation1 pickling failed")
+        load_simulation_object('testsavesim.pkl')
         os.remove('saved_objects/testsavesim.pkl')
 
     def test_infection_mechanism(self):

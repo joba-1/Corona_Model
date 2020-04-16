@@ -2,7 +2,7 @@ import pickle
 import time
 
 timestr = time.strftime("%Y%m%d-%H:%M:%S")
-def save(saving_object, filename, date_suffix=True):
+def save_simulation_object(saving_object, filename, date_suffix=True):
     """
     pickles passed object to saved_objects/filename+date+time+'.pkl'
     :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
@@ -16,7 +16,7 @@ def save(saving_object, filename, date_suffix=True):
     with open('saved_objects/'+filename+'.pkl', 'wb') as f:
         pickle.dump(saving_object, f)
 
-def load_object(filename):
+def load_simulation_object(filename):
     """
     :param filename: string of filename in saved_objects directory
     :return: object deserialised from pickle
