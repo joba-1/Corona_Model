@@ -44,7 +44,6 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    # currently breaks when False
     def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
@@ -52,8 +51,8 @@ class ModeledPopulatedWorld(object):
         self.initial_infections = initial_infections
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
         self.locations = self.world.locations
-        #self.people = self.initialize_people(self.number_of_people)
         self.people = self.initialize_people(self.agent_agent_infection)
+        self.number_of_people = len(self.people)
         self.initialize_infection(self.initial_infections)
 
     def initialize_people(self, agent_agent_infection):
@@ -147,7 +146,7 @@ class Simulation(object):
 
     Attributes
     ----------
-    modeled_populated_world : ModeledPopulatedWorld object
+    simulation_object : ModeledPopulatedWorld or Simulation object
         the initialized populated world used as basis for the simulation
     time_steps : int
         The amount of time steps to simulate (hours)
@@ -160,11 +159,17 @@ class Simulation(object):
     ----------
     """
 
-    def __init__(self, modeled_populated_world, time_steps):
-        self.modeled_populated_world = modeled_populated_world
+    def __init__(self, object_to_simulate, time_steps):
+        self.simulation_object = object_to_simulate
         self.time_steps = time_steps
-        self.time = 0
-        self.simulation_timecourse = self.run_simulation()
+        self.people = self.simulation_object.people
+        self.locations = self.simulation_object.locations
+        if isinstance(self.simulation_object, ModeledPopulatedWorld):
+            self.time = 0
+            self.simulation_timecourse = self.run_simulation()
+        elif isinstance(self.simulation_object, Simulation):
+            self.time = self.simulation_object.time
+            self.simulation_timecourse = pd.concat([self.simulation_object.simulation_timecourse, self.run_simulation()])
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def get_person_attributes_per_time(self, person, only_status=False):
@@ -185,14 +190,14 @@ class Simulation(object):
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
         """
-        population_size = len(self.modeled_populated_world.people)
+        population_size = len(self.people)
         timecourse = np.empty(population_size*self.time_steps, dtype=object)
         for step in range(self.time_steps):
             person_counter = step*population_size
             self.time += 1
-            for p in self.modeled_populated_world.people:  #
+            for p in self.people:  #
                 p.update_state(self.time)
-            for p in self.modeled_populated_world.people:  # don't call if hospitalized
+            for p in self.people:  # don't call if hospitalized
                 p.set_status_from_preliminary()
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
@@ -238,8 +243,9 @@ class Simulation(object):
         :return: DataFrame. Contains location ids, time, human ids and location types
         """
         loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in
-                               self.modeled_populated_world.locations.values()}
+                               self.locations.values()}
         location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
+        print(location_traj_df)
         loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
         for i in range(len(loc_type_traj)):
             loc_type_traj[i] = loc_id_to_type_dict[location_traj_df['loc'][i]]
@@ -257,7 +263,7 @@ class Simulation(object):
         from hospital to ICU (hospital_to_icu).
         """
         df = pd.DataFrame()
-        for p in self.modeled_populated_world.people:
+        for p in self.people:
             duration_dict = p.get_infection_info()
             print(duration_dict)
             if not pd.isna(duration_dict['infection_time']):
@@ -311,7 +317,7 @@ class Simulation(object):
         """
         if specific_flags is None:
             cols = list(self.simulation_timecourse.columns)
-            random_person = random.choice(list(self.modeled_populated_world.people))
+            random_person = random.choice(list(self.people))
             status_cols = random_person.get_status().keys()
             cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
         else:
@@ -367,3 +373,15 @@ class Simulation(object):
         concat_trajectory_df.to_csv('outputs/'+identifier+'-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
+
+#testing
+modeledWorld1 = ModeledPopulatedWorld(1000, 100)
+print(modeledWorld1.number_of_people)
+sim1 = Simulation(modeledWorld1,50)
+sim1.plot_status_timecourse()
+sim1.plot_flags_timecourse()
+sim1.plot_location_type_occupancy_timecourse()
+sim2 = Simulation(sim1,50)
+sim2.plot_status_timecourse()
+sim2.plot_flags_timecourse()
+sim2.plot_location_type_occupancy_timecourse()
