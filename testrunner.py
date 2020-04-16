@@ -42,12 +42,12 @@ class TestVPM(unittest.TestCase):
         self.modeledWorld1.save('testsavemw', date_suffix=False)
         self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl')) 
             != 0, "modeledWorld1 pickling failed")
-        load_object('testsavemw')
+        load_object('testsavemw.pkl')
         os.remove('saved_objects/testsavemw.pkl')
         self.simulation1.save('testsavesim', date_suffix=False)
         self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl')) 
             != 0, "simulation1 pickling failed")
-        load_object('testsavesim')
+        load_object('testsavesim.pkl')
         os.remove('saved_objects/testsavesim.pkl')
 
     def test_infection_mechanism(self):
