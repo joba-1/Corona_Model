@@ -88,9 +88,6 @@ class World(object):
             #check if hospital will be true if at least one in dataframe
             if building_type == 'hospital':
                 hospital_bool = True
-            elif building_type == 'cemetery':
-                cemetery_bool = True
-
             #create location in dictionary, except excluded buildings
             if building_type != 'excluded_buildings':
                 locations[i] = Location(x, (row['building_coordinates_x'],row['building_coordinates_y']),
