@@ -8,7 +8,7 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000, 200)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000, 300)
         self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 

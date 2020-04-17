@@ -160,6 +160,8 @@ class Simulation(object):
     """
 
     def __init__(self, object_to_simulate, time_steps):
+        assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
+            "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
         self.simulation_object = object_to_simulate
         self.time_steps = time_steps
         self.people = self.simulation_object.people
@@ -170,7 +172,9 @@ class Simulation(object):
         elif isinstance(self.simulation_object, Simulation):
             self.time = self.simulation_object.time
             self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()])
+                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+        else:
+            raise ValueError('Unexpected  \'object_to_simulate\' type')
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def get_person_attributes_per_time(self, person, only_status=False):
@@ -193,7 +197,15 @@ class Simulation(object):
         """
         population_size = len(self.people)
         timecourse = np.empty(population_size * self.time_steps, dtype=object)
-        for step in range(self.time_steps):
+        if self.time == 0:
+            p_cnt = 0
+            for p in self.people: # makes sure he initial conditions are t=0 of the time course
+                timecourse[p_cnt] = self.get_person_attributes_per_time(p)
+                p_cnt += 1
+            first_simulated_step = 1
+        else:
+            first_simulated_step = 0
+        for step in range(first_simulated_step, self.time_steps):
             person_counter = step * population_size
             self.time += 1
             for p in self.people:  #
@@ -297,9 +309,7 @@ class Simulation(object):
         trajectories = self.get_status_trajectories(specific_statuses)
         assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
                                                                "course "
-        print(trajectories)
         simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
-        print(simulation_timepoints)
         for status in trajectories.keys():
             plt.plot(simulation_timepoints,
                      trajectories[status][status].values, label=labels[status])
@@ -341,7 +351,7 @@ class Simulation(object):
         :param specific_types: list. List of specific types to plot (only)
         :param save_figure: bool. Whether to save the figure
         """
-        locations_df = self.get_location_with_type_trajectory().copy()
+        locations_df = self.get_location_with_type_trajectory()
         available_loc_types = set(locations_df['loc_type'])
         if specific_types is not None:
             assert available_loc_types >= set(specific_types), \
