@@ -41,7 +41,8 @@ class World(object):
         loc_class_dic={}
         
         loc_class_dic['excluded_buildings']=['garage','roof','shed','bungalow','barn','silo']
-        loc_class_dic['hospital']=['hospital']
+        loc_class_dic['hospital'] = ['hospital']
+        loc_class_dic['cemetery'] = ['cemetery']
         
         loc_class_dic['work'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office','farm']\
                                     +list(self.df_buildings['amenity'].unique())\
@@ -75,7 +76,7 @@ class World(object):
         col_names = ['building','amenity','shop','leisure', 'sport','healthcare']
         #start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
-
+        cemetery_bool = False
         #healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
         col_names=['building','amenity','shop','leisure', 'sport','healthcare']
@@ -94,15 +95,23 @@ class World(object):
                                     row['neighbourhood'],
                                     row['building_area'],)
         #if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
+        #if no cemetery in dataframe, one is created in low left corner, else model has problems #FIXME Future
         if not hospital_bool:
             distance = 0.00
-            
-            locations.update( {len(locations) : Location(len(locations), 
-                                                        max(self.df_buildings['building_coordinates_x'])+distance,
-                                                        max(self.df_buildings['building_coordinates_y'])+distance,
+            locations.update( {len(self.df_buildings)+1 : Location(len(self.df_buildings)+1, 
+                                                        (max(self.df_buildings['building_coordinates_x'])+distance,
+                                                        max(self.df_buildings['building_coordinates_y'])+distance),
                                                         'hospital',
                                                         'no',
                                                         9.321282e-08,)} )
+        if not cemetery_bool:
+            locations.update( {len(self.df_buildings)+2 : Location(len(self.df_buildings)+2, 
+                                                        (min(self.df_buildings['building_coordinates_x'])-distance,
+                                                        min(self.df_buildings['building_coordinates_y'])-distance),
+                                                        'cemetery',
+                                                        'no',
+                                                        9.321282e-06,)} )
+                
         return locations
 
     def assign_building_type(self, building_lst:list, loc_class_dic:dict):
