@@ -142,7 +142,7 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.get_initially_infected()
 
-    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school']):  
+    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']):  
         location_counts = {}
         for loc_type in loc_types:
             location_counts[loc_type] = sum([1 for x in self.locations.values() if  x.location_type == loc_type])
