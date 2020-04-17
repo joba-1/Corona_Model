@@ -31,7 +31,7 @@ class World(object):
         Possible classes and therefore dictionary keys are:
         'excluded_buildings' = buildings not included because they do not fit any class
         'hospital' = hospitals
-        'work_place' = anything a person can work at
+        'work' = anything a person can work at
         'public_place' = right now religous and sport buildings #FIXME-Discussion: restaurantes, bars, cafe?
         'school' = places with a lot of young people
         Sorting idea as of right now everything is work place if not in any other list 
@@ -40,10 +40,10 @@ class World(object):
         '''
         loc_class_dic={}
         
-        loc_class_dic['excluded_buildings']=['garage']
+        loc_class_dic['excluded_buildings']=['garage','roof','shed','bungalow','barn','silo']
         loc_class_dic['hospital']=['hospital']
         
-        loc_class_dic['work_place'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office']\
+        loc_class_dic['work'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office','farm']\
                                     +list(self.df_buildings['amenity'].unique())\
                                     +list(self.df_buildings['shop'].unique())
 
@@ -59,7 +59,7 @@ class World(object):
         loc_class_dic['public_place'] = [x for x in loc_class_dic['public_place'] if ~pd.isnull(x)]
         #Removing values from workplace_list that are in work place and in another list
         for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public_place'] + loc_class_dic['school']:
-            while x in loc_class_dic['work_place']: loc_class_dic['work_place'].remove(x)  
+            while x in loc_class_dic['work']: loc_class_dic['work'].remove(x)  
 
         return loc_class_dic
 
@@ -76,7 +76,7 @@ class World(object):
         #start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
 
-        healthcare, work_place, public_place, school = self.location_classifier(self.df_buildings)
+        #healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
         col_names=['building','amenity','shop','leisure', 'sport','healthcare']
 
@@ -210,7 +210,7 @@ class Location(object):
         try:
             ids_of_type_in_neighbourhood = self.ids_of_location_types[loc_type]
         except:
-            print('location type: {} is not in the neighbourhood'.format(loc_type))
+            #print('location type: {} is not in the neighbourhood'.format(loc_type))
             return None
         distances_loc = {loc_id: self.distance_loc(loc_id)
                          for loc_id in self.ids_of_location_types[loc_type]}
