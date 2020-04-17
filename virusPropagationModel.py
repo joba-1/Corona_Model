@@ -64,7 +64,7 @@ class ModeledPopulatedWorld(object):
         for home in [h for h in self.locations.values() if h.location_type == 'home']:
             home_type, home_size, ages = initialize_household()
             for age in ages:
-                n = len(people)+1
+                n = len(people) + 1
                 schedule = self.create_schedule(age, home, self.locations)
                 people.add(Human(n, age, schedule, home, enable_infection_interaction=agent_agent_infection))
         return people
@@ -100,7 +100,7 @@ class ModeledPopulatedWorld(object):
         elif age < 70:  # working adult
             worktime = npr.randint(7, 12)  # draw time between 7 and 12 to beginn work
             public_duration = npr.randint(1, 3)  # draw duration of stay at public place
-            times = [worktime, worktime+8, worktime+8+public_duration]
+            times = [worktime, worktime + 8, worktime + 8 + public_duration]
 
             if home.closest_loc('work'):
                 work_id = random.sample(home.closest_loc('work')[:3], 1)[
@@ -119,7 +119,7 @@ class ModeledPopulatedWorld(object):
         else:  # senior, only goes to one public place each day
             public_time = npr.randint(7, 17)
             public_duration = npr.randint(1, 5)
-            times = [public_time, public_time+public_duration]
+            times = [public_time, public_time + public_duration]
 
             if home.closest_loc('public_place'):
                 public_id = home.closest_loc('public_place')[0]  # draw public place from 3 closest
@@ -169,7 +169,8 @@ class Simulation(object):
             self.simulation_timecourse = self.run_simulation()
         elif isinstance(self.simulation_object, Simulation):
             self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat([self.simulation_object.simulation_timecourse, self.run_simulation()])
+            self.simulation_timecourse = pd.concat(
+                [self.simulation_object.simulation_timecourse, self.run_simulation()])
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def get_person_attributes_per_time(self, person, only_status=False):
@@ -191,9 +192,9 @@ class Simulation(object):
         :return: DataFrame which contains the time course of the simulation
         """
         population_size = len(self.people)
-        timecourse = np.empty(population_size*self.time_steps, dtype=object)
+        timecourse = np.empty(population_size * self.time_steps, dtype=object)
         for step in range(self.time_steps):
-            person_counter = step*population_size
+            person_counter = step * population_size
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
@@ -225,16 +226,17 @@ class Simulation(object):
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
         status_trajectories = {}
-        s_t = self.simulation_timecourse.copy()
-        s_t.loc[:, 'ones'] = np.ones(s_t.shape[0])
+        status_tc = self.simulation_timecourse[['time', 'status']]
+        t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
-            df = s_t[s_t['status'] == status]
-            gdf = df.groupby('time')
-            stat_t = gdf.sum()['ones']
-            df = pd.concat([pd.Series(np.arange(0, self.time_steps+1)), stat_t],
-                           axis=1).loc[1:].fillna(0)
-            df.columns = ['time', status]
-            status_trajectories[status] = df
+            df = status_tc[status_tc['status'] == status].copy().rename(columns={'status': status})  # copy?
+            time_grouped_status_count = df.groupby('time').count()
+            zero_occupancy_df = pd.DataFrame({'time': t_c_times, status: np.zeros(
+                len(t_c_times))}).set_index('time')
+            merged_df = time_grouped_status_count.merge(zero_occupancy_df, on='time',
+                                                        suffixes=('', '_zeros'),
+                                                        how='right').fillna(0).sort_index().reset_index()
+            status_trajectories[status] = merged_df[['time', status]]
         return status_trajectories
 
     def get_location_with_type_trajectory(self):
@@ -245,7 +247,6 @@ class Simulation(object):
         loc_id_to_type_dict = {loc.get_location_id(): loc.get_location_type() for loc in
                                self.locations.values()}
         location_traj_df = self.simulation_timecourse[{'h_ID', 'loc', 'time'}].copy()
-        print(location_traj_df)
         loc_type_traj = np.empty(len(location_traj_df.index), dtype=object)
         for i in range(len(loc_type_traj)):
             loc_type_traj[i] = loc_id_to_type_dict[location_traj_df['loc'][i]]
@@ -265,21 +266,20 @@ class Simulation(object):
         df = pd.DataFrame()
         for p in self.people:
             duration_dict = p.get_infection_info()
-            print(duration_dict)
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
-                        duration_dict['infection_time']
+                                                            duration_dict['infection_time']
                 elif not pd.isna(duration_dict['death_time']):
                     df.loc[p.ID, 'infection_to_death'] = duration_dict['death_time'] - \
-                        duration_dict['infection_time']
+                                                         duration_dict['infection_time']
                 if not pd.isna(duration_dict['hospitalized_time']):
                     df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
-                        duration_dict['infection_time']
+                                                            duration_dict['infection_time']
                     if not pd.isna(duration_dict['hospital_to_ICU_time']):
                         df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
-                            duration_dict['hospitalized_time']
-        return(df)
+                                                          duration_dict['hospitalized_time']
+        return (df)
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -291,14 +291,15 @@ class Simulation(object):
         labels = {
             'S': 'Susceptible',
             'R': 'Recovered',
-            'I':  'Infected',
-            'D':  'Dead'
+            'I': 'Infected',
+            'D': 'Dead'
         }
         trajectories = self.get_status_trajectories(specific_statuses)
         assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
                                                                "course "
+        print(trajectories)
         simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
-
+        print(simulation_timepoints)
         for status in trajectories.keys():
             plt.plot(simulation_timepoints,
                      trajectories[status][status].values, label=labels[status])
@@ -343,9 +344,10 @@ class Simulation(object):
         locations_df = self.get_location_with_type_trajectory().copy()
         available_loc_types = set(locations_df['loc_type'])
         if specific_types is not None:
-            assert available_loc_types >= set(specific_types),\
+            assert available_loc_types >= set(specific_types), \
                 " specific types provided (" + str(specific_types) + ") " \
-                "do not match those in the timecourse (" + str(available_loc_types) + " )"
+                                                                     "do not match those in the timecourse (" + str(
+                    available_loc_types) + " )"
             loc_types = specific_types
         else:
             loc_types = available_loc_types
@@ -366,22 +368,22 @@ class Simulation(object):
             plt.savefig('outputs/loc_types_occupancy_plot.png')
 
     def export_time_courses_as_csvs(self, identifier="output"):
-        self.simulation_timecourse.to_csv('outputs/'+identifier+'-humans_time_course.csv')
+        self.simulation_timecourse.to_csv('outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
-        concat_trajectory_df.to_csv('outputs/'+identifier+'-commutative_status_time_course.csv')
+        concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
 
-#testing
-modeledWorld1 = ModeledPopulatedWorld(1000, 100)
-print(modeledWorld1.number_of_people)
-sim1 = Simulation(modeledWorld1,50)
+
+# testing
+modeledWorld1 = ModeledPopulatedWorld(1000, 300)
+sim1 = Simulation(modeledWorld1, 50)
 sim1.plot_status_timecourse()
 sim1.plot_flags_timecourse()
 sim1.plot_location_type_occupancy_timecourse()
-sim2 = Simulation(sim1,50)
+sim2 = Simulation(sim1, 50)
 sim2.plot_status_timecourse()
 sim2.plot_flags_timecourse()
 sim2.plot_location_type_occupancy_timecourse()
