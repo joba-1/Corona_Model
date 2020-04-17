@@ -53,12 +53,14 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False):
+    # currently breaks when False
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv'):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
         self.initial_infections = initial_infections
-        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs)
+        self.geofile_name = geofile_name
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,geofile_name = self.geofile_name)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
@@ -157,6 +159,14 @@ class ModeledPopulatedWorld(object):
         to_infect = random.sample(self.people, amount)  # randomly choose who to infect
         for p in to_infect:
             p.get_initially_infected()
+
+    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']):  
+        location_counts = {}
+        for loc_type in loc_types:
+            location_counts[loc_type] = sum([1 for x in self.locations.values() if  x.location_type == loc_type])
+         
+        plt.bar(location_counts.keys(), location_counts.values())
+        return location_counts        
 
 
 class Simulation(object):
@@ -357,6 +367,35 @@ class Simulation(object):
         location_traj_df['loc_type'] = loc_type_traj
         return location_traj_df
 
+    def get_location_and_status(self):
+        """
+        processes simulation output to generate DataFrame
+        with location and sums of people for each status
+        :return: pandas dataframe 
+
+        :example:
+        status   loc     time    D        I       R       S   x_coordinate  y_coordinate
+        0          0      1      0.0     0.0     0.0     1.0      4              0
+        1          0      2      0.0     0.0     0.0     1.0      4              0
+        2          0      3      0.0     0.0     0.0     1.0      4              0
+        
+        """
+        df = self.simulation_timecourse.copy()
+        df.drop(columns= ['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        d=pd.pivot_table(df, values='h_ID', index=['loc','time'],
+                     columns=['status'],aggfunc='count')
+        table=d.reset_index().fillna(0)
+
+        for stat in ['D','I','R','S',]:
+            if stat not in table.columns:
+                table[stat]=[0]*len(table)
+        
+        table['x_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[0] for loc_id in table['loc']]
+        table['y_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[1] for loc_id in table['loc']]
+
+        return table
+   
+
     def get_durations(self):
         """
         Returns a pandas DataFrame with the durations of certain states of the agents.
@@ -389,6 +428,21 @@ class Simulation(object):
                         df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
                                                           duration_dict['hospitalized_time']
         return df
+
+    def plot_distributions_of_durations(self, save_figure=False):
+        """
+        plots the distributions of the total duration of the infection,
+        the time from infection to hospitalization,
+        the times from hospitalization to death or recovery
+        and the time from hospitalisation to ICU.
+        :param save_figure:  Bool. Flag for saving the figure as an image
+
+        """
+        self.get_durations().hist()
+        plt.show()
+        plt.tight_layout()
+        if save_figure:
+            plt.savefig('outputs/duration_distributions.png')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
