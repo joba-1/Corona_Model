@@ -67,7 +67,8 @@ class ModeledPopulatedWorld(object):
             for age in ages:
                 n = len(people)+1
                 schedule = self.create_schedule(age, home, self.locations)
-                people.add(Human(n, age, schedule, home, enable_infection_interaction=agent_agent_infection))
+                people.add(Human(n, age, schedule, home,
+                                 enable_infection_interaction=agent_agent_infection))
         return people
 
     def create_schedule(self, age, home, locations):
@@ -259,7 +260,6 @@ class Simulation(object):
         df = pd.DataFrame()
         for p in self.modeled_populated_world.people:
             duration_dict = p.get_infection_info()
-            print(duration_dict)
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
@@ -270,10 +270,31 @@ class Simulation(object):
                 if not pd.isna(duration_dict['hospitalized_time']):
                     df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
                         duration_dict['infection_time']
+                    if not pd.isna(duration_dict['recovery_time']):
+                        df.loc[p.ID, 'hospital_to_recovery'] = duration_dict['recovery_time'] - \
+                            duration_dict['hospitalized_time']
+                    elif not pd.isna(duration_dict['death_time']):
+                        df.loc[p.ID, 'hospital_to_death'] = duration_dict['death_time'] - \
+                            duration_dict['hospitalized_time']
                     if not pd.isna(duration_dict['hospital_to_ICU_time']):
                         df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
                             duration_dict['hospitalized_time']
         return(df)
+
+    def plot_distributions_of_durations(self, save_figure=False):
+        """
+        plots the distributions of the total duration of the infection,
+        the time from infection to hospitalization,
+        the times from hospitalization to death or recovery
+        and the time from hospitalisation to ICU.
+        :param save_figure:  Bool. Flag for saving the figure as an image
+
+        """
+        self.get_durations().hist()
+        plt.show()
+        plt.tight_layout()
+        if save_figure:
+            plt.savefig('outputs/duration_distributions.png')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
