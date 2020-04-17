@@ -6,6 +6,7 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 from VPM_save_and_load import *
+import copy
 
 
 class ModeledPopulatedWorld(object):
@@ -243,7 +244,7 @@ class Simulation(object):
     def __init__(self, object_to_simulate, time_steps):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        self.simulation_object = object_to_simulate
+        self.simulation_object = copy.deepcopy(object_to_simulate)
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
