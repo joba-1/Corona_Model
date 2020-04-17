@@ -330,6 +330,7 @@ class Simulation(object):
         """
         self.get_durations().hist()
         plt.show()
+        plt.tight_layout()
         if save_figure:
             plt.savefig('outputs/duration_distributions.png')
 
