@@ -274,6 +274,12 @@ class Simulation(object):
         d=pd.pivot_table(df, values='h_ID', index=['loc','time'],
                      columns=['status'],aggfunc='count')
         table=d.reset_index().fillna(0)
+
+        for stat in ['D','I','R','S',]:
+            if stat not in table.columns:
+                table[stat]=[0]*len(table)
+  
+
         return table
    
 
