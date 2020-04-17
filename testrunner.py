@@ -4,6 +4,28 @@ import glob
 import os
 import time
 
+def get_file_size(file_path):
+    """
+    get size of file at filename location
+    :param file_path: string, path to file
+    :return: size of file int or -1 if file not found
+    """
+    if os.path.isfile(file_path):
+        return os.stat(file_path).st_size
+    else:
+        raise FileNotFoundError('{} file does not exist'.format(file_path))
+    
+
+def wait_for_write(file_path):
+    """
+    wait for file to be written by checking no size change after 1 second
+    :param file_path: string, realtive path to file
+    """
+    current_size = get_file_size(file_path)
+    while current_size != get_file_size(file_path) or get_file_size(file_path)==0:
+        current_size = get_file_size(file_path)
+        time.sleep(1)
+
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
@@ -40,13 +62,14 @@ class TestVPM(unittest.TestCase):
 
     def test_import_export_objects(self):
         self.modeledWorld1.save('testsavemw', date_suffix=False)
-        time.sleep(1)
+        wait_for_write('saved_objects/testsavemw.pkl')
         self.assertTrue(len(glob.glob('saved_objects/testsavemw.pkl'))
                         != 0, "modeledWorld1 pickling failed")
         load_simulation_object('testsavemw.pkl')
         os.remove('saved_objects/testsavemw.pkl')
+        
         self.simulation1.save('testsavesim', date_suffix=False)
-        time.sleep(1)
+        wait_for_write('saved_objects/testsavesim.pkl')
         self.assertTrue(len(glob.glob('saved_objects/testsavesim.pkl'))
                         != 0, "simulation1 pickling failed")
         loadedsim1 = load_simulation_object('testsavesim.pkl')
