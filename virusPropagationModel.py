@@ -160,15 +160,18 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.get_initially_infected()
 
-    def plot_location_type_distribution(self, loc_types=None):
+    def get_distribution_of_location_types(self, loc_types=None):
         if loc_types is None:
             loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
             location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
-         
+        return location_counts
+
+    def plot_distribution_of_location_types(self):
+        location_counts = self.get_distribution_of_location_types()
         plt.bar(location_counts.keys(), location_counts.values())
-        return location_counts        
+
 
 
 class Simulation(object):
@@ -383,12 +386,12 @@ class Simulation(object):
         
         """
         df = self.simulation_timecourse.copy()
-        df.drop(columns= ['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
-        d=pd.pivot_table(df, values='h_ID', index=['loc','time'],
+        df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        d = pd.pivot_table(df, values='h_ID', index=['loc','time'],
                      columns=['status'],aggfunc='count')
-        table=d.reset_index().fillna(0)
+        table = d.reset_index().fillna(0)
 
-        for stat in ['D','I','R','S',]:
+        for stat in ['D', 'I', 'R', 'S']:
             if stat not in table.columns:
                 table[stat]=[0]*len(table)
         
