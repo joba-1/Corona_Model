@@ -407,15 +407,3 @@ class Simulation(object):
         concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
-
-
-# testing
-modeledWorld1 = ModeledPopulatedWorld(1000, 300)
-sim1 = Simulation(modeledWorld1, 50)
-sim1.plot_status_timecourse()
-sim1.plot_flags_timecourse()
-sim1.plot_location_type_occupancy_timecourse()
-sim2 = Simulation(sim1, 50)
-sim2.plot_status_timecourse()
-sim2.plot_flags_timecourse()
-sim2.plot_location_type_occupancy_timecourse()
