@@ -45,15 +45,15 @@ class TestVPM(unittest.TestCase):
             os.remove(file)  # files cleanup
 
     def test_import_export_objects(self):
-        self.modeledWorld1.save('testsavemw', date_suffix=False)
-        self.loaded_mod_world1 = load_simulation_object('testsavemw.pkl')
+        self.modeledWorld1.save('testingsavemw', date_suffix=False)
+        self.loaded_mod_world1 = load_simulation_object('testingsavemw.pkl')
         self.sim1_from_loaded_world1 = Simulation(self.loaded_mod_world1,100)
-        self.sim1_from_loaded_world1.save('testsavesim', date_suffix=False)
-        self.loaded_sim1 = load_simulation_object('testsavesim')
+        self.sim1_from_loaded_world1.save('testingsavesim', date_suffix=False)
+        self.loaded_sim1 = load_simulation_object('testingsavesim')
         self.simulation1.plot_status_timecourse()
         self.sim1_from_loaded_world1.plot_status_timecourse()
         self.loaded_sim1.plot_status_timecourse()
-        for file in glob.glob("saved_objects/testsave*"):
+        for file in glob.glob("saved_objects/testing*"):
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
