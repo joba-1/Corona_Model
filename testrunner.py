@@ -22,6 +22,7 @@ def wait_for_write(file_path):
     :param file_path: string, realtive path to file
     """
     current_size = get_file_size(file_path)
+    time.sleep(1)
     while current_size != get_file_size(file_path) or get_file_size(file_path)==0:
         current_size = get_file_size(file_path)
         time.sleep(1)
