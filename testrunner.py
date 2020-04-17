@@ -29,6 +29,7 @@ class TestVPM(unittest.TestCase):
         self.simulation1.plot_status_timecourse()
         self.simulation1.plot_flags_timecourse()
         self.simulation1.plot_location_type_occupancy_timecourse()
+        self.simulation1.plot_distributions_of_durations()
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
