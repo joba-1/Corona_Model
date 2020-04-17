@@ -278,7 +278,9 @@ class Simulation(object):
         for stat in ['D','I','R','S',]:
             if stat not in table.columns:
                 table[stat]=[0]*len(table)
-  
+        
+        table['x_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[0] for loc_id in table['loc']]
+        table['y_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[1] for loc_id in table['loc']]
 
         return table
    
