@@ -8,8 +8,7 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000, 200)
-        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000, 300)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_ModeledPopulatedWorld_initialization(self):
@@ -17,11 +16,8 @@ class TestVPM(unittest.TestCase):
                                                                 " # initialized: " +
                          str(self.modeledWorld1.number_of_locs))
 
-        self.assertEqual(500, self.modeledWorld2.number_of_locs, "not all given amount of locations was initialized."
-                                                                 " # initialized: " +
-                         str(self.modeledWorld2.number_of_locs))
-
-    def test_multiple_sims(self):
+    def test_multiple_sims_and_worlds_parallel(self):
+        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
         self.simulation2 = Simulation(self.modeledWorld1, 100)
         self.simulation3 = Simulation(self.modeledWorld1, 50)
         self.simulation4 = Simulation(self.modeledWorld2, 10)
@@ -31,6 +27,14 @@ class TestVPM(unittest.TestCase):
         self.simulation1.plot_flags_timecourse()
         self.simulation1.plot_location_type_occupancy_timecourse()
         self.simulation1.plot_distributions_of_durations()
+
+    def test_multiple_subsequent_sims_and_plot(self):
+        self.sim_1_1 = Simulation(self.simulation1, 50)
+        self.sim_1_2 = Simulation(self.sim_1_1, 50)
+        self.sim_1_2.plot_status_timecourse()
+        self.sim_1_2.plot_flags_timecourse()
+        self.sim_1_2.plot_location_type_occupancy_timecourse()
+        self.sim_1_2.plot_distributions_of_durations()
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
