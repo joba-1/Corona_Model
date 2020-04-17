@@ -25,6 +25,7 @@ class ModeledPopulatedWorld(object):
     locations: list of location objects of the class Location
         the locations initialized in this world
     people: set of human objects of the human class
+        the population of this world
 
     Methods
     ----------
@@ -148,16 +149,72 @@ class Simulation(object):
     Attributes
     ----------
     simulation_object : ModeledPopulatedWorld or Simulation object
-        the initialized populated world used as basis for the simulation
+        the object used as basis for the simulation, which depicts a populated world at some time point
     time_steps : int
         The amount of time steps to simulate (hours)
+    people: set of human objects of the human class
+        the population of this world
+    locations: list of location objects of the class Location
+        the locations in this world
     time: int
-        the current in-silico time in the simulation in its current state
+        the current in-silico time of this objects. Gets updated during when the simulation runs at initiation
+    simulation_timecourse: DataFrame:
+        contains the information regarding the humans and where they are since t=0
     statuses_in_timecourse: list
         a list of all the statuses available in the time course (e.g. I, for "infected")
 
     Methods
     ----------
+    get_person_attributes_per_time()
+        gets the location, status, and flags of a human object along with the current time
+        :param person: object of the Human class
+        :param only_status: bool. set True in case you dont want to return the flags too
+        :return: dict. with all the attributes mentioned above
+
+    run_simulation()
+        simulates the trajectories of all the attributes of the population
+        :return: DataFrame which contains the time course of the simulation
+
+    get_statuses_in_timecourse()
+        gets a list of the statuses in the time course
+        :return: list. list of available statuses
+
+    get_status_trajectories()
+        gets the commutative amount of each status per point in time as a trajectory
+        :param specific_statuses: List. Optional arg for getting only a subset  of statuses
+        :return: DataFrame. The time courses for the specified statuses
+
+    get_location_with_type_trajectory()
+        uses the location ids in the simulation timecourse to reconstruct location types
+        :return: DataFrame. Contains location ids, time, human ids and location types
+
+    get_durations()
+        Returns a pandas DataFrame with the durations of certain states of the agents.
+        Durations included so far (columns in the data-frame):
+        From infection to death ('infection_to_death'),
+        from infection to recovery ('infection_to_recovery'),
+        from infection to hospital ('infection_to_hospital') and
+        from hospital to ICU (hospital_to_icu).
+
+    plot_status_timecourse()
+        plots the time course for selected statuses
+        :param save_figure:  Bool. Flag for saving the figure as an image
+        :param specific_statuses:   List. Optional arg for getting only a
+        subset  of statuses. if not specified, will plot all available statuses
+
+    plot_flags_timecourse()
+        plots the time course for the selected flags
+        :param specific_flags: list. given flags to be included in the plot
+        :param save_figure: bool. Flag for saving the figure as an image
+
+    plot_location_type_occupancy_timecourse()
+        plots the occupancy of the location types in the time course
+        :param specific_types: list. List of specific types to plot (only)
+        :param save_figure: bool. Whether to save the figure
+
+    export_time_courses_as_csvs()
+        export the human simulation time course, human commutative status time course, and locations time course
+        :param identifier: a given identifying name for the file which will be included in the name of the exported file
     """
 
     def __init__(self, object_to_simulate, time_steps):
@@ -300,21 +357,6 @@ class Simulation(object):
                                                           duration_dict['hospitalized_time']
         return df
 
-    def plot_distributions_of_durations(self, save_figure=False):
-        """
-        plots the distributions of the total duration of the infection,
-        the time from infection to hospitalization,
-        the times from hospitalization to death or recovery
-        and the time from hospitalisation to ICU.
-        :param save_figure:  Bool. Flag for saving the figure as an image
-
-        """
-        self.get_durations().hist()
-        plt.show()
-        plt.tight_layout()
-        if save_figure:
-            plt.savefig('outputs/duration_distributions.png')
-
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
         plots the time course for selected statuses
@@ -399,7 +441,26 @@ class Simulation(object):
         if save_figure:
             plt.savefig('outputs/loc_types_occupancy_plot.png')
 
+    def plot_distributions_of_durations(self, save_figure=False):
+        """
+        plots the distributions of the total duration of the infection,
+        the time from infection to hospitalization,
+        the times from hospitalization to death or recovery
+        and the time from hospitalisation to ICU.
+        :param save_figure:  Bool. Flag for saving the figure as an image
+
+        """
+        self.get_durations().hist()
+        plt.show()
+        plt.tight_layout()
+        if save_figure:
+            plt.savefig('outputs/duration_distributions.png')
+
     def export_time_courses_as_csvs(self, identifier="output"):
+        """
+        export the human simulation time course, human commutative status time course, and locations time course
+        :param identifier: a given identifying name for the file which will be included in the name of the exported file
+        """
         self.simulation_timecourse.to_csv('outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
