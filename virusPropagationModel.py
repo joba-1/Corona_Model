@@ -160,10 +160,12 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.get_initially_infected()
 
-    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']):  
+    def plot_location_type_distribution(self, loc_types=None):
+        if loc_types is None:
+            loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
-            location_counts[loc_type] = sum([1 for x in self.locations.values() if  x.location_type == loc_type])
+            location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
          
         plt.bar(location_counts.keys(), location_counts.values())
         return location_counts        
@@ -390,8 +392,8 @@ class Simulation(object):
             if stat not in table.columns:
                 table[stat]=[0]*len(table)
         
-        table['x_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[0] for loc_id in table['loc']]
-        table['y_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[1] for loc_id in table['loc']]
+        table['x_coordinate'] = [self.locations[loc_id].coordinates[0] for loc_id in table['loc']]
+        table['y_coordinate'] = [self.locations[loc_id].coordinates[1] for loc_id in table['loc']]
 
         return table
    
@@ -429,20 +431,6 @@ class Simulation(object):
                                                           duration_dict['hospitalized_time']
         return df
 
-    def plot_distributions_of_durations(self, save_figure=False):
-        """
-        plots the distributions of the total duration of the infection,
-        the time from infection to hospitalization,
-        the times from hospitalization to death or recovery
-        and the time from hospitalisation to ICU.
-        :param save_figure:  Bool. Flag for saving the figure as an image
-
-        """
-        self.get_durations().hist()
-        plt.show()
-        plt.tight_layout()
-        if save_figure:
-            plt.savefig('outputs/duration_distributions.png')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -538,8 +526,8 @@ class Simulation(object):
 
         """
         self.get_durations().hist()
-        plt.show()
         plt.tight_layout()
+        plt.show()
         if save_figure:
             plt.savefig('outputs/duration_distributions.png')
 
