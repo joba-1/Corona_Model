@@ -263,10 +263,10 @@ class Simulation(object):
         :return: pandas dataframe 
 
         :example:
-        status   loc     time    D        I       R       S
-        0          0      1      0.0     0.0     0.0     1.0
-        1          0      2      0.0     0.0     0.0     1.0
-        2          0      3      0.0     0.0     0.0     1.0
+        status   loc     time    D        I       R       S   x_coordinate  y_coordinate
+        0          0      1      0.0     0.0     0.0     1.0      4              0
+        1          0      2      0.0     0.0     0.0     1.0      4              0
+        2          0      3      0.0     0.0     0.0     1.0      4              0
         
         """
         df = self.simulation_timecourse.copy()
