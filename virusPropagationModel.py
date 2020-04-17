@@ -5,6 +5,8 @@ from initialize_households import initialize_household
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
+from VPM_save_and_load import *
+import copy
 
 
 class ModeledPopulatedWorld(object):
@@ -29,6 +31,12 @@ class ModeledPopulatedWorld(object):
 
     Methods
     ----------
+    save()
+    wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+
     initialize_people()
         initializes a set of people (human objects) with assigned ages and schedules
         :param number_of_people: int. The amount of people to initialize
@@ -57,6 +65,15 @@ class ModeledPopulatedWorld(object):
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
         self.initialize_infection(self.initial_infections)
+
+    def save(self, filename, date_suffix=True):
+        """
+        wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+        """
+        save_simulation_object(self, filename, date_suffix)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -143,10 +160,12 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.get_initially_infected()
 
-    def plot_location_type_distribution(self, loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']):  
+    def plot_location_type_distribution(self, loc_types=None):
+        if loc_types is None:
+            loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
-            location_counts[loc_type] = sum([1 for x in self.locations.values() if  x.location_type == loc_type])
+            location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
          
         plt.bar(location_counts.keys(), location_counts.values())
         return location_counts        
@@ -175,6 +194,12 @@ class Simulation(object):
 
     Methods
     ----------
+    save()
+    wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+        
     get_person_attributes_per_time()
         gets the location, status, and flags of a human object along with the current time
         :param person: object of the Human class
@@ -225,12 +250,13 @@ class Simulation(object):
     export_time_courses_as_csvs()
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
+
     """
 
     def __init__(self, object_to_simulate, time_steps):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        self.simulation_object = object_to_simulate
+        self.simulation_object = copy.deepcopy(object_to_simulate)
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
@@ -244,6 +270,15 @@ class Simulation(object):
         else:
             raise ValueError('Unexpected  \'object_to_simulate\' type')
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+
+    def save(self, filename, date_suffix=True):
+        """
+        wrapper for saveandloadobjects.save
+        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        :param filename: string, file to which it should be saved - date and time will be added
+        :param date_suffix: bool, whether to add date and time to filename
+        """
+        save_simulation_object(self, filename, date_suffix)
 
     def get_person_attributes_per_time(self, person, only_status=False):
         """
@@ -357,8 +392,8 @@ class Simulation(object):
             if stat not in table.columns:
                 table[stat]=[0]*len(table)
         
-        table['x_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[0] for loc_id in table['loc']]
-        table['y_coordinate'] = [self.modeled_populated_world.locations[loc_id].coordinates[1] for loc_id in table['loc']]
+        table['x_coordinate'] = [self.locations[loc_id].coordinates[0] for loc_id in table['loc']]
+        table['y_coordinate'] = [self.locations[loc_id].coordinates[1] for loc_id in table['loc']]
 
         return table
    
@@ -396,20 +431,6 @@ class Simulation(object):
                                                           duration_dict['hospitalized_time']
         return df
 
-    def plot_distributions_of_durations(self, save_figure=False):
-        """
-        plots the distributions of the total duration of the infection,
-        the time from infection to hospitalization,
-        the times from hospitalization to death or recovery
-        and the time from hospitalisation to ICU.
-        :param save_figure:  Bool. Flag for saving the figure as an image
-
-        """
-        self.get_durations().hist()
-        plt.show()
-        plt.tight_layout()
-        if save_figure:
-            plt.savefig('outputs/duration_distributions.png')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -505,8 +526,8 @@ class Simulation(object):
 
         """
         self.get_durations().hist()
-        plt.show()
         plt.tight_layout()
+        plt.show()
         if save_figure:
             plt.savefig('outputs/duration_distributions.png')
 

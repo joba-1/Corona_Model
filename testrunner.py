@@ -1,6 +1,5 @@
 import unittest
-from virusPropagationModel import ModeledPopulatedWorld, Simulation
-import matplotlib.pyplot as plt
+from virusPropagationModel import *
 import glob
 import os
 
@@ -13,13 +12,15 @@ class TestVPM(unittest.TestCase):
 
     def test_ModeledPopulatedWorld_initialization(self):
         self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
-                                                                " # initialized: " +
+                                                                  " # initialized: " +
                          str(self.modeledWorld1.number_of_locs))
 
     def test_multiple_sims_and_worlds_parallel(self):
-        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
+        self.simulation1.plot_flags_timecourse()
         self.simulation2 = Simulation(self.modeledWorld1, 100)
+        self.simulation2.plot_flags_timecourse()
         self.simulation3 = Simulation(self.modeledWorld1, 50)
+        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
         self.simulation4 = Simulation(self.modeledWorld2, 10)
 
     def test_simulation_plotting_no_errors(self):
@@ -40,7 +41,19 @@ class TestVPM(unittest.TestCase):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
         self.assertTrue(len(glob.glob("outputs/testing*")) != 0, "No CSVs exported!")
         for file in glob.glob("outputs/testing*"):
-            self.assertTrue(os.path.exists(file) and os.path.getsize(file) > 0, "CSV is empty!")
+            self.assertTrue(os.path.exists(file) and os.path.getsize(file) > 0, "CSV is saved_simulation_objects_go_here!")
+            os.remove(file)  # files cleanup
+
+    def test_import_export_objects(self):
+        self.modeledWorld1.save('testingsavemw', date_suffix=False)
+        self.loaded_mod_world1 = load_simulation_object('testingsavemw.pkl')
+        self.sim1_from_loaded_world1 = Simulation(self.loaded_mod_world1,100)
+        self.sim1_from_loaded_world1.save('testingsavesim', date_suffix=False)
+        self.loaded_sim1 = load_simulation_object('testingsavesim')
+        self.simulation1.plot_status_timecourse()
+        self.sim1_from_loaded_world1.plot_status_timecourse()
+        self.loaded_sim1.plot_status_timecourse()
+        for file in glob.glob("saved_objects/testing*"):
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
