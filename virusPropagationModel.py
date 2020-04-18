@@ -405,37 +405,16 @@ class Simulation(object):
         return table
 
     def get_durations(self):
-        """
-        Returns a pandas DataFrame with the durations of certain states of the agents.
-        Durations included so far (columns in the data-frame):
-        From infection to death ('infection_to_death'),
-        from infection to recovery ('infection_to_recovery'),
-        from infection to hospital ('infection_to_hospital') and
-        from hospital to ICU (hospital_to_icu).
-        """
-        df = pd.DataFrame()
-        for p in self.people:
-            duration_dict = p.get_infection_info()
-            if not pd.isna(duration_dict['infection_time']):
-                if not pd.isna(duration_dict['recovery_time']):
-                    df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
-                        duration_dict['infection_time']
-                elif not pd.isna(duration_dict['death_time']):
-                    df.loc[p.ID, 'infection_to_death'] = duration_dict['death_time'] - \
-                        duration_dict['infection_time']
-                if not pd.isna(duration_dict['hospitalized_time']):
-                    df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
-                        duration_dict['infection_time']
-                    if not pd.isna(duration_dict['recovery_time']):
-                        df.loc[p.ID, 'hospital_to_recovery'] = duration_dict['recovery_time'] - \
-                            duration_dict['hospitalized_time']
-                    elif not pd.isna(duration_dict['death_time']):
-                        df.loc[p.ID, 'hospital_to_death'] = duration_dict['death_time'] - \
-                            duration_dict['hospitalized_time']
-                    if not pd.isna(duration_dict['hospital_to_ICU_time']):
-                        df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
-                            duration_dict['hospitalized_time']
-        return df
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+                          'infection_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
+        out = pd.DataFrame()
+        out['infection_to_recovery'] = df['recovery_time']-df['infection_time']
+        out['infection_to_death'] = df['death_time']-df['infection_time']
+        out['infection_to_hospital'] = df['hospitalized_time']-df['infection_time']
+        out['hospital_to_recovery'] = df['recovery_time']-df['hospitalized_time']
+        out['hospital_to_death'] = df['death_time']-df['hospitalized_time']
+        out['hospital_to_icu'] = df['hospital_to_ICU_time']-df['hospitalized_time']
+        return out
 
     def get_infection_event_information(self):
         """
