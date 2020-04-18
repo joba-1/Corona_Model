@@ -50,24 +50,23 @@ class TestVPM(unittest.TestCase):
         self.simulation_a_a_inf.plot_flags_timecourse()
         self.simulation_a_a_inf.plot_location_type_occupancy_timecourse()
 
-    def test__infection_network(self):
+    def test_infection_network(self):
         self.testWorld_1 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=False)
         self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
         self.sim1 = Simulation(self.testWorld_1, 100)
         self.sim2 = Simulation(self.testWorld_2, 100)
         self.notAA_infectionNW = self.sim1.get_infection_event_information()
         self.AA_infectionNW = self.sim2.get_infection_event_information()
+        ## Testing whether the location-based infection-mechanism records finite infected_by_attributes##
+        ## This should not be the case ##
         no_associated_infector_in_locationbased_infectionmechanism = True
         if list(set(list(self.notAA_infectionNW['got_infected_by']))) != 1:
             no_associated_infector_in_locationbased_infectionmechanism = False
         else:
             if list(set(list(self.notAA_infectionNW['got_infected_by'])))[0] != 'nan':
                 no_associated_infector_in_locationbased_infectionmechanism = False
-        self.assertTrue("Finite got_infected_by-attributes location-based infection-mechanism")
-        row_initial = self.AA_infectionNW.loc[self.AA_infectionNW['got_infected_by']
-                                              == 'nan', :].index[0]
-        self.assertTrue(self.AA_infectionNW.loc[row_initial, 'time_of_infection'] ==
-                        '0', "Non initial infection as no associated got_infected_by-attribute")
+        self.assertTrue(no_associated_infector_in_locationbased_infectionmechanism,
+                        "Finite got_infected_by-attributes in location-based infection-mechanism")
 
 
 if __name__ == '__main__':
