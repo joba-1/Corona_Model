@@ -443,6 +443,7 @@ class Simulation(object):
         ID of location, where agent got infected ('place_of_infection'),
         Time, at which agent got infected ('time_of_infection'),
         ID of infected agent, who infected  ('got_infected_by'),
+        All infected agents, ever in contact with  ('infected_in_contact_with'),
         """
         df = pd.DataFrame()
         for p in self.people:
@@ -454,7 +455,7 @@ class Simulation(object):
                 df.loc[p.ID, 'got_infected_by'] = str(duration_dict['infected_by'])
                 df.loc[p.ID, 'infected_in_contact_with'] = str(
                     duration_dict['infected_in_contact_with'])
-        return(df.reset_index(drop=True).sort_values('time_of_infection'))
+        return(df.sort_values('time_of_infection').reset_index(drop=True))
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
