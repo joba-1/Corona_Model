@@ -413,8 +413,16 @@ class Simulation(object):
         return table
 
     def get_durations(self):
+        """
+         Returns a pandas DataFrame with the durations of certain states of the agents.
+         Durations included so far (columns in the data-frame):
+         From infection to death ('infection_to_death'),
+         from infection to recovery ('infection_to_recovery'),
+         from infection to hospital ('infection_to_hospital') and
+         from hospital to ICU (hospital_to_icu).
+         """
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
-                          'infection_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
+            'infection_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
         out = pd.DataFrame()
         out['infection_to_recovery'] = df['recovery_time']-df['infection_time']
         out['infection_to_death'] = df['death_time']-df['infection_time']
@@ -442,13 +450,15 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.set_index('time').to_csv('outputs/' + identifier + '-humans_time_course.csv')
+        self.simulation_timecourse.set_index('time').to_csv(
+            'outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
         concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
-        locations_traj.set_index('time').to_csv('outputs/' + identifier + '-locations_time_course.csv')
+        locations_traj.set_index('time').to_csv(
+            'outputs/' + identifier + '-locations_time_course.csv')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
