@@ -259,13 +259,13 @@ class Human(object):
                 'infected_in_contact_with': ' , '.join(self.infected_in_contact_with),
                 'infected_by': str(self.got_infected_by),
                 'place_of_infection': str(self.place_of_infection),
-                'infection_time': int(self.infection_time),
-                'recovery_time':  int(self.recover_time),
-                'death_time':     int(self.death_time),
-                'diagnosis_time': int(self.diagnosis_time),
-                'hospitalized_time':    int(self.hospitalization_time),
-                'hospital_to_ICU_time': int(self.icu_time),
-                'ICU_to_hospital_time': int(self.rehospitalization_time)}
+                'infection_time': self.infection_time,
+                'recovery_time':  self.recover_time,
+                'death_time':     self.death_time,
+                'diagnosis_time': self.diagnosis_time,
+                'hospitalized_time':    self.hospitalization_time,
+                'hospital_to_ICU_time': self.icu_time,
+                'ICU_to_hospital_time': self.rehospitalization_time}
 
     def move(self, time):  # agent moves relative to global time
         """
