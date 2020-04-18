@@ -380,7 +380,7 @@ class Human(object):
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
-                if infectious_person.ID not in self.infected_in_contact_with:
+                if str(infectious_person.ID) not in self.infected_in_contact_with:
                     self.infected_in_contact_with.append(str(infectious_person.ID))
                 if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
                     self.preliminary_status = 'I'
@@ -500,7 +500,8 @@ class Human(object):
         """
         # infection_duration=self.infection_duration
         ## use infection duration somehow to calculate infectivity ...##
-        infectivity = 1  # for now set to 1, should be function of infection-duration#
+        infectivity = 0.5  # for now set to 1, should be function of infection-duration#
+        #infectivity = 1  # for now set to 1, should be function of infection-duration#
         return(infectivity*self.behaviour_as_infected)
 
     def set_status_from_preliminary(self):

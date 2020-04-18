@@ -445,16 +445,8 @@ class Simulation(object):
         ID of infected agent, who infected  ('got_infected_by'),
         All infected agents, ever in contact with  ('infected_in_contact_with'),
         """
-        df = pd.DataFrame()
-        for p in self.people:
-            duration_dict = p.get_infection_info()
-            if not pd.isna(duration_dict['infection_time']):
-                df.loc[p.ID, 'ID'] = str(duration_dict['h_ID'])
-                df.loc[p.ID, 'place_of_infection'] = str(duration_dict['place_of_infection'])
-                df.loc[p.ID, 'time_of_infection'] = str(duration_dict['infection_time'])
-                df.loc[p.ID, 'got_infected_by'] = str(duration_dict['infected_by'])
-                df.loc[p.ID, 'infected_in_contact_with'] = str(
-                    duration_dict['infected_in_contact_with'])
+        df = pandas.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+                              'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
         return(df.sort_values('time_of_infection').reset_index(drop=True))
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
