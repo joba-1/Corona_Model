@@ -54,13 +54,15 @@ class ModeledPopulatedWorld(object):
     """
 
     # currently breaks when False
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv'):
+    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
+                 geofile_name='datafiles/Buildings_Gangelt_MA_1.csv'):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
         self.initial_infections = initial_infections
         self.geofile_name = geofile_name
-        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,geofile_name = self.geofile_name)
+        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
+                           geofile_name=self.geofile_name)
         self.locations = self.world.locations
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
@@ -171,7 +173,6 @@ class ModeledPopulatedWorld(object):
     def plot_distribution_of_location_types(self):
         location_counts = self.get_distribution_of_location_types()
         plt.bar(location_counts.keys(), location_counts.values())
-
 
 
 class Simulation(object):
@@ -305,7 +306,7 @@ class Simulation(object):
         timecourse = np.empty(population_size * self.time_steps, dtype=object)
         if self.time == 0:
             p_cnt = 0
-            for p in self.people: # makes sure he initial conditions are t=0 of the time course
+            for p in self.people:  # makes sure he initial conditions are t=0 of the time course
                 timecourse[p_cnt] = self.get_person_attributes_per_time(p)
                 p_cnt += 1
             first_simulated_step = 1
@@ -387,19 +388,18 @@ class Simulation(object):
         """
         df = self.simulation_timecourse.copy()
         df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
-        d = pd.pivot_table(df, values='h_ID', index=['loc','time'],
-                     columns=['status'],aggfunc='count')
+        d = pd.pivot_table(df, values='h_ID', index=['loc', 'time'],
+                           columns=['status'], aggfunc='count')
         table = d.reset_index().fillna(0)
 
         for stat in ['D', 'I', 'R', 'S']:
             if stat not in table.columns:
-                table[stat]=[0]*len(table)
-        
+                table[stat] = [0] * len(table)
+
         table['x_coordinate'] = [self.locations[loc_id].coordinates[0] for loc_id in table['loc']]
         table['y_coordinate'] = [self.locations[loc_id].coordinates[1] for loc_id in table['loc']]
 
         return table
-   
 
     def get_durations(self):
         """
@@ -422,18 +422,17 @@ class Simulation(object):
                                                          duration_dict['infection_time']
                 if not pd.isna(duration_dict['hospitalized_time']):
                     df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
-                        duration_dict['infection_time']
+                                                            duration_dict['infection_time']
                     if not pd.isna(duration_dict['recovery_time']):
                         df.loc[p.ID, 'hospital_to_recovery'] = duration_dict['recovery_time'] - \
-                            duration_dict['hospitalized_time']
+                                                               duration_dict['hospitalized_time']
                     elif not pd.isna(duration_dict['death_time']):
                         df.loc[p.ID, 'hospital_to_death'] = duration_dict['death_time'] - \
-                            duration_dict['hospitalized_time']
+                                                            duration_dict['hospitalized_time']
                     if not pd.isna(duration_dict['hospital_to_ICU_time']):
                         df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
                                                           duration_dict['hospitalized_time']
         return df
-
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -539,10 +538,10 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.to_csv('outputs/' + identifier + '-humans_time_course.csv')
+        self.simulation_timecourse.set_index('time').to_csv('outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
         concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
-        locations_traj.to_csv('outputs/' + identifier + '-locations_time_course.csv')
+        locations_traj.set_index('time').to_csv('outputs/' + identifier + '-locations_time_course.csv')
