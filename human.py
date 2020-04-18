@@ -500,7 +500,7 @@ class Human(object):
         """
         # infection_duration=self.infection_duration
         ## use infection duration somehow to calculate infectivity ...##
-        infectivity = 0.5  # for now set to 1, should be function of infection-duration#
+        infectivity = 0.1  # for now set to 1, should be function of infection-duration#
         #infectivity = 1  # for now set to 1, should be function of infection-duration#
         return(infectivity*self.behaviour_as_infected)
 
