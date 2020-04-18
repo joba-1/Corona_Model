@@ -167,7 +167,8 @@ class ModeledPopulatedWorld(object):
             loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
-            location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
+            location_counts[loc_type] = sum(
+                [1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
 
     def plot_distribution_of_location_types(self):
@@ -203,7 +204,7 @@ class Simulation(object):
         :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
-        
+
     get_person_attributes_per_time()
         gets the location, status, and flags of a human object along with the current time
         :param person: object of the Human class
@@ -348,7 +349,8 @@ class Simulation(object):
         status_tc = self.simulation_timecourse[['time', 'status']]
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
-            df = status_tc[status_tc['status'] == status].copy().rename(columns={'status': status})  # copy?
+            df = status_tc[status_tc['status'] == status].copy().rename(
+                columns={'status': status})  # copy?
             time_grouped_status_count = df.groupby('time').count()
             zero_occupancy_df = pd.DataFrame({'time': t_c_times, status: np.zeros(
                 len(t_c_times))}).set_index('time')
@@ -377,14 +379,14 @@ class Simulation(object):
         """
         processes simulation output to generate DataFrame
         with location and sums of people for each status
-        :return: pandas dataframe 
+        :return: pandas dataframe
 
         :example:
         status   loc     time    D        I       R       S   x_coordinate  y_coordinate
         0          0      1      0.0     0.0     0.0     1.0      4              0
         1          0      2      0.0     0.0     0.0     1.0      4              0
         2          0      3      0.0     0.0     0.0     1.0      4              0
-        
+
         """
         df = self.simulation_timecourse.copy()
         df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
@@ -416,23 +418,41 @@ class Simulation(object):
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
-                                                            duration_dict['infection_time']
+                        duration_dict['infection_time']
                 elif not pd.isna(duration_dict['death_time']):
                     df.loc[p.ID, 'infection_to_death'] = duration_dict['death_time'] - \
-                                                         duration_dict['infection_time']
+                        duration_dict['infection_time']
                 if not pd.isna(duration_dict['hospitalized_time']):
                     df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
-                                                            duration_dict['infection_time']
+                        duration_dict['infection_time']
                     if not pd.isna(duration_dict['recovery_time']):
                         df.loc[p.ID, 'hospital_to_recovery'] = duration_dict['recovery_time'] - \
-                                                               duration_dict['hospitalized_time']
+                            duration_dict['hospitalized_time']
                     elif not pd.isna(duration_dict['death_time']):
                         df.loc[p.ID, 'hospital_to_death'] = duration_dict['death_time'] - \
-                                                            duration_dict['hospitalized_time']
+                            duration_dict['hospitalized_time']
                     if not pd.isna(duration_dict['hospital_to_ICU_time']):
                         df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
-                                                          duration_dict['hospitalized_time']
+                            duration_dict['hospitalized_time']
         return df
+
+    def get_infection_event_information(self):
+        """
+        Returns a pandas DataFrame with information on all infection-events:
+        ID of agent, who got infected ('ID'),
+        ID of location, where agent got infected ('place_of_infection'),
+        Time, at which agent got infected ('time_of_infection'),
+        ID of infected agent, who infected  ('got_infected_by'),
+        """
+        df = pd.DataFrame()
+        for p in self.people:
+            duration_dict = p.get_infection_info()
+            if not pd.isna(duration_dict['infection_time']):
+                df.loc[p.ID, 'ID'] = str(duration_dict['h_ID'])
+                df.loc[p.ID, 'place_of_infection'] = str(duration_dict['place_of_infection'])
+                df.loc[p.ID, 'time_of_infection'] = str(duration_dict['infection_time'])
+                df.loc[p.ID, 'got_infected_by'] = str(duration_dict['infected_by'])
+        return(df.reset_index(drop=True).sort_values('time_of_infection'))
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
@@ -538,10 +558,14 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.set_index('time').to_csv('outputs/' + identifier + '-humans_time_course.csv')
+        self.simulation_timecourse.set_index('time').to_csv(
+            'outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
         concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
-        locations_traj.set_index('time').to_csv('outputs/' + identifier + '-locations_time_course.csv')
+        locations_traj.set_index('time').to_csv(
+            'outputs/' + identifier + '-locations_time_course.csv')
+        infection_network = self.get_infection_event_information()
+        infection_network.to_csv('outputs/' + identifier + '-infection_network.csv')
