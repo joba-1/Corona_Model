@@ -389,6 +389,8 @@ class Human(object):
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
                     self.state_transitions += '-I'
+                else:
+                    print('Not infected by: '+str(infectious_person.ID))
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
