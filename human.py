@@ -381,7 +381,7 @@ class Human(object):
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
                 if infectious_person.ID not in self.infected_in_contact_with:
-                    self.infected_in_contact_with.append(infectious_person.ID)
+                    self.infected_in_contact_with.append(str(infectious_person.ID))
                 if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
                     self.preliminary_status = 'I'
                     self.infection_time = time
