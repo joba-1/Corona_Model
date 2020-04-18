@@ -63,6 +63,7 @@ class ModeledPopulatedWorld(object):
         self.geofile_name = geofile_name
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
                            geofile_name=self.geofile_name)
+
         self.locations = self.world.locations
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
@@ -445,9 +446,9 @@ class Simulation(object):
         ID of infected agent, who infected  ('got_infected_by'),
         All infected agents, ever in contact with  ('infected_in_contact_with'),
         """
-        df = pandas.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
-                              'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
-        return(df.sort_values('time_of_infection').reset_index(drop=True))
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+            'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
+        return(df.sort_values('infection_time').reset_index(drop=True))
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """

@@ -6,7 +6,6 @@ import time
 
 class World(object):
     def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', from_file=True, number_of_locs=100):
-        t0_World = time.time()
         self.from_file = from_file
         self.geofile_name = geofile_name
         self.number_of_locs = number_of_locs
@@ -17,7 +16,6 @@ class World(object):
         else:
             self.locations = self.initialize_locs_random()
         self.neighbourhoods = self.initialize_neighbourhoods()
-        print('T init world: '+str(time.time()-t0_World))
 
     def initialize_locs_random(self):  # orginal
         locations = {}
@@ -150,13 +148,9 @@ class World(object):
 
 class Neighbourhood(object):
     def __init__(self, locations):
-        t0_N = time.time()
         self.locations = locations
-        t0_matrix = time.time()
         self.proximity_matrix = self.calculate_proximity_matrix()
-        print('T Matrix: '+str(time.time()-t0_matrix))
         self.ID = 1  # todo
-        print('T Neighbourhood: '+str(time.time()-t0_N))
 
     def calculate_proximity_matrix(self):  # create distances
         matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create

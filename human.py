@@ -257,15 +257,15 @@ class Human(object):
         """
         return {'h_ID': self.ID,
                 'infected_in_contact_with': ' , '.join(self.infected_in_contact_with),
-                'infected_by': self.got_infected_by,
-                'place_of_infection': self.place_of_infection,
-                'infection_time': self.infection_time,
-                'recovery_time':  self.recover_time,
-                'death_time':     self.death_time,
-                'diagnosis_time': self.diagnosis_time,
-                'hospitalized_time':    self.hospitalization_time,
-                'hospital_to_ICU_time': self.icu_time,
-                'ICU_to_hospital_time': self.rehospitalization_time}
+                'infected_by': str(self.got_infected_by),
+                'place_of_infection': str(self.place_of_infection),
+                'infection_time': str(self.infection_time),
+                'recovery_time':  str(self.recover_time),
+                'death_time':     str(self.death_time),
+                'diagnosis_time': str(self.diagnosis_time),
+                'hospitalized_time':    str(self.hospitalization_time),
+                'hospital_to_ICU_time': str(self.icu_time),
+                'ICU_to_hospital_time': str(self.rehospitalization_time)}
 
     def move(self, time):  # agent moves relative to global time
         """
@@ -389,8 +389,6 @@ class Human(object):
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
                     self.state_transitions += '-I'
-                else:
-                    print('Not infected by: '+str(infectious_person.ID))
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
