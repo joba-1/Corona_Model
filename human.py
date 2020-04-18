@@ -204,7 +204,7 @@ class Human(object):
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
         self.infected_in_contact_with = []
-        self.state_transitions = 'S'
+        self.state_transitions = '-S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
