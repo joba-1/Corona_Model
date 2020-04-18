@@ -203,6 +203,7 @@ class Human(object):
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
+        self.infected_in_contact_with = []
         self.state_transitions = 'S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
@@ -255,6 +256,7 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
+                'infected_in_contact_with': ' , '.join(self.infected_in_contact_with),
                 'infected_by': self.got_infected_by,
                 'place_of_infection': self.place_of_infection,
                 'infection_time': self.infection_time,
@@ -378,6 +380,8 @@ class Human(object):
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
+                if infectious_person.ID not in self.infected_in_contact_with:
+                    self.infected_in_contact_with.append(infectious_person.ID)
                 if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
                     self.preliminary_status = 'I'
                     self.infection_time = time

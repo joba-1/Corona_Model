@@ -452,6 +452,8 @@ class Simulation(object):
                 df.loc[p.ID, 'place_of_infection'] = str(duration_dict['place_of_infection'])
                 df.loc[p.ID, 'time_of_infection'] = str(duration_dict['infection_time'])
                 df.loc[p.ID, 'got_infected_by'] = str(duration_dict['infected_by'])
+                df.loc[p.ID, 'infected_in_contact_with'] = str(
+                    duration_dict['infected_in_contact_with'])
         return(df.reset_index(drop=True).sort_values('time_of_infection'))
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
