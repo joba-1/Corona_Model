@@ -203,7 +203,7 @@ class Human(object):
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
-        self.state_transitions = 'S'
+        self.state_transitions = '-S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -366,7 +366,7 @@ class Human(object):
         self.infection_time = 0
         self.was_infected = True
         self.place_of_infection = self.loc.ID
-        self.state_transitions = 'I'
+        self.state_transitions = '-Infected'
 
     def get_infected(self, time):
         """
@@ -385,14 +385,14 @@ class Human(object):
                     self.was_infected = True
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
-                    self.state_transitions += '-I'
+                    self.state_transitions += '-Infected'
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
-                self.state_transitions += '-I'
+                self.state_transitions += '-Infected'
 
     def get_diagnosed(self, probability, time):
         """
