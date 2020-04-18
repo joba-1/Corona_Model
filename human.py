@@ -367,7 +367,7 @@ class Human(object):
         self.infection_time = 0
         self.was_infected = True
         self.place_of_infection = self.loc.ID
-        self.state_transitions = 'I'
+        self.state_transitions = '-Infected'
 
     def get_infected(self, time):
         """
@@ -388,14 +388,14 @@ class Human(object):
                     self.was_infected = True
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
-                    self.state_transitions += '-I'
+                    self.state_transitions += '-Infected'
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
-                self.state_transitions += '-I'
+                self.state_transitions += '-Infected'
 
     def get_diagnosed(self, probability, time):
         """

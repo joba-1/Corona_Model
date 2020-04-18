@@ -1,11 +1,11 @@
 from human import *
 from location import *
-from age_initialisation import random_age
 from initialize_households import initialize_household
+from VPM_save_and_load import *
+import VPM_plotting as vpm_plt
 import random
 import pandas as pd
-import matplotlib.pyplot as plt
-from VPM_save_and_load import *
+import numpy as np
 import copy
 
 
@@ -164,6 +164,11 @@ class ModeledPopulatedWorld(object):
             p.get_initially_infected()
 
     def get_distribution_of_location_types(self, loc_types=None):
+        """
+        gets the counts of each type of location initialized in this world
+        :param loc_types: the location types to count
+        :return: dict. depicts per location type the sum (count) of this type in this world
+        """
         if loc_types is None:
             loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
         location_counts = {}
@@ -173,8 +178,11 @@ class ModeledPopulatedWorld(object):
         return location_counts
 
     def plot_distribution_of_location_types(self):
-        location_counts = self.get_distribution_of_location_types()
-        plt.bar(location_counts.keys(), location_counts.values())
+        """
+        plots the distribution of the location types that were initialized in this world
+        :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
+        """
+        vpm_plt.plot_distribution_of_location_types(self)
 
 
 class Simulation(object):
@@ -429,32 +437,28 @@ class Simulation(object):
             'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
         return(df.sort_values('infection_time').reset_index(drop=True))
 
+    def export_time_courses_as_csvs(self, identifier="output"):
+        """
+        export the human simulation time course, human commutative status time course, and locations time course
+        :param identifier: a given identifying name for the file which will be included in the name of the exported file
+        """
+        self.simulation_timecourse.set_index('time').to_csv('outputs/' + identifier + '-humans_time_course.csv')
+        statuses_trajectories = self.get_status_trajectories().values()
+        dfs = [df.set_index('time') for df in statuses_trajectories]
+        concat_trajectory_df = pd.concat(dfs, axis=1)
+        concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
+        locations_traj = self.get_location_with_type_trajectory()
+        locations_traj.set_index('time').to_csv('outputs/' + identifier + '-locations_time_course.csv')
+
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
         plots the time course for selected statuses
+        :param simulation_object: obj of Simulation Class
         :param save_figure:  Bool. Flag for saving the figure as an image
         :param specific_statuses:   List. Optional arg for getting only a
         subset  of statuses. if not specified, will plot all available statuses
         """
-        labels = {
-            'S': 'Susceptible',
-            'R': 'Recovered',
-            'I': 'Infected',
-            'D': 'Dead'
-        }
-        trajectories = self.get_status_trajectories(specific_statuses)
-        assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
-                                                               "course "
-        simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
-        for status in trajectories.keys():
-            plt.plot(simulation_timepoints,
-                     trajectories[status][status].values, label=labels[status])
-
-        plt.title('status trajectories')
-        plt.legend()
-        plt.show()
-        if save_figure:
-            plt.savefig('outputs/status_plot.png')
+        vpm_plt.plot_status_timecourse(self, specific_statuses, save_figure)
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
@@ -462,24 +466,7 @@ class Simulation(object):
         :param specific_flags: list. given flags to be included in the plot
         :param save_figure: bool. Flag for saving the figure as an image
         """
-        if specific_flags is None:
-            cols = list(self.simulation_timecourse.columns)
-            random_person = random.choice(list(self.people))
-            status_cols = random_person.get_status().keys()
-            cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
-        else:
-            cols_of_interest = specific_flags + ['time']
-        df = self.simulation_timecourse[set(cols_of_interest)].copy()
-        gdf = df.groupby('time')
-        flag_sums = gdf.sum()
-        simulation_timepoints = list(gdf.groups.keys())
-        for flag in flag_sums.columns:
-            plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
-        plt.title('flags trajectories')
-        plt.legend()
-        plt.show()
-        if save_figure:
-            plt.savefig('outputs/flags_plot.png')
+        vpm_plt.plot_flags_timecourse(self, specific_flags, save_figure)
 
     def plot_location_type_occupancy_timecourse(self, specific_types=None, save_figure=False):
         """
@@ -487,31 +474,7 @@ class Simulation(object):
         :param specific_types: list. List of specific types to plot (only)
         :param save_figure: bool. Whether to save the figure
         """
-        locations_df = self.get_location_with_type_trajectory()
-        available_loc_types = set(locations_df['loc_type'])
-        if specific_types is not None:
-            assert available_loc_types >= set(specific_types), \
-                " specific types provided (" + str(specific_types) + ") " \
-                                                                     "do not match those in the timecourse (" + str(
-                    available_loc_types) + " )"
-            loc_types = specific_types
-        else:
-            loc_types = available_loc_types
-        for loc_type in loc_types:
-            df = locations_df[['time', 'loc_type']]
-            zero_occupancy_array = df['time'].copy().unique()
-            df_of_location = df[df['loc_type'] == loc_type].rename(columns={'loc_type': loc_type})
-            time_grouped_location_count = df_of_location.groupby('time').count()
-            zero_occupancy_df = pd.DataFrame({'time': zero_occupancy_array, loc_type: np.zeros(
-                len(zero_occupancy_array))}).set_index('time')
-            merged_df = time_grouped_location_count.merge(zero_occupancy_df, left_index=True, right_index=True,
-                                                          suffixes=('', '_zeros'), how='right').fillna(0)
-            plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
-        plt.title('location occupancy trajectories')
-        plt.legend()
-        plt.show()
-        if save_figure:
-            plt.savefig('outputs/loc_types_occupancy_plot.png')
+        vpm_plt.plot_location_type_occupancy_timecourse(self, specific_types, save_figure)
 
     def plot_distributions_of_durations(self, save_figure=False):
         """
@@ -520,27 +483,5 @@ class Simulation(object):
         the times from hospitalization to death or recovery
         and the time from hospitalisation to ICU.
         :param save_figure:  Bool. Flag for saving the figure as an image
-
         """
-        self.get_durations().hist()
-        plt.tight_layout()
-        plt.show()
-        if save_figure:
-            plt.savefig('outputs/duration_distributions.png')
-
-    def export_time_courses_as_csvs(self, identifier="output"):
-        """
-        export the human simulation time course, human commutative status time course, and locations time course
-        :param identifier: a given identifying name for the file which will be included in the name of the exported file
-        """
-        self.simulation_timecourse.set_index('time').to_csv(
-            'outputs/' + identifier + '-humans_time_course.csv')
-        statuses_trajectories = self.get_status_trajectories().values()
-        dfs = [df.set_index('time') for df in statuses_trajectories]
-        concat_trajectory_df = pd.concat(dfs, axis=1)
-        concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
-        locations_traj = self.get_location_with_type_trajectory()
-        locations_traj.set_index('time').to_csv(
-            'outputs/' + identifier + '-locations_time_course.csv')
-        infection_network = self.get_infection_event_information()
-        infection_network.to_csv('outputs/' + identifier + '-infection_network.csv')
+        vpm_plt.plot_distributions_of_durations(self, save_figure)
