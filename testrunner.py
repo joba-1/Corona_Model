@@ -1,6 +1,5 @@
 import unittest
-from virusPropagationModel import ModeledPopulatedWorld, Simulation
-import matplotlib.pyplot as plt
+from virusPropagationModel import *
 import glob
 import os
 
