@@ -34,7 +34,6 @@ class Neighbourhood(object):
         return matrix
 
 
-
 class World(object):
     def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', from_file=True, number_of_locs=100):
         self.from_file = from_file
@@ -218,37 +217,6 @@ class World(object):
             ids_of_location_types[t] = l
 
         self.ids_of_location_types = ids_of_location_types
-
-    def calculate_proximity_matrixOld(self):  # create distances
-        matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
-
-        self.proxy_matrix_row_indices = []
-        self.proxy_matrix_col_indices = []
-        x_count = 0
-        rowEnumeration = list(enumerate(self.locations.values()))
-        colEnumeration = list(enumerate(self.locations.values()))
-        for i, x in enumerate(self.locations.values()):
-            ids = []
-            types = []
-            self.proxy_matrix_row_indices.append(x.ID)
-            for k, y in enumerate(self.locations.values()):
-                if y.location_type != 'home':
-                    ids.append(y.ID)
-                    types.append(y.location_type)
-                    if x_count == 0:
-                        self.proxy_matrix_col_indices.append(y.ID)
-                    matrix[i, k] = np.sqrt((x.coordinates[0] - y.coordinates[0])
-                                           ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
-            x_count += 1
-
-        location_types_in_neighbourhood = dict(zip(ids, types))
-        ids_of_location_types = {}
-        for t in list(set(list(location_types_in_neighbourhood.values()))):
-            l = [x for x in location_types_in_neighbourhood if location_types_in_neighbourhood[x] == t]
-            ids_of_location_types[t] = l
-        self.ids_of_location_types = ids_of_location_types
-
-        return matrix
 
 
 class Location(object):
