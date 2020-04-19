@@ -105,65 +105,72 @@ class ModeledPopulatedWorld(object):
 
         for bound in self.schedules['upper_bounds']:
             if age <= bound:
-                schedule = copy.deepcopy(npr.choice(self.schedules[bound][0],p=self.schedules[bound][1]))
+                schedule = copy.deepcopy(npr.choice(
+                    self.schedules[bound][0], p=self.schedules[bound][1]))
                 break
         my_locations = {}
         for loc in schedule['locs']:
             if not loc in my_locations:
-                if loc=='home':
-                    my_locations['home']=home.ID
+                if loc == 'home':
+                    my_locations['home'] = home.ID
                     continue
                 elif loc[-1].isdigit():
-                    l_type=loc[:-2]
+                    l_type = loc[:-2]
                 else:
-                    l_type=loc
-                closest=home.closest_loc(l_type)
+                    l_type = loc
+                closest = home.closest_loc(l_type)
                 if closest:
                     possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
                     if not possible_loc_ids:
                         possible_loc_ids = [l for l in closest[:10]]
                 else:
-                    possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                    possible_loc_ids = [l.ID for l in self.locations.values(
+                    ) if not l.ID in my_locations.values() and l.location_type == l_type]
                     if not possible_loc_ids:
-                        possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+                        possible_loc_ids = [
+                            l.ID for l in self.locations.values() if l.location_type == l_type]
 
                 probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
                 norm_probs = [float(v)/sum(probs) for v in probs]
-                loc_id = npr.choice(possible_loc_ids,p=norm_probs)
-                my_locations[loc]=loc_id
+                loc_id = npr.choice(possible_loc_ids, p=norm_probs)
+                my_locations[loc] = loc_id
 
-        for i,loc in enumerate(schedule['locs']):
+        for i, loc in enumerate(schedule['locs']):
             schedule['locs'][i] = self.locations[my_locations[loc]]
 
         ## diagnosed schedule ##
 
-        diagnosed_schedule = copy.deepcopy(npr.choice(self.schedules['diagnosed'][0],p=self.schedules['diagnosed'][1]))
+        diagnosed_schedule = copy.deepcopy(npr.choice(
+            self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
 
-        if diagnosed_schedule=='standard':
-            diagnosed_schedule=schedule
+        if diagnosed_schedule == 'standard':
+            diagnosed_schedule = schedule
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
                     if loc[-1].isdigit():
-                        l_type=loc[:-2]
+                        l_type = loc[:-2]
                     else:
-                        l_type=loc
-                    closest=home.closest_loc(l_type)
+                        l_type = loc
+                    closest = home.closest_loc(l_type)
                     if closest:
-                        possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
+                        possible_loc_ids = [l for l in closest[:10]
+                                            if not l in my_locations.values()]
                         if not possible_loc_ids:
                             possible_loc_ids = [l for l in closest[:10]]
                     else:
-                        possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                        possible_loc_ids = [l.ID for l in self.locations.values(
+                        ) if not l.ID in my_locations.values() and l.location_type == l_type]
                         if not possible_loc_ids:
-                            possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+                            possible_loc_ids = [
+                                l.ID for l in self.locations.values() if l.location_type == l_type]
 
                     probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
                     norm_probs = [float(v)/sum(probs) for v in probs]
-                    loc_id = npr.choice(possible_loc_ids,p=norm_probs)
-                    my_locations[loc]=loc_id
+                    loc_id = npr.choice(possible_loc_ids, p=norm_probs)
+                    my_locations[loc] = loc_id
 
-            for i,loc in enumerate(diagnosed_schedule['locs']):
+            for i, loc in enumerate(diagnosed_schedule['locs']):
                 diagnosed_schedule['locs'][i] = self.locations[my_locations[loc]]
 
         return schedule, diagnosed_schedule
@@ -204,7 +211,7 @@ class ModeledPopulatedWorld(object):
             max_age += 10
         group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
-                                                          np.arange(0, max_age+10, age_groups_step),right=False)).sum()
+                                                          np.arange(0, max_age+10, age_groups_step), right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
@@ -216,7 +223,7 @@ class ModeledPopulatedWorld(object):
         vpm_plt.plot_distribution_of_location_types(self)
 
     def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
 
 
 class Simulation(object):
@@ -359,13 +366,18 @@ class Simulation(object):
         for step in range(first_simulated_step, self.time_steps):
             person_counter = step * population_size
             self.time += 1
+            infected_present = False
             for p in self.people:  #
                 p.update_state(self.time)
+                if p.is_infected and not infected_present:
+                    infected_present = True
             for p in self.people:  # don't call if hospitalized
                 p.set_status_from_preliminary()
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
+            if not infected_present:
+                break
         return pd.DataFrame(list(timecourse))
 
     def get_statuses_in_timecourse(self):
