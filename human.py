@@ -271,12 +271,11 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
-        if self.status != 'D':
-            if time % 24 in self.schedule['times']:  # here i check for a 24h cycling schedule
-                self.loc.leave(self)  # leave old location
-                new_loc = self.schedule['locs'][self.schedule['times'].index(time % 24)]
-                self.loc = new_loc
-                new_loc.enter(self)  # enter new location
+        if time % 24 in self.schedule['times']:  # here i check for a 24h cycling schedule
+            self.loc.leave(self)  # leave old location
+            new_loc = self.schedule['locs'][self.schedule['times'].index(time % 24)]
+            self.loc = new_loc
+            new_loc.enter(self)  # enter new location
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
@@ -294,7 +293,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.9)
+        return(0.2)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
