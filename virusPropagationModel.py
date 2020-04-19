@@ -451,7 +451,7 @@ class Simulation(object):
 
         table['x_coordinate'] = [self.locations[loc_id].coordinates[0] for loc_id in table['loc']]
         table['y_coordinate'] = [self.locations[loc_id].coordinates[1] for loc_id in table['loc']]
-
+        table['location_type'] = [self.locations[loc_id].location_type for loc_id in table['loc']]
         return table
 
     def get_durations(self):
@@ -527,6 +527,21 @@ class Simulation(object):
         :param save_figure: bool. Whether to save the figure
         """
         vpm_plt.plot_location_type_occupancy_timecourse(self, specific_types, save_figure)
+
+    def plot_status_at_location(simulation_object, save_figure=False):
+        """
+        plots the occupancy of each status type at the different location types from the time course
+        
+        """
+        vpm_plt.plot_status_at_location(simulation_object, save_figure=save_figure)
+
+    def map_status_at_loc(simulation_object, save_figure=False, times=2):
+        """
+        map the occupancy of each status type at the different location types from the time course
+        
+        """        
+        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, times=times)    
+
 
     def plot_distributions_of_durations(self, save_figure=False):
         """

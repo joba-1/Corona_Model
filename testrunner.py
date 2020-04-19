@@ -30,6 +30,8 @@ class TestVPM(unittest.TestCase):
         self.simulation1.plot_flags_timecourse()
         self.simulation1.plot_location_type_occupancy_timecourse()
         self.simulation1.plot_distributions_of_durations()
+        self.simulation1.plot_status_at_location()
+        self.simulation1.map_status_at_loc()
 
     def test_multiple_subsequent_sims_and_plot(self):
         self.sim_1_1 = Simulation(self.simulation1, 50)
@@ -38,6 +40,7 @@ class TestVPM(unittest.TestCase):
         self.sim_1_2.plot_flags_timecourse()
         self.sim_1_2.plot_location_type_occupancy_timecourse()
         self.sim_1_2.plot_distributions_of_durations()
+
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
