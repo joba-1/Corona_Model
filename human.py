@@ -203,7 +203,7 @@ class Human(object):
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
-        self.state_transitions = 'S'
+        self.state_transitions = '-S'
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -271,9 +271,9 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
-        if time % 24 in self.schedule['times']:  # here i check for a 24h cycling schedule
+        if time % (24*7) in self.schedule['times']:  # here i check for a 24h cycling schedule
             self.loc.leave(self)  # leave old location
-            new_loc = self.schedule['locs'][self.schedule['times'].index(time % 24)]
+            new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
             self.loc = new_loc
             new_loc.enter(self)  # enter new location
 
@@ -365,7 +365,7 @@ class Human(object):
         self.infection_time = 0
         self.was_infected = True
         self.place_of_infection = self.loc.ID
-        self.state_transitions = 'I'
+        self.state_transitions = '-Infected'
 
     def get_infected(self, time):
         """
@@ -384,14 +384,14 @@ class Human(object):
                     self.was_infected = True
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
-                    self.state_transitions += '-I'
+                    self.state_transitions += '-Infected'
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
-                self.state_transitions += '-I'
+                self.state_transitions += '-Infected'
 
     def get_diagnosed(self, probability, time):
         """
