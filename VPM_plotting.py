@@ -3,7 +3,12 @@ import random
 import pandas as pd
 import numpy as np
 
-plot_stops_program = False
+statusLabels = {
+    'I': 'Infected',
+    'S': 'Susceptible',
+    'R': 'Recovered',
+    'D': 'Dead'
+}
 
 
 def plot_distribution_of_location_types(modeled_pop_world_obj):
@@ -15,6 +20,46 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     plt.bar(location_counts.keys(), location_counts.values())
 
 
+def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
+    age_groups_status_distribution = modeled_pop_world_obj.get_distribution_of_ages_and_infected(age_groups_step)
+    width_of_bars = 0.50
+    fig, ax = plt.subplots()
+    fig.set_figwidth(12)
+    fig.set_figheight(7)
+    tot_ppl = modeled_pop_world_obj.number_of_people
+    age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
+    per_of_inf = (age_groups_status_distribution['I']/tot_ppl)*100
+    per_of_sus = (age_groups_status_distribution['S'] / tot_ppl) * 100
+    ax.bar(age_groups,per_of_inf,width_of_bars,label=statusLabels['I'],color='orangered')
+    ax.bar(age_groups,per_of_sus,width_of_bars,bottom=per_of_inf,label=statusLabels['S'],color='gold')
+    ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
+    ax.set_ylabel('% of total number of people')
+    ax.set_xlabel('Age groups')
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+"""def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):
+    age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(age_groups_step)
+    width_of_bars = 0.50
+    fig, ax = plt.subplots()
+    fig.set_figwidth(12)
+    fig.set_figheight(7)
+    tot_ppl = simulation_object.number_of_people
+    age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
+    statuses_in_distribution = [str(stat_in_dist) for stat_in_dist in age_groups_status_distribution.columns]
+    statuses_to_plot = [status for status in statusLabels.keys() if status in statuses_in_distribution]
+    print(statuses_to_plot)
+    ax.bar(age_groups,age_groups_status_distribution['I'],width_of_bars,label=statusLabels['I'])
+    ax.bar(age_groups,age_groups_status_distribution['S'],width_of_bars,bottom=age_groups_status_distribution['I'],label=statusLabels['S'])
+    ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
+    ax.set_ylabel('Nr of people')
+    ax.set_xlabel('Age groups')
+    ax.legend()
+    plt.tight_layout()
+    plt.show()"""
+
+
 def plot_status_timecourse(simulation_object, specific_statuses=None, save_figure=False):
     """
     plots the time course for selected statuses
@@ -23,23 +68,17 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, save_figur
     :param specific_statuses:   List. Optional arg for getting only a
     subset  of statuses. if not specified, will plot all available statuses
     """
-    labels = {
-        'S': 'Susceptible',
-        'R': 'Recovered',
-        'I': 'Infected',
-        'D': 'Dead'
-    }
     trajectories = simulation_object.get_status_trajectories(specific_statuses)
-    assert set(labels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
+    assert set(statusLabels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
                                                            "course "
     simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
     for status in trajectories.keys():
         plt.plot(simulation_timepoints,
-                 trajectories[status][status].values, label=labels[status])
+                 trajectories[status][status].values, label=statusLabels[status])
 
     plt.title('status trajectories')
     plt.legend()
-    plt.show(block=plot_stops_program)
+    plt.show()
     if save_figure:
         plt.savefig('outputs/status_plot.png')
 
@@ -65,7 +104,7 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
         plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
     plt.title('flags trajectories')
     plt.legend()
-    plt.show(block=plot_stops_program)
+    plt.show()
     if save_figure:
         plt.savefig('outputs/flags_plot.png')
 
@@ -98,7 +137,7 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
         plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
     plt.title('location occupancy trajectories')
     plt.legend()
-    plt.show(block=plot_stops_program)
+    plt.show()
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png')
 
@@ -113,6 +152,6 @@ def plot_distributions_of_durations(simulation_object, save_figure=False):
     """
     simulation_object.get_durations().hist()
     plt.tight_layout()
-    plt.show(block=plot_stops_program)
+    plt.show()
     if save_figure:
         plt.savefig('outputs/duration_distributions.png')

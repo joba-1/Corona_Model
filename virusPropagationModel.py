@@ -3,6 +3,7 @@ from location import *
 from initialize_households import initialize_household
 from VPM_save_and_load import *
 import VPM_plotting as vpm_plt
+from parse_schedule import parse_schedule
 import random
 import pandas as pd
 import numpy as np
@@ -53,9 +54,8 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    # currently breaks when False
     def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='datafiles/Buildings_Gangelt_MA_1.csv'):
+                 geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', input_schedules='schedules_standard'):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
@@ -64,6 +64,7 @@ class ModeledPopulatedWorld(object):
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
                            geofile_name=self.geofile_name)
         self.locations = self.world.locations
+        self.schedules = parse_schedule(input_schedules)
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
         self.initialize_infection(self.initial_infections)
@@ -87,71 +88,51 @@ class ModeledPopulatedWorld(object):
             home_type, home_size, ages = initialize_household()
             for age in ages:
                 n = len(people) + 1
-                schedule = self.create_schedule(age, home, self.locations)
+                schedule = self.create_schedule(age, home)
                 people.add(Human(n, age, schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
 
-    def create_schedule(self, age, home, locations):
+    def create_schedule(self, age, home):
         """
         creates a schedule, depending on a given age and locations
         :param age: int. given age for a human from whom this schedule should be
         :param locations: list of location objects to which the human can go
         :return sched: dict. specifies times of transitions and assigned locations
         """
-        workplaces = [l.ID for l in self.locations.values() if l.location_type == 'work']
-        public_places = [l.ID for l in self.locations.values() if l.location_type == 'public_place']
-        schools = [l.ID for l in self.locations.values() if l.location_type == 'school']
+        for bound in self.schedules['upper_bounds']:
+            if age <= bound:
+                schedule = copy.deepcopy(npr.choice(self.schedules[bound][0],p=self.schedules[bound][1]))
+                break
+        my_locations = {}
+        for loc in schedule['locs']:
+            if not loc in my_locations:
+                if loc=='home':
+                    my_locations['home']=home.ID
+                    continue
+                elif loc[-1].isdigit():
+                    l_type=loc[:-2]
+                else:
+                    l_type=loc
+                closest=home.closest_loc(l_type)
+                if closest:
+                    possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
+                    if not possible_loc_ids:
+                        possible_loc_ids = [l for l in closest[:10]]
+                else:
+                    possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                    if not possible_loc_ids:
+                        possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
 
-        if age < 18:  # underage
-            home_time = npr.randint(17, 22)  # draw when to be back home from 17 to 22
-            times = [8, 15, home_time]  # school is from 8 to 15, from 15 on there is public time
+                probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
+                norm_probs = [float(v)/sum(probs) for v in probs]
+                loc_id = npr.choice(possible_loc_ids,p=norm_probs)
+                my_locations[loc]=loc_id
 
-            if home.closest_loc('school'):
-                school_id = home.closest_loc('school')[0]  # go to closest school
-            else:
-                school_id = random.sample(schools, 1)[0]
+        for i,loc in enumerate(schedule['locs']):
+            schedule['locs'][i] = self.locations[my_locations[loc]]
 
-            if home.closest_loc('public_place'):
-                public_id = random.sample(home.closest_loc('public_place')[:2], 1)[
-                    0]  # draw public place from 2 closest
-            else:
-                public_id = random.sample(public_places, 1)[0]
-
-            locs = [self.locations[school_id], self.locations[public_id], home]
-
-        elif age < 70:  # working adult
-            worktime = npr.randint(7, 12)  # draw time between 7 and 12 to beginn work
-            public_duration = npr.randint(1, 3)  # draw duration of stay at public place
-            times = [worktime, worktime + 8, worktime + 8 + public_duration]
-
-            if home.closest_loc('work'):
-                work_id = random.sample(home.closest_loc('work')[:3], 1)[
-                    0]  # draw workplace from the 3 closest
-            else:
-                work_id = random.sample(workplaces, 1)[0]
-
-            if home.closest_loc('public_place'):
-                public_id = random.sample(home.closest_loc('public_place')[:3], 1)[
-                    0]  # draw public place from 3 closest
-            else:
-                public_id = random.sample(public_places, 1)[0]
-
-            locs = [self.locations[work_id], self.locations[public_id], home]
-
-        else:  # senior, only goes to one public place each day
-            public_time = npr.randint(7, 17)
-            public_duration = npr.randint(1, 5)
-            times = [public_time, public_time + public_duration]
-
-            if home.closest_loc('public_place'):
-                public_id = home.closest_loc('public_place')[0]  # draw public place from 3 closest
-            else:
-                public_id = random.sample(public_places, 1)[0]
-
-            locs = [self.locations[public_id], home]
-
-        return {'times': times, 'locs': locs}
+        return schedule
 
     def initialize_infection(self, amount):
         """
@@ -169,11 +150,29 @@ class ModeledPopulatedWorld(object):
         :return: dict. depicts per location type the sum (count) of this type in this world
         """
         if loc_types is None:
-            loc_types = ['home', 'work', 'public_place', 'school', 'hospital', 'cemetery']
+            loc_types = ['home', 'work', 'public', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
             location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
+
+    def get_distribution_of_ages_and_infected(self, age_groups_step=10):
+        """
+        gets the distribution of the statuses for specified age groups
+        :param age_groups_step: int. the step between the ages grouped for the distribution
+        :return: DataFrame. The distribution of statuses by age group
+        """
+        agent_ages = pd.DataFrame([{'age': p.age, 'status': p.status} for p in self.people])
+        oldest_person = agent_ages['age'].max()
+        max_age = round(oldest_person, -1)
+        if max_age < oldest_person:
+            max_age += 10
+        group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
+        status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
+                                                          np.arange(0, max_age+10, age_groups_step),right=False)).sum()
+        status_by_age_range.index.name = 'age groups'
+        print(status_by_age_range.index)
+        return status_by_age_range
 
     def plot_distribution_of_location_types(self):
         """
@@ -181,6 +180,9 @@ class ModeledPopulatedWorld(object):
         :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
         """
         vpm_plt.plot_distribution_of_location_types(self)
+
+    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
 
 
 class Simulation(object):

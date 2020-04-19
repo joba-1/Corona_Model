@@ -1,0 +1,14 @@
+age (upper bound)	version	fraction	Start time	expand to range	mo	Start time	expand to range	tu	Start time	expand to range	we	Start time	expand to range	th	Start time	expand to range	fr	Start time	expand to range	sa	Start time	expand to range	su
+18	1	1	7	9	school	7	9	school	7	9	school	7	9	school	7	9	school	10	16	public_4	10	16	public_5
+			13	16	public_1	13	16	public_2	13	16	public_3	13	16	public_1	13	16	public_3	17	22	home	17	22	home
+			17	22	home	17	22	home	17	22	home	17	22	home	17	22	home						
+																							
+67	1	1	7	12	work	mo		work	mo		work	mo		work	mo		work	10	16	public_4	10	16	public_5
+			p7	9	public_1	mo		public_2	mo		public_3	mo		public_1	mo		public_3	17	22	home	17	22	home
+			p1	3	home	p1	3	home	p1	3	home	p1	3	home	p1	3	home						
+																							
+inf	1	0.5	7	17	public_1	7	17	public_2	7	17	public_3	7	17	public_1	7	17	public_3	7	17	public_2	7	17	public_4
+			p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home
+																							
+	2	0.5	7	17	public_1	7	17	public_2	7	17	public_1	7	17	public_1	7	17	public_3	7	17	public_4	7	17	public_4
+			p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home	p1	5	home
