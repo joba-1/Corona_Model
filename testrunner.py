@@ -10,6 +10,10 @@ class TestVPM(unittest.TestCase):
         self.modeledWorld1 = ModeledPopulatedWorld(1000, 300)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
+    def test_modeled_pop_world_plotting(self):
+        self.modeledWorld1.plot_distribution_of_location_types()
+        self.modeledWorld1.plot_initial_distribution_of_ages_and_infected()
+
     def test_ModeledPopulatedWorld_initialization(self):
         self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
                          " # initialized: " +
