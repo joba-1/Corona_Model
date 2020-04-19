@@ -182,7 +182,7 @@ class Human(object):
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
-        self.original_schedule = schedule
+        self.original_schedule = copy.copy(schedule)
         self.loc = loc  # current location
         self.place_of_infection = numpy.nan
         self.infection_time = numpy.nan
@@ -294,7 +294,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return(0.9)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -468,9 +468,10 @@ class Human(object):
             self.state_transitions += '-H'
             self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
-            #hospital = self.loc.next_hospital()
-            #locDict = {i.ID: i for i in self.loc.neighbourhood.locations}
-            #self.schedule['locs'] = [locDict[hospital]]*len(list(self.schedule['times']))
+            hospital_ID = self.loc.next_location_of_type('hospital')
+            respective_location = self.loc.get_other_loc_by_id(hospital_ID)
+            if respective_location:
+                self.schedule['locs'] = [respective_location[0]]*len(list(self.schedule['times']))
 
     def die(self, risk, time):
         """
@@ -487,6 +488,10 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.state_transitions += '-D'
+            cemetery_ID = self.loc.next_location_of_type('cemetery')
+            respective_location = self.loc.get_other_loc_by_id(cemetery_ID)
+            if respective_location:
+                self.schedule['locs'] = [respective_location[0]]*len(list(self.schedule['times']))
 
     def get_infectivity(self):
         """
