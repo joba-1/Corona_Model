@@ -2,9 +2,9 @@ import numpy.random as npr
 
 def parse_schedule(file_name):
     schedules = {}  ## {age (upper_bound): [[schedule1,schedule2],[p1,p2]]}
-
-    input_file = open('inputs/'+file_name+'.csv','r')
-    input_file = input_file.readlines()
+    input_file = None
+    with open('inputs/'+file_name+'.csv','r') as f:
+        input_file = f.readlines()
     del(input_file[0])
 
     current_key = 0

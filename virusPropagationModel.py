@@ -5,10 +5,10 @@ from VPM_save_and_load import *
 import VPM_plotting as vpm_plt
 from parse_schedule import parse_schedule
 import random
-import copy
 import pandas as pd
 import numpy as np
 import copy
+
 
 class ModeledPopulatedWorld(object):
     """
@@ -53,7 +53,7 @@ class ModeledPopulatedWorld(object):
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect
     """
-    
+
     def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
                  geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', input_schedules='schedules_standard'):
         self.world_from_file = world_from_file
@@ -156,12 +156,34 @@ class ModeledPopulatedWorld(object):
             location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
 
+    def get_distribution_of_ages_and_infected(self, age_groups_step=10):
+        """
+        gets the distribution of the statuses for specified age groups
+        :param age_groups_step: int. the step between the ages grouped for the distribution
+        :return: DataFrame. The distribution of statuses by age group
+        """
+        agent_ages = pd.DataFrame([{'age': p.age, 'status': p.status} for p in self.people])
+        oldest_person = agent_ages['age'].max()
+        max_age = round(oldest_person, -1)
+        if max_age < oldest_person:
+            max_age += 10
+        group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
+        status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
+                                                          np.arange(0, max_age+10, age_groups_step),right=False)).sum()
+        status_by_age_range.index.name = 'age groups'
+        print(status_by_age_range.index)
+        return status_by_age_range
+
     def plot_distribution_of_location_types(self):
         """
         plots the distribution of the location types that were initialized in this world
         :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
         """
         vpm_plt.plot_distribution_of_location_types(self)
+
+    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
+
 
 class Simulation(object):
     """
@@ -401,7 +423,6 @@ class Simulation(object):
         df = pd.DataFrame()
         for p in self.people:
             duration_dict = p.get_infection_info()
-
             if not pd.isna(duration_dict['infection_time']):
                 if not pd.isna(duration_dict['recovery_time']):
                     df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
