@@ -20,6 +20,10 @@ def parse_schedule(file_name):
                 current_key = float(line[0])
                 current_sched = int(line[1])-1
                 upper_bounds.append(float(line[0]))
+            else:
+                schedules[line[0]] = [[{'times':[], 'locs':[]}],[float(line[2])]]
+                current_key = line[0]
+                current_sched = int(line[1])-1
         elif line[1]:
             schedules[current_key][0].append({'times':[], 'locs':[]})
             schedules[current_key][1].append(float(line[2]))
@@ -28,20 +32,18 @@ def parse_schedule(file_name):
         time = 0
         duration = 0
         entries.append(sum([1 for e in [3,6,9,12,15,18,21] if line[e]]))
-
-        #print(' ',current_key,current_sched,entries)
         
         if line[3]:
 
             ## monday
-            ##print(line[3][0],line[3][0]=='p')
-            if line[3][0]=='p':
+            if line[3]=='standard':
+                schedules[current_key][0][current_sched]='standard'
+                continue
+            elif line[3][0]=='p':
                 if line[4]:
                     duration = npr.randint(int(line[3][1:]),int(line[4]))
                 else:   duration = int(line[3][1:])
-                #print(' ',duration)
-                time = schedules[current_key][0][current_sched]['times'][-entries[-2]]+duration   # -number of days with entry when days are finisched
-                #print(' ',time)
+                time = schedules[current_key][0][current_sched]['times'][-entries[-2]]+duration   # -number of days with entry when days are finished
             else:
                 if line[4]:
                     time = npr.randint(int(line[3]),int(line[4]))
@@ -51,7 +53,7 @@ def parse_schedule(file_name):
 
             ## tuesday
         if line[6]:
-            if line[6] in ['mo']:      # ['mo','tu','we','th','fr','sa']:
+            if line[6] in ['mo']:
                 time = schedules[current_key][0][current_sched]['times'][-1]+24
             else:
                 if line[6][0]=='p':
@@ -68,7 +70,7 @@ def parse_schedule(file_name):
 
             ## wednesday
         if line[9]:
-            if line[9] in ['mo','tu']:      # ['mo','tu','we','th','fr','sa']:
+            if line[9] in ['mo','tu']:
                 if line[9]=='mo':
                     time = schedules[current_key][0][current_sched]['times'][-2]+48
                 else:
@@ -88,7 +90,7 @@ def parse_schedule(file_name):
 
             ## thursday
         if line[12]:
-            if line[12] in ['mo','tu','we']:      # ['mo','tu','we','th','fr','sa']:
+            if line[12] in ['mo','tu','we']:
                 if line[12]=='mo':
                     time = schedules[current_key][0][current_sched]['times'][-3]+72
                 elif line[12]=='tu':
@@ -110,7 +112,7 @@ def parse_schedule(file_name):
 
             ## friday
         if line[15]:
-            if line[15] in ['mo','tu','we','th']:      # ['mo','tu','we','th','fr','sa']:
+            if line[15] in ['mo','tu','we','th']:
                 if line[15]=='mo':
                     time = schedules[current_key][0][current_sched]['times'][-4]+96
                 elif line[15]=='tu':
@@ -134,7 +136,7 @@ def parse_schedule(file_name):
 
             ## saturday
         if line[18]:
-            if line[18] in ['mo','tu','we','th','fr']:      # ['mo','tu','we','th','fr','sa']:
+            if line[18] in ['mo','tu','we','th','fr']:
                 if line[18]=='mo':
                     time = schedules[current_key][0][current_sched]['times'][-5]+120
                 elif line[18]=='tu':
@@ -160,7 +162,7 @@ def parse_schedule(file_name):
 
             ## sunday
         if line[21]:
-            if line[21] in ['mo','tu','we','th','fr','sa']:      # ['mo','tu','we','th','fr','sa']:
+            if line[21] in ['mo','tu','we','th','fr','sa']:
                 if line[21]=='mo':
                     time = schedules[current_key][0][current_sched]['times'][-6]+144
                 elif line[21]=='tu':
