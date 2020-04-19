@@ -88,8 +88,8 @@ class ModeledPopulatedWorld(object):
             home_type, home_size, ages = initialize_household()
             for age in ages:
                 n = len(people) + 1
-                schedule = self.create_schedule(age, home)
-                people.add(Human(n, age, schedule, home,
+                schedule, diagnosed_schedule = self.create_schedule(age, home)
+                people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
 
@@ -100,6 +100,9 @@ class ModeledPopulatedWorld(object):
         :param locations: list of location objects to which the human can go
         :return sched: dict. specifies times of transitions and assigned locations
         """
+
+        ## standard schedule ##
+
         for bound in self.schedules['upper_bounds']:
             if age <= bound:
                 schedule = copy.deepcopy(npr.choice(self.schedules[bound][0],p=self.schedules[bound][1]))
@@ -132,7 +135,38 @@ class ModeledPopulatedWorld(object):
         for i,loc in enumerate(schedule['locs']):
             schedule['locs'][i] = self.locations[my_locations[loc]]
 
-        return schedule
+        ## diagnosed schedule ##
+
+        diagnosed_schedule = copy.deepcopy(npr.choice(self.schedules['diagnosed'][0],p=self.schedules['diagnosed'][1]))
+
+        if diagnosed_schedule=='standard':
+            diagnosed_schedule=schedule
+        else:
+            for loc in diagnosed_schedule['locs']:
+                if not loc in my_locations:
+                    if loc[-1].isdigit():
+                        l_type=loc[:-2]
+                    else:
+                        l_type=loc
+                    closest=home.closest_loc(l_type)
+                    if closest:
+                        possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
+                        if not possible_loc_ids:
+                            possible_loc_ids = [l for l in closest[:10]]
+                    else:
+                        possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                        if not possible_loc_ids:
+                            possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+
+                    probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
+                    norm_probs = [float(v)/sum(probs) for v in probs]
+                    loc_id = npr.choice(possible_loc_ids,p=norm_probs)
+                    my_locations[loc]=loc_id
+
+            for i,loc in enumerate(diagnosed_schedule['locs']):
+                diagnosed_schedule['locs'][i] = self.locations[my_locations[loc]]
+
+        return schedule, diagnosed_schedule
 
     def initialize_infection(self, amount):
         """
@@ -153,7 +187,8 @@ class ModeledPopulatedWorld(object):
             loc_types = ['home', 'work', 'public', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in loc_types:
-            location_counts[loc_type] = sum([1 for x in self.locations.values() if x.location_type == loc_type])
+            location_counts[loc_type] = sum(
+                [1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
 
     def get_distribution_of_ages_and_infected(self, age_groups_step=10):
@@ -171,7 +206,6 @@ class ModeledPopulatedWorld(object):
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
                                                           np.arange(0, max_age+10, age_groups_step),right=False)).sum()
         status_by_age_range.index.name = 'age groups'
-        print(status_by_age_range.index)
         return status_by_age_range
 
     def plot_distribution_of_location_types(self):
@@ -213,7 +247,7 @@ class Simulation(object):
         :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
-        
+
     get_person_attributes_per_time()
         gets the location, status, and flags of a human object along with the current time
         :param person: object of the Human class
@@ -358,7 +392,8 @@ class Simulation(object):
         status_tc = self.simulation_timecourse[['time', 'status']]
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
-            df = status_tc[status_tc['status'] == status].copy().rename(columns={'status': status})  # copy?
+            df = status_tc[status_tc['status'] == status].copy().rename(
+                columns={'status': status})  # copy?
             time_grouped_status_count = df.groupby('time').count()
             zero_occupancy_df = pd.DataFrame({'time': t_c_times, status: np.zeros(
                 len(t_c_times))}).set_index('time')
@@ -387,14 +422,14 @@ class Simulation(object):
         """
         processes simulation output to generate DataFrame
         with location and sums of people for each status
-        :return: pandas dataframe 
+        :return: pandas dataframe
 
         :example:
         status   loc     time    D        I       R       S   x_coordinate  y_coordinate
         0          0      1      0.0     0.0     0.0     1.0      4              0
         1          0      2      0.0     0.0     0.0     1.0      4              0
         2          0      3      0.0     0.0     0.0     1.0      4              0
-        
+
         """
         df = self.simulation_timecourse.copy()
         df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
@@ -413,49 +448,51 @@ class Simulation(object):
 
     def get_durations(self):
         """
-        Returns a pandas DataFrame with the durations of certain states of the agents.
-        Durations included so far (columns in the data-frame):
-        From infection to death ('infection_to_death'),
-        from infection to recovery ('infection_to_recovery'),
-        from infection to hospital ('infection_to_hospital') and
-        from hospital to ICU (hospital_to_icu).
+         Returns a pandas DataFrame with the durations of certain states of the agents.
+         Durations included so far (columns in the data-frame):
+         From infection to death ('infection_to_death'),
+         from infection to recovery ('infection_to_recovery'),
+         from infection to hospital ('infection_to_hospital') and
+         from hospital to ICU (hospital_to_icu).
+         """
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+            'infection_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
+        out = pd.DataFrame()
+        out['infection_to_recovery'] = df['recovery_time']-df['infection_time']
+        out['infection_to_death'] = df['death_time']-df['infection_time']
+        out['infection_to_hospital'] = df['hospitalized_time']-df['infection_time']
+        out['hospital_to_recovery'] = df['recovery_time']-df['hospitalized_time']
+        out['hospital_to_death'] = df['death_time']-df['hospitalized_time']
+        out['hospital_to_icu'] = df['hospital_to_ICU_time']-df['hospitalized_time']
+        return out
+
+    def get_infection_event_information(self):
         """
-        df = pd.DataFrame()
-        for p in self.people:
-            duration_dict = p.get_infection_info()
-            if not pd.isna(duration_dict['infection_time']):
-                if not pd.isna(duration_dict['recovery_time']):
-                    df.loc[p.ID, 'infection_to_recovery'] = duration_dict['recovery_time'] - \
-                                                            duration_dict['infection_time']
-                elif not pd.isna(duration_dict['death_time']):
-                    df.loc[p.ID, 'infection_to_death'] = duration_dict['death_time'] - \
-                                                         duration_dict['infection_time']
-                if not pd.isna(duration_dict['hospitalized_time']):
-                    df.loc[p.ID, 'infection_to_hospital'] = duration_dict['hospitalized_time'] - \
-                                                            duration_dict['infection_time']
-                    if not pd.isna(duration_dict['recovery_time']):
-                        df.loc[p.ID, 'hospital_to_recovery'] = duration_dict['recovery_time'] - \
-                                                               duration_dict['hospitalized_time']
-                    elif not pd.isna(duration_dict['death_time']):
-                        df.loc[p.ID, 'hospital_to_death'] = duration_dict['death_time'] - \
-                                                            duration_dict['hospitalized_time']
-                    if not pd.isna(duration_dict['hospital_to_ICU_time']):
-                        df.loc[p.ID, 'hospital_to_icu'] = duration_dict['hospital_to_ICU_time'] - \
-                                                          duration_dict['hospitalized_time']
-        return df
+        Returns a pandas DataFrame with information on all infection-events:
+        ID of agent, who got infected ('ID'),
+        ID of location, where agent got infected ('place_of_infection'),
+        Time, at which agent got infected ('time_of_infection'),
+        ID of infected agent, who infected  ('got_infected_by'),
+        All infected agents, ever in contact with  ('infected_in_contact_with'),
+        """
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+            'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
+        return(df.sort_values('infection_time').reset_index(drop=True))
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.set_index('time').to_csv('outputs/' + identifier + '-humans_time_course.csv')
+        self.simulation_timecourse.set_index('time').to_csv(
+            'outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
         concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
-        locations_traj.set_index('time').to_csv('outputs/' + identifier + '-locations_time_course.csv')
+        locations_traj.set_index('time').to_csv(
+            'outputs/' + identifier + '-locations_time_course.csv')
 
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """

@@ -34,6 +34,7 @@ class Neighbourhood(object):
         return matrix
 
 
+
 class World(object):
     def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', from_file=True, number_of_locs=100):
         self.from_file = from_file
