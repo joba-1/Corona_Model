@@ -40,14 +40,14 @@ class World(object):
         self.geofile_name = geofile_name
         self.number_of_locs = number_of_locs
         self.df_buildings = pd.read_csv(self.geofile_name)
-        self.proximity_matrix = None
 
         if self.from_file:
             self.locations = self.initialize_locs_from_file()
         else:
             self.locations = self.initialize_locs_random()
         self.neighbourhoods = self.initialize_neighbourhoods()
-        self.proximity_matrix = self.calculate_proximity_matrix()
+        self.calculate_proximity_matrix()
+
         for l in self.locations:
             self.locations[l].world_ref = id(self)
             self.locations[l].special_locations['cemetery'] = self.locations[l].get_other_loc_by_id(
@@ -58,8 +58,8 @@ class World(object):
     def initialize_locs_random(self):  # orginal
         locations = {}
         for n in range(self.number_of_locs):
-            loc_type = random.sample(['home','work','public','school'],1)[0]
-            locations[n]=Location(n, (n,0), loc_type, 1, 1e-8)
+            loc_type = random.sample(['home', 'work', 'public', 'school'], 1)[0]
+            locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
 
         locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
         locations[0] = Location(0, (0, 0), 'cemetery', 1, 1e-8)
@@ -83,24 +83,24 @@ class World(object):
         loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['cemetery'] = ['cemetery']
-        
-        loc_class_dic['work'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office','farm']\
-                                    +list(self.df_buildings['amenity'].unique())\
-                                    +list(self.df_buildings['shop'].unique())
 
-        #What is a public place or just work place e.g. restaurante, cafe...
-        
-        loc_class_dic['public'] = ['public','chapel','church']\
-                                        +list(self.df_buildings['leisure'].unique())\
-                                        +list(self.df_buildings['sport'].unique())
+        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
+            + list(self.df_buildings['amenity'].unique())\
+            + list(self.df_buildings['shop'].unique())
 
-        
-        loc_class_dic['school'] = ['school','university','kindergarten'] 
-        #Cleaning the list public place of nan
+        # What is a public place or just work place e.g. restaurante, cafe...
+
+        loc_class_dic['public'] = ['public', 'chapel', 'church']\
+            + list(self.df_buildings['leisure'].unique())\
+            + list(self.df_buildings['sport'].unique())
+
+        loc_class_dic['school'] = ['school', 'university', 'kindergarten']
+        # Cleaning the list public place of nan
         loc_class_dic['public'] = [x for x in loc_class_dic['public'] if ~pd.isnull(x)]
-        #Removing values from workplace_list that are in work place and in another list
+        # Removing values from workplace_list that are in work place and in another list
         for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public'] + loc_class_dic['school']:
-            while x in loc_class_dic['work']: loc_class_dic['work'].remove(x)  
+            while x in loc_class_dic['work']:
+                loc_class_dic['work'].remove(x)
 
         return loc_class_dic
 
@@ -132,7 +132,7 @@ class World(object):
             elif building_type == 'cemetery':
                 cemetery_bool = True
 
-            #create location in dictionary, except excluded buildings
+            # create location in dictionary, except excluded buildings
             if building_type != 'excluded_buildings':
                 locations[i] = Location(x, (row['building_coordinates_x'], row['building_coordinates_y']),
                                         building_type,
@@ -188,10 +188,44 @@ class World(object):
 
     def calculate_proximity_matrix(self):  # create distances
         matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
+        self.proxy_matrix_row_indices = []
+        self.proxy_matrix_col_indices = []
+        locEnumeration = list(enumerate(self.locations.values()))
+        ids = []
+        types = []
+        for row in locEnumeration:
+            i = row[0]
+            x = row[1]
+            self.proxy_matrix_row_indices.append(x.ID)
+            if x.location_type != 'home':
+                self.proxy_matrix_col_indices.append(x.ID)
+                ids.append(x.ID)
+                types.append(x.location_type)
+            for col in locEnumeration:
+                k = col[0]
+                y = col[1]
+                if y.location_type != 'home':
+                    matrix[i, k] = np.sqrt((x.coordinates[0] - y.coordinates[0])
+                                           ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
+
+        self.proximity_matrix = matrix
+
+        location_types_in_world = dict(zip(ids, types))
+        ids_of_location_types = {}
+        for t in list(set(list(location_types_in_world.values()))):
+            l = [x for x in location_types_in_world if location_types_in_world[x] == t]
+            ids_of_location_types[t] = l
+
+        self.ids_of_location_types = ids_of_location_types
+
+    def calculate_proximity_matrixOld(self):  # create distances
+        matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
 
         self.proxy_matrix_row_indices = []
         self.proxy_matrix_col_indices = []
         x_count = 0
+        rowEnumeration = list(enumerate(self.locations.values()))
+        colEnumeration = list(enumerate(self.locations.values()))
         for i, x in enumerate(self.locations.values()):
             ids = []
             types = []
@@ -202,9 +236,10 @@ class World(object):
                     types.append(y.location_type)
                     if x_count == 0:
                         self.proxy_matrix_col_indices.append(y.ID)
-                    matrix[i, k] = np.sqrt(
-                        (x.coordinates[0] - y.coordinates[0]) ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
+                    matrix[i, k] = np.sqrt((x.coordinates[0] - y.coordinates[0])
+                                           ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
             x_count += 1
+
         location_types_in_neighbourhood = dict(zip(ids, types))
         ids_of_location_types = {}
         for t in list(set(list(location_types_in_neighbourhood.values()))):
@@ -213,6 +248,7 @@ class World(object):
         self.ids_of_location_types = ids_of_location_types
 
         return matrix
+
 
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
@@ -280,20 +316,25 @@ class Location(object):
                 self.world_ref, ctypes.py_object).value.ids_of_location_types[loc_type]
         except:
             return None
-        row_ind = ctypes.cast(
-            self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
-        col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
-            l) for l in ids_of_type_in_world if l != self.ID]
-        respective_other_matrix_entries = list(ctypes.cast(self.world_ref,
-                                                           ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
-        if respective_other_matrix_entries:
-            ind = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
-                min(respective_other_matrix_entries))])
-            ID_of_closest = ctypes.cast(
-                self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[ind]
-            return [ID_of_closest]
+        if len(ids_of_type_in_world) > 1:
+            row_ind = ctypes.cast(
+                self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
+            col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
+                l) for l in ids_of_type_in_world if l != self.ID]
+            respective_other_matrix_entries = list(ctypes.cast(
+                self.world_ref, ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
+            if respective_other_matrix_entries:
+                ind = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
+                    min(respective_other_matrix_entries))])
+                ID_of_closest = ctypes.cast(
+                    self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[ind]
+                return [ID_of_closest]
+            else:
+                return([self])
+        elif len(ids_of_type_in_world) == 1:
+            return(ids_of_type_in_world)
         else:
-            return([self])
+            return None
 
     def get_other_loc_by_id(self, id):
         try:

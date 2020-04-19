@@ -293,7 +293,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return(0.02)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
