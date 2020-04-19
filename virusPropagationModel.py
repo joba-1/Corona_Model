@@ -172,7 +172,6 @@ class ModeledPopulatedWorld(object):
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
                                                           np.arange(0, max_age+10, age_groups_step),right=False)).sum()
         status_by_age_range.index.name = 'age groups'
-        print(status_by_age_range.index)
         return status_by_age_range
 
     def plot_distribution_of_location_types(self):
