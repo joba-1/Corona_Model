@@ -35,7 +35,7 @@ class Neighbourhood(object):
 
 
 class World(object):
-    def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', from_file=True, number_of_locs=100):
+    def __init__(self, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', from_file=True, number_of_locs=100):
         self.from_file = from_file
         self.geofile_name = geofile_name
         self.number_of_locs = number_of_locs
@@ -58,8 +58,8 @@ class World(object):
     def initialize_locs_random(self):  # orginal
         locations = {}
         for n in range(self.number_of_locs):
-            loc_type = random.sample(['home', 'work', 'public_place', 'school'], 1)[0]
-            locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
+            loc_type = random.sample(['home','work','public','school'],1)[0]
+            locations[n]=Location(n, (n,0), loc_type, 1, 1e-8)
 
         locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
         locations[0] = Location(0, (0, 0), 'cemetery', 1, 1e-8)
@@ -72,7 +72,7 @@ class World(object):
         'excluded_buildings' = buildings not included because they do not fit any class
         'hospital' = hospitals
         'work' = anything a person can work at
-        'public_place' = right now religous and sport buildings #FIXME-Discussion: restaurantes, bars, cafe?
+        'public' = right now religous and sport buildings #FIXME-Discussion: restaurantes, bars, cafe?
         'school' = places with a lot of young people
         Sorting idea as of right now everything is work place if not in any other list
         : return: location class dictionary loc_class_dic['school'] = ['school','university','kindergarten']
@@ -83,24 +83,24 @@ class World(object):
         loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['cemetery'] = ['cemetery']
+        
+        loc_class_dic['work'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office','farm']\
+                                    +list(self.df_buildings['amenity'].unique())\
+                                    +list(self.df_buildings['shop'].unique())
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
-            + list(self.df_buildings['amenity'].unique())\
-            + list(self.df_buildings['shop'].unique())
+        #What is a public place or just work place e.g. restaurante, cafe...
+        
+        loc_class_dic['public'] = ['public','chapel','church']\
+                                        +list(self.df_buildings['leisure'].unique())\
+                                        +list(self.df_buildings['sport'].unique())
 
-        # What is a public place or just work place e.g. restaurante, cafe...
-
-        loc_class_dic['public_place'] = ['public', 'chapel', 'church']\
-            + list(self.df_buildings['leisure'].unique())\
-            + list(self.df_buildings['sport'].unique())
-
-        loc_class_dic['school'] = ['school', 'university', 'kindergarten']
-        # Cleaning the list public place of nan
-        loc_class_dic['public_place'] = [x for x in loc_class_dic['public_place'] if ~pd.isnull(x)]
-        # Removing values from workplace_list that are in work place and in another list
-        for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public_place'] + loc_class_dic['school']:
-            while x in loc_class_dic['work']:
-                loc_class_dic['work'].remove(x)
+        
+        loc_class_dic['school'] = ['school','university','kindergarten'] 
+        #Cleaning the list public place of nan
+        loc_class_dic['public'] = [x for x in loc_class_dic['public'] if ~pd.isnull(x)]
+        #Removing values from workplace_list that are in work place and in another list
+        for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public'] + loc_class_dic['school']:
+            while x in loc_class_dic['work']: loc_class_dic['work'].remove(x)  
 
         return loc_class_dic
 
@@ -129,7 +129,10 @@ class World(object):
             # check if hospital will be true if at least one in dataframe
             if building_type == 'hospital':
                 hospital_bool = True
-            # create location in dictionary, except excluded buildings
+            elif building_type == 'cemetery':
+                cemetery_bool = True
+
+            #create location in dictionary, except excluded buildings
             if building_type != 'excluded_buildings':
                 locations[i] = Location(x, (row['building_coordinates_x'], row['building_coordinates_y']),
                                         building_type,
@@ -210,7 +213,6 @@ class World(object):
         self.ids_of_location_types = ids_of_location_types
 
         return matrix
-
 
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
