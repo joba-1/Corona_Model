@@ -210,7 +210,7 @@ class Location(object):
         return risk
 
     def infection_interaction(self):  # this needs improvement, it's simple and preliminary
-        interaction_partner = random.sample(self.people_present, 1)
+        interaction_partner = random.choice(list(self.people_present))
         #interaction_partner = np.random.choice(list(self.people_present))
         if interaction_partner.is_infected:
             return(interaction_partner)
