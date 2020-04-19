@@ -63,7 +63,6 @@ class ModeledPopulatedWorld(object):
         self.geofile_name = geofile_name
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
                            geofile_name=self.geofile_name)
-
         self.locations = self.world.locations
         self.schedules = parse_schedule(input_schedules)
         self.people = self.initialize_people(self.agent_agent_infection)
