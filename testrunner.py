@@ -16,15 +16,13 @@ class TestVPM(unittest.TestCase):
 
     def test_ModeledPopulatedWorld_initialization(self):
         self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
-                                                                  " # initialized: " +
+                         " # initialized: " +
                          str(self.modeledWorld1.number_of_locs))
 
     def test_multiple_sims_and_worlds_parallel(self):
-        self.simulation1.plot_flags_timecourse()
-        self.simulation2 = Simulation(self.modeledWorld1, 100)
-        self.simulation2.plot_flags_timecourse()
-        self.simulation3 = Simulation(self.modeledWorld1, 50)
         self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
+        self.simulation2 = Simulation(self.modeledWorld1, 100)
+        self.simulation3 = Simulation(self.modeledWorld1, 50)
         self.simulation4 = Simulation(self.modeledWorld2, 10)
 
     def test_simulation_plotting_no_errors(self):
@@ -62,7 +60,6 @@ class TestVPM(unittest.TestCase):
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
-        self.testWorld_1 = self.modeledWorld1
         self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
         self.simulation_a_a_inf = Simulation(self.testWorld_2, 100)
         self.simulation_a_a_inf.plot_status_timecourse()
