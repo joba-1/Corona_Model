@@ -19,9 +19,11 @@ class Human(object):
     age : int
         Age of agent
     original_schedule : dict
-        schedule of agent (defined by agent-type)
+        schedule of agent (defined by at initialization)
     schedule : dict
         effective schedule of agent (might be changed throughout simulation)
+    diagnosed_schedule : dict
+        schedule to follow while diagnosed==True
     loc : location.Location
         Location of agent
     personal_risk : float
@@ -171,7 +173,7 @@ class Human(object):
         on the times and place of certain events
     """
 
-    def __init__(self, ID, age, schedule, loc, status='S', enable_infection_interaction=False):
+    def __init__(self, ID, age, schedule, diagnosed_schedule, loc, status='S', enable_infection_interaction=False):
         """
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
@@ -183,6 +185,7 @@ class Human(object):
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = schedule
+        self.diagnosed_schedule = diagnosed_schedule
         self.loc = loc  # current location
         self.place_of_infection = numpy.nan
         self.infection_time = numpy.nan
@@ -409,6 +412,7 @@ class Human(object):
                 self.diagnosed = True
                 self.diagnosis_time = time
                 self.state_transitions += '-T'
+                self.schedule = self.diagnosed_schedule
 
     def recover(self, recover_prob, time):
         """

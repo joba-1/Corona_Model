@@ -88,8 +88,8 @@ class ModeledPopulatedWorld(object):
             home_type, home_size, ages = initialize_household()
             for age in ages:
                 n = len(people) + 1
-                schedule = self.create_schedule(age, home)
-                people.add(Human(n, age, schedule, home,
+                schedule, diagnosed_schedule = self.create_schedule(age, home)
+                people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
 
@@ -100,6 +100,9 @@ class ModeledPopulatedWorld(object):
         :param locations: list of location objects to which the human can go
         :return sched: dict. specifies times of transitions and assigned locations
         """
+
+        ## standard schedule ##
+
         for bound in self.schedules['upper_bounds']:
             if age <= bound:
                 schedule = copy.deepcopy(npr.choice(self.schedules[bound][0],p=self.schedules[bound][1]))
@@ -132,7 +135,38 @@ class ModeledPopulatedWorld(object):
         for i,loc in enumerate(schedule['locs']):
             schedule['locs'][i] = self.locations[my_locations[loc]]
 
-        return schedule
+        ## diagnosed schedule ##
+
+        diagnosed_schedule = copy.deepcopy(npr.choice(self.schedules['diagnosed'][0],p=self.schedules['diagnosed'][1]))
+
+        if diagnosed_schedule=='standard':
+            diagnosed_schedule=schedule
+        else:
+            for loc in diagnosed_schedule['locs']:
+                if not loc in my_locations:
+                    if loc[-1].isdigit():
+                        l_type=loc[:-2]
+                    else:
+                        l_type=loc
+                    closest=home.closest_loc(l_type)
+                    if closest:
+                        possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
+                        if not possible_loc_ids:
+                            possible_loc_ids = [l for l in closest[:10]]
+                    else:
+                        possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                        if not possible_loc_ids:
+                            possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+
+                    probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
+                    norm_probs = [float(v)/sum(probs) for v in probs]
+                    loc_id = npr.choice(possible_loc_ids,p=norm_probs)
+                    my_locations[loc]=loc_id
+
+            for i,loc in enumerate(diagnosed_schedule['locs']):
+                diagnosed_schedule['locs'][i] = self.locations[my_locations[loc]]
+
+        return schedule, diagnosed_schedule
 
     def initialize_infection(self, amount):
         """
