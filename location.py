@@ -282,12 +282,16 @@ class Location(object):
             self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
         col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
             l) for l in ids_of_type_in_world if l != self.ID]
-        PM = list(ctypes.cast(self.world_ref,
-                              ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
-        ind = col_ind[PM.index(min(PM))]
-        ID_of_closest = ctypes.cast(
-            self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[ind]
-        return [ID_of_closest]
+        respective_other_matrix_entries = list(ctypes.cast(self.world_ref,
+                                                           ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
+        if respective_other_matrix_entries:
+            ind = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
+                min(respective_other_matrix_entries))])
+            ID_of_closest = ctypes.cast(
+                self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[ind]
+            return [ID_of_closest]
+        else:
+            return([self])
 
     def get_other_loc_by_id(self, id):
         try:
