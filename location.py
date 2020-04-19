@@ -54,6 +54,7 @@ class World(object):
                 self.locations[l].next_location_of_type('cemetery'))
             self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
                 self.locations[l].next_location_of_type('hospital'))
+        print('world Done')
 
     def initialize_locs_random(self):  # orginal
         locations = {}
@@ -310,7 +311,7 @@ class Location(object):
         sorted_ids = [i for (v, i) in sorted_items]
         return sorted_ids
 
-    def closest_loc_world(self, loc_type):
+    def closest_loc_world(self, loc_type, return_sorted_list=False):
         try:
             ids_of_type_in_world = ctypes.cast(
                 self.world_ref, ctypes.py_object).value.ids_of_location_types[loc_type]
@@ -321,20 +322,27 @@ class Location(object):
                 self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
             col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
                 l) for l in ids_of_type_in_world if l != self.ID]
-            respective_other_matrix_entries = list(ctypes.cast(
-                self.world_ref, ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
-            if respective_other_matrix_entries:
-                ind = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
-                    min(respective_other_matrix_entries))])
-                ID_of_closest = ctypes.cast(
-                    self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[ind]
-                return [ID_of_closest]
-            else:
-                return([self])
+            if len(col_ind) > 0:
+                respective_other_matrix_entries = list(ctypes.cast(
+                    self.world_ref, ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
+                if respective_other_matrix_entries:
+                    if not return_sorted_list:
+                        index_in_row_subset = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
+                            min(respective_other_matrix_entries))])
+                        ID_of_closest = ctypes.cast(
+                            self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]]
+                        return([ID_of_closest])
+                    else:
+                        indices_in_row_subset = list(np.argsort(respective_other_matrix_entries))
+                        IDs_sorted_by_dist = [ctypes.cast(
+                            self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]] for i in indices_in_row_subset]
+                        return(IDs_sorted_by_dist)
+                else:
+                    return([self])
         elif len(ids_of_type_in_world) == 1:
             return(ids_of_type_in_world)
         else:
-            return None
+            return([self])
 
     def get_other_loc_by_id(self, id):
         try:
