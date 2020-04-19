@@ -47,9 +47,13 @@ class World(object):
         else:
             self.locations = self.initialize_locs_random()
         self.neighbourhoods = self.initialize_neighbourhoods()
+        self.proximity_matrix = self.calculate_proximity_matrix()
         for l in self.locations:
             self.locations[l].world_ref = id(self)
-        self.proximity_matrix = self.calculate_proximity_matrix()
+            self.locations[l].special_locations['cemetery'] = self.locations[l].get_other_loc_by_id(
+                self.locations[l].next_location_of_type('cemetery'))
+            self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
+                self.locations[l].next_location_of_type('hospital'))
 
     def initialize_locs_random(self):  # orginal
         locations = {}
@@ -221,6 +225,7 @@ class Location(object):
         self.area = area
         self.ids_of_location_types = {}  # loc_id : distance
         self.world_ref = None
+        self.special_locations = {}
 
     def get_location_id(self):
         return self.ID

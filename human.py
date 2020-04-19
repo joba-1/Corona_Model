@@ -467,10 +467,9 @@ class Human(object):
             self.state_transitions += '-H'
             self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
-            hospital_ID = self.loc.next_location_of_type('hospital')
-            respective_location = self.loc.get_other_loc_by_id(hospital_ID)
-            if respective_location:
-                self.schedule['locs'] = [respective_location[0]]*len(list(self.schedule['times']))
+            if self.loc.special_locations['hospital']:
+                self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
+                    len(list(self.schedule['times']))
 
     def die(self, risk, time):
         """
@@ -487,10 +486,9 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.state_transitions += '-D'
-            cemetery_ID = self.loc.next_location_of_type('cemetery')
-            respective_location = self.loc.get_other_loc_by_id(cemetery_ID)
-            if respective_location:
-                self.schedule['locs'] = [respective_location[0]]*len(list(self.schedule['times']))
+            if self.loc.special_locations['cemetery']:
+                self.schedule['locs'] = [self.loc.special_locations['cemetery'][0]] * \
+                    len(list(self.schedule['times']))
 
     def get_infectivity(self):
         """
