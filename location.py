@@ -19,8 +19,8 @@ class World(object):
     def initialize_locs_random(self):  # orginal
         locations = {}
         for n in range(self.number_of_locs):
-            loc_type = random.sample(['home','work','public','school'],1)[0]
-            locations[n]=Location(n, (n,0), loc_type, 1, 1e-8)
+            loc_type = random.sample(['home', 'work', 'public', 'school'], 1)[0]
+            locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
 
         locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
         locations[0] = Location(0, (0, 0), 'hospital', 1, 1e-8)
@@ -44,24 +44,24 @@ class World(object):
         loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['cemetery'] = ['cemetery']
-        
-        loc_class_dic['work'] = ['industrial','greenhouse','cowshed','shed','commercial','warehouse','office','farm']\
-                                    +list(self.df_buildings['amenity'].unique())\
-                                    +list(self.df_buildings['shop'].unique())
 
-        #What is a public place or just work place e.g. restaurante, cafe...
-        
-        loc_class_dic['public'] = ['public','chapel','church']\
-                                        +list(self.df_buildings['leisure'].unique())\
-                                        +list(self.df_buildings['sport'].unique())
+        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
+            + list(self.df_buildings['amenity'].unique())\
+            + list(self.df_buildings['shop'].unique())
 
-        
-        loc_class_dic['school'] = ['school','university','kindergarten'] 
-        #Cleaning the list public place of nan
+        # What is a public place or just work place e.g. restaurante, cafe...
+
+        loc_class_dic['public'] = ['public', 'chapel', 'church']\
+            + list(self.df_buildings['leisure'].unique())\
+            + list(self.df_buildings['sport'].unique())
+
+        loc_class_dic['school'] = ['school', 'university', 'kindergarten']
+        # Cleaning the list public place of nan
         loc_class_dic['public'] = [x for x in loc_class_dic['public'] if ~pd.isnull(x)]
-        #Removing values from workplace_list that are in work place and in another list
+        # Removing values from workplace_list that are in work place and in another list
         for x in loc_class_dic['hospital'] + [np.nan] + loc_class_dic['public'] + loc_class_dic['school']:
-            while x in loc_class_dic['work']: loc_class_dic['work'].remove(x)  
+            while x in loc_class_dic['work']:
+                loc_class_dic['work'].remove(x)
 
         return loc_class_dic
 
@@ -93,7 +93,7 @@ class World(object):
             elif building_type == 'cemetery':
                 cemetery_bool = True
 
-            #create location in dictionary, except excluded buildings
+            # create location in dictionary, except excluded buildings
             if building_type != 'excluded_buildings':
                 locations[i] = Location(x, (row['building_coordinates_x'], row['building_coordinates_y']),
                                         building_type,
@@ -177,6 +177,7 @@ class Neighbourhood(object):
 
         return matrix
 
+
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
                  location_factor=0.002):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
@@ -208,11 +209,11 @@ class Location(object):
         risk = function2specify(infected, self.location_factor)
         return risk
 
-    def infection_interaction(self, n=1):  # this needs improvement, it's simple and preliminary
-        for i in range(n):
-            interaction_partner = np.random.choice(list(self.people_present))
-            if interaction_partner.status == 'I':
-                return(interaction_partner)
+    def infection_interaction(self):  # this needs improvement, it's simple and preliminary
+        interaction_partner = random.sample(self.people_present, 1)
+        #interaction_partner = np.random.choice(list(self.people_present))
+        if interaction_partner.status == 'I':
+            return(interaction_partner)
 
     def next_hospital(self):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''
