@@ -208,6 +208,7 @@ class Human(object):
         self.got_infected_by = numpy.nan
         self.infected_in_contact_with = []
         self.state_transitions = '-S'
+        self.is_infected = False
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -219,7 +220,7 @@ class Human(object):
             pass
         elif self.status == 'S':
             self.get_infected(time)
-        elif self.status == 'I':
+        elif self.is_infected:
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             recoverProb = self.get_recover_prob()
@@ -371,6 +372,7 @@ class Human(object):
         self.was_infected = True
         self.place_of_infection = self.loc.ID
         self.state_transitions = '-Infected'
+        self.is_infected = True
 
     def get_infected(self, time):
         """
@@ -392,6 +394,7 @@ class Human(object):
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
                     self.state_transitions += '-Infected'
+                    self.is_infected = True
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
                 self.preliminary_status = 'I'
@@ -399,6 +402,7 @@ class Human(object):
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
                 self.state_transitions += '-Infected'
+                self.is_infected = True
 
     def get_diagnosed(self, probability, time):
         """
@@ -431,6 +435,7 @@ class Human(object):
             self.diagnosed = False
             self.schedule = self.original_schedule
             self.state_transitions += '-R'
+            self.is_infected = False
 
     def get_ICUed(self, probability, time):
         """
@@ -494,6 +499,7 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.state_transitions += '-D'
+            self.is_infected = False
 
     def get_infectivity(self):
         """

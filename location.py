@@ -204,7 +204,7 @@ class Location(object):
         self.people_present.remove(person)
 
     def infection_risk(self):  # this needs improvement, it's simple and preliminary
-        infected = sum([p.get_infectivity() for p in self.people_present if p.status == 'I'])
+        infected = sum([p.get_infectivity() for p in self.people_present if p.is_infected])
         # / float(len(self.people_present))  # get fraction of infected individuals in location
         risk = function2specify(infected, self.location_factor)
         return risk
@@ -212,7 +212,7 @@ class Location(object):
     def infection_interaction(self):  # this needs improvement, it's simple and preliminary
         interaction_partner = random.sample(self.people_present, 1)
         #interaction_partner = np.random.choice(list(self.people_present))
-        if interaction_partner.status == 'I':
+        if interaction_partner.is_infected:
             return(interaction_partner)
 
     def next_hospital(self):
