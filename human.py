@@ -207,7 +207,7 @@ class Human(object):
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
-        self.infected_in_contact_with = []
+        self.infected_in_contact_with = set()
         self.state_transitions = '-S'
         self.is_infected = False
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
@@ -386,8 +386,7 @@ class Human(object):
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
-                if str(infectious_person.ID) not in self.infected_in_contact_with:
-                    self.infected_in_contact_with.append(str(infectious_person.ID))
+                self.infected_in_contact_with.add(str(infectious_person.ID))
                 if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= randomval():
                     self.preliminary_status = 'I'
                     self.infection_time = time
@@ -417,7 +416,7 @@ class Human(object):
                 self.diagnosed = True
                 self.diagnosis_time = time
                 self.state_transitions += '-T'
-                self.schedule = self.diagnosed_schedule
+                #self.schedule = self.diagnosed_schedule
 
     def recover(self, recover_prob, time):
         """
