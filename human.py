@@ -350,15 +350,15 @@ class Human(object):
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
         """
-        if self.age < 60:
-            risk = 0.001
-        elif self.age < 75:
-            risk = 0.005
-        else:
-            risk = 0.01
-        if self.icu:
-            risk = dp._icu_death_risk(self.icu_time, self.age)
-        return(risk*self.behaviour_as_susceptible)
+        #if self.age < 60:
+        #    risk = 0.001
+        #elif self.age < 75:
+        #    risk = 0.005
+        #else:
+        #    risk = 0.01
+        #if self.icu:
+        risk = dp._icu_death_risk(self.icu_duration, self.age)
+        return(risk)
 
     # status transitions humans can undergo
     """
