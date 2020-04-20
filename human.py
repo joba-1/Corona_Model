@@ -188,6 +188,7 @@ class Human(object):
         self.original_schedule = schedule
         self.diagnosed_schedule = diagnosed_schedule
         self.loc = loc  # current location
+        self.home = loc
         self.place_of_infection = numpy.nan
         self.infection_time = numpy.nan
         self.diagnosis_time = numpy.nan
@@ -282,6 +283,11 @@ class Human(object):
             new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
             self.loc = new_loc
             new_loc.enter(self)  # enter new location
+
+    def stay_home_instead_of_going_to(self, location_type):
+        for i in range(len(self.schedule['locs'])):
+            if self.schedule['locs'][i].location_type == location_type:
+                self.schedule['locs'][i] = self.home
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
