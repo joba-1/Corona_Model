@@ -4,6 +4,7 @@ import sys  # sys
 from location import *
 import copy
 import numpy
+import dataProcessing as dp
 
 
 class Human(object):
@@ -283,7 +284,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(1)
+        return dp._diagnosis(self.infection_time)
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -292,7 +293,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return dp._hospitalisation(self.infection_time, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -310,7 +311,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.25)
+        return dp._to_icu(self.hospitalization_time, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
@@ -322,7 +323,7 @@ class Human(object):
         if self.icu:
             return(0.0)
         else:
-            prob = self.infection_duration/480.
+            prob = dp._recovery(self.infection_time)
             return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
@@ -336,6 +337,8 @@ class Human(object):
             risk = 0.005
         else:
             risk = 0.01
+        if self.icu:
+            risk = dp._icu_death_risk(self.icu_time, self.age)
         return(risk*self.behaviour_as_susceptible)
 
     # status transitions humans can undergo
@@ -485,7 +488,7 @@ class Human(object):
         """
         # infection_duration=self.infection_duration
         ## use infection duration somehow to calculate infectivity ...##
-        infectivity = 1  # for now set to 1, should be function of infection-duration#
+        infectivity = dp._infectivity(self.infection_time)  # for now set to 1, should be function of infection-duration#
         return(infectivity*self.behaviour_as_infected)
 
     def set_status_from_preliminary(self):
