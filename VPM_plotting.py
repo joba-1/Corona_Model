@@ -191,11 +191,11 @@ def plot_status_at_location(simulation_object, save_figure=False):
 
     plt.tight_layout()   
     
-def map_status_at_loc(simulation_object, save_figure=False, times=2):
+def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
     loc_stat=simulation_object.get_location_and_status()
  
-    for time in range(times):
+    for time in range(time_steps):
         loc_stat_t = loc_stat[loc_stat['time']==time]
         cmap = cm.get_cmap('Dark2')
 

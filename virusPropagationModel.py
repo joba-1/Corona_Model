@@ -535,12 +535,12 @@ class Simulation(object):
         """
         vpm_plt.plot_status_at_location(simulation_object, save_figure=save_figure)
 
-    def map_status_at_loc(simulation_object, save_figure=False, times=2):
+    def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
         """
         map the occupancy of each status type at the different location types from the time course
         
         """        
-        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, times=times)    
+        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)    
 
 
     def plot_distributions_of_durations(self, save_figure=False):
