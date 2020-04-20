@@ -19,7 +19,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
                       if str(l.ID) in infection_locations}
     unique_locs = list(set(list(location_types.values())))
     loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
-    for i in location_types.keys():
+    for i in infection_locations:
         respective_type = location_types[i]
         loc_infection_dict[respective_type] += 1
     x = np.arange(len(list(loc_infection_dict.keys())))
