@@ -211,6 +211,7 @@ class Human(object):
         self.infected_in_contact_with = set()
         self.is_infected = False
         self.hospital_coeff = 0.01
+        self.diagnosis_probabiliy = 0
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -297,7 +298,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return(self.diagnosis_probabiliy)
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -306,7 +307,6 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.02)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -336,7 +336,7 @@ class Human(object):
         if self.icu:
             return(0.0)
         else:
-            prob = self.infection_duration/480.
+            prob = self.infection_duration/(480*48)
             return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
@@ -350,7 +350,7 @@ class Human(object):
             risk = 0.005
         else:
             risk = 0.01
-        return(risk*self.behaviour_as_susceptible)
+        return(risk*0.25)
 
     # status transitions humans can undergo
     """
