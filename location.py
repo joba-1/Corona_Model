@@ -219,6 +219,7 @@ class World(object):
         self.ids_of_location_types = ids_of_location_types
 
 
+
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
                  location_factor=0.002):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
@@ -247,16 +248,16 @@ class Location(object):
         self.people_present.remove(person)
 
     def infection_risk(self):  # this needs improvement, it's simple and preliminary
-        infected = sum([p.get_infectivity() for p in self.people_present if p.status == 'I'])
+        infected = sum([p.get_infectivity() for p in self.people_present if p.is_infected])
         # / float(len(self.people_present))  # get fraction of infected individuals in location
         risk = function2specify(infected, self.location_factor)
         return risk
 
-    def infection_interaction(self, n=1):  # this needs improvement, it's simple and preliminary
-        for i in range(n):
-            interaction_partner = np.random.choice(list(self.people_present))
-            if interaction_partner.status == 'I':
-                return(interaction_partner)
+    def infection_interaction(self):  # this needs improvement, it's simple and preliminary
+        interaction_partner = random.choice(list(self.people_present))
+        #interaction_partner = np.random.choice(list(self.people_present))
+        if interaction_partner.is_infected:
+            return(interaction_partner)
 
     def next_location_of_type(self, type):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''

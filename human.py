@@ -1,9 +1,10 @@
-import numpy.random as npr  # numpy.random for generating random numbers
-import logging as log  # logging for allowing to keep track of code development and putative errors
-import sys  # sys
-from location import *
-import copy
+from numpy.random import choice as choosing  # numpy.random for generating random numbers
+# import logging as log  # logging for allowing to keep track of code development and putative errors
+# import sys  # sys
+#from location import *
+#import copy
 import numpy
+from random import random as randomval
 
 
 class Human(object):
@@ -206,8 +207,8 @@ class Human(object):
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
-        self.infected_in_contact_with = []
-        self.state_transitions = '-S'
+        self.infected_in_contact_with = set()
+        self.is_infected = False
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -219,17 +220,17 @@ class Human(object):
             pass
         elif self.status == 'S':
             self.get_infected(time)
-        elif self.status == 'I':
+        elif self.is_infected:
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             recoverProb = self.get_recover_prob()
-            what_happens = npr.choice(['die', 'recover', 'stay_infected'], p=[
-                                      self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
+            what_happens = choosing(['die', 'recover', 'stay_infected'], p=[
+                self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
                 self.recover(1.0, time)
-            elif what_happens == 'stay_infected':
+            else:
                 if self.icu:
                     self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
@@ -370,7 +371,7 @@ class Human(object):
         self.infection_time = 0
         self.was_infected = True
         self.place_of_infection = self.loc.ID
-        self.state_transitions = '-Infected'
+        self.is_infected = True
 
     def get_infected(self, time):
         """
@@ -383,22 +384,21 @@ class Human(object):
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
-                if str(infectious_person.ID) not in self.infected_in_contact_with:
-                    self.infected_in_contact_with.append(str(infectious_person.ID))
-                if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
+                self.infected_in_contact_with.add(str(infectious_person.ID))
+                if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= randomval():
                     self.preliminary_status = 'I'
                     self.infection_time = time
                     self.was_infected = True
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
-                    self.state_transitions += '-Infected'
+                    self.is_infected = True
         else:
-            if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
+            if self.loc.infection_risk()*self.behaviour_as_susceptible >= randomval():
                 self.preliminary_status = 'I'
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
-                self.state_transitions += '-Infected'
+                self.is_infected = True
 
     def get_diagnosed(self, probability, time):
         """
@@ -408,10 +408,9 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if not self.diagnosed:
-            if probability >= npr.random_sample():
+            if probability >= randomval():
                 self.diagnosed = True
                 self.diagnosis_time = time
-                self.state_transitions += '-T'
                 self.schedule = self.diagnosed_schedule
 
     def recover(self, recover_prob, time):
@@ -423,14 +422,14 @@ class Human(object):
         Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
         """
-        if recover_prob >= npr.random_sample():
+        if recover_prob >= randomval():
             self.recover_time = time
             self.preliminary_status = 'R'
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
             self.schedule = self.original_schedule
-            self.state_transitions += '-R'
+            self.is_infected = False
 
     def get_ICUed(self, probability, time):
         """
@@ -439,11 +438,10 @@ class Human(object):
         icu_time-attribute. Sets hospitalized-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.icu = True
             self.hospitalized = False
             self.icu_time = time
-            self.state_transitions += '-ICU'
 
     def get_rehospitalized(self, probability, time):
         """
@@ -453,11 +451,10 @@ class Human(object):
         rehospitalization_time-attribute. Sets icu-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.hospitalized = True
             self.icu = False
             self.rehospitalization_time = time
-            self.state_transitions += '-H'
 
     def get_hospitalized(self, probability, time):
         """
@@ -469,10 +466,9 @@ class Human(object):
         CHANGE OF SCHEDULE MUST BE IMPLEMENTED HERE!!!
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.hospitalized = True
             self.hospitalization_time = time
-            self.state_transitions += '-H'
             self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
@@ -487,7 +483,7 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if risk >= npr.random_sample():
+        if risk >= randomval():
             self.preliminary_status = 'D'
             self.death_time = time
             self.icu = False
