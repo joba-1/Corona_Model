@@ -493,7 +493,7 @@ class Human(object):
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
-            self.state_transitions += '-D'
+            self.is_infected = False
             if self.loc.special_locations['cemetery']:
                 self.schedule['locs'] = [self.loc.special_locations['cemetery'][0]] * \
                     len(list(self.schedule['times']))
