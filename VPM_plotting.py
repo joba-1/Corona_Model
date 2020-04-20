@@ -169,7 +169,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
         ax.set_title(stat)
 
     plt.tight_layout()
-    plt.show(block=plot_stops_program)
+    plt.show()
     
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png') 
