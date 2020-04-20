@@ -23,7 +23,7 @@ infectivity_df.set_index('Time(h)')
 recovery_df.set_index('time/hours')
 hospitalisation_df.set_index('Time')
 icu_death_risk_df.set_index('Hours in ICU')
-to_icu_df.set_index(('Time'))
+to_icu_df.set_index('Time')
 icu_to_hospital_df.set_index('Hours in ICU')
 diagnosis_df.set_index('Hours')
 
