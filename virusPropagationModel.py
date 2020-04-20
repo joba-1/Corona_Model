@@ -410,13 +410,14 @@ class Simulation(object):
         """
         if len(list(input.keys())) == 1:
             if list(input.keys())[0] == 'all':
+                input_all = input['all']
                 for p in self.people:
-                    for attribute in input['all'].keys():
-                        if input[id][attribute]['type'] == 'replacement':
-                            setattr(p, attribute, input[id][attribute]['value'])
-                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                    for attribute in input_all.keys():
+                        if input_all[attribute]['type'] == 'replacement':
+                            setattr(p, attribute, input_all[attribute]['value'])
+                        elif input_all[attribute]['type'] == 'multiplicative_factor':
                             setattr(p, attribute, getattr(p, attribute) *
-                                    input[id][attribute]['multiplicative_factor'])
+                                    input_all[attribute]['multiplicative_factor'])
             else:
                 id = list(input.keys())[0]
                 respective_person = [p for p in self.people if str(p.ID) == id]
