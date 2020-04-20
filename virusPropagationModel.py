@@ -376,6 +376,66 @@ class Simulation(object):
                 person_counter += 1
         return pd.DataFrame(list(timecourse))
 
+    def change_agent_attributes(self, input):
+        """
+        Applies the change of the values of certain specified agent-attributes.
+        The input is a dictionary with the IDs of agents, one wants to change an attribute for.
+        It is possible to have one or many entries with specific agent-ID(s); or use the key 'all',
+        to specifiy that the changes should be applied to all agents.
+        The corresponding value to this keys is another dictionary,
+        which hast the names of the attributes to change as keys().
+        In this attribute-specific dictionary one finds two keys 'value' and 'type'.
+        'type' can take on the values 'replacement' or 'multiplicative_factor';
+        where 'replacement' specifies to replace the old attribue-value and
+        'multiplicative_factor' specifies the multiplication of the old attribute-value with a given factor.
+        The value to replace or multiply with is then found by the key 'value'.
+        Examples:
+            1:
+            {all:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+            2:
+            {id1:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}},
+             id2:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+
+        """
+        # {id1:{attr1:{'value':val1,'type':'replacement'},attr2:{'value':val2,'type':'multiplicative_factor'}}}
+        # {all:{attr1:{'value':val1,'type':'replacement'},attr2:{'value':val2,'type':'multiplicative_factor'}}}
+        if len(list(input.keys())) == 1:
+            if list(input.keys())[0] == 'all':
+                for p in self.people:
+                    for attribute in input['all'].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(p, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(p, attribute, getattr(p, attribute) *
+                                    input[id][attribute]['multiplicative_factor'])
+            else:
+                id = list(input.keys())[0]
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
+        else:
+            for id in list(input.keys()):
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
+
     def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
