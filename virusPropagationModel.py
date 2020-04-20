@@ -366,18 +366,13 @@ class Simulation(object):
         for step in range(first_simulated_step, self.time_steps):
             person_counter = step * population_size
             self.time += 1
-            infected_present = False
             for p in self.people:  #
                 p.update_state(self.time)
-                if p.is_infected and not infected_present:
-                    infected_present = True
             for p in self.people:  # don't call if hospitalized
                 p.set_status_from_preliminary()
                 p.move(self.time)
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
-            if not infected_present:
-                break
         return pd.DataFrame(list(timecourse))
 
     def get_statuses_in_timecourse(self):
