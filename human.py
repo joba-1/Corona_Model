@@ -210,7 +210,6 @@ class Human(object):
         self.infected_in_contact_with = []
         self.state_transitions = '-S'
         self.is_infected = False
-        self.is_alive = True
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -279,12 +278,11 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
-        if self.is_alive:
-            if time % (24*7) in self.schedule['times']:  # here i check for a 24h cycling schedule
-                self.loc.leave(self)  # leave old location
-                new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
-                self.loc = new_loc
-                new_loc.enter(self)  # enter new location
+        if time % (24*7) in self.schedule['times']:  # here i check for a 24h cycling schedule
+            self.loc.leave(self)  # leave old location
+            new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
+            self.loc = new_loc
+            new_loc.enter(self)  # enter new location
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
@@ -503,7 +501,6 @@ class Human(object):
             self.diagnosed = False
             self.state_transitions += '-D'
             self.is_infected = False
-            self.is_alive = False
 
     def get_infectivity(self):
         """
