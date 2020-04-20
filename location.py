@@ -1,6 +1,37 @@
 import numpy as np
 import random
 import pandas as pd
+import ctypes
+
+
+class Neighbourhood(object):
+    def __init__(self, locations):
+        self.locations = locations
+        self.proximity_matrix = self.calculate_proximity_matrix()
+        self.ID = 1  # todo
+
+    def calculate_proximity_matrix(self):  # create distances
+        matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
+
+        for i, x in enumerate(self.locations.values()):
+            ids = []
+            types = []
+            for k, y in enumerate(self.locations.values()):
+                if y.location_type != 'home':
+                    ids.append(y.ID)
+                    types.append(y.location_type)
+                    matrix[i, k] = np.sqrt(
+                        (x.coordinates[0] - y.coordinates[0]) ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
+            x.distances = dict(zip(ids, list(matrix[i, :])))
+            location_types_in_neighbourhood = dict(zip(ids, types))
+            ids_of_location_types = {}
+
+            for t in list(set(list(location_types_in_neighbourhood.values()))):
+                l = [x for x in location_types_in_neighbourhood if location_types_in_neighbourhood[x] == t]
+                ids_of_location_types[t] = l
+            x.ids_of_location_types = ids_of_location_types
+
+        return matrix
 
 
 class World(object):
@@ -15,6 +46,14 @@ class World(object):
         else:
             self.locations = self.initialize_locs_random()
         self.neighbourhoods = self.initialize_neighbourhoods()
+        self.calculate_proximity_matrix()
+
+        for l in self.locations:
+            self.locations[l].world_ref = id(self)
+            self.locations[l].special_locations['cemetery'] = self.locations[l].get_other_loc_by_id(
+                self.locations[l].next_location_of_type('cemetery'))
+            self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
+                self.locations[l].next_location_of_type('hospital'))
 
     def initialize_locs_random(self):  # orginal
         locations = {}
@@ -23,7 +62,7 @@ class World(object):
             locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
 
         locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
-        locations[0] = Location(0, (0, 0), 'hospital', 1, 1e-8)
+        locations[0] = Location(0, (0, 0), 'cemetery', 1, 1e-8)
         return locations
 
     def assign_location_classifier(self):
@@ -147,35 +186,38 @@ class World(object):
             neighbourhoods = {1: Neighbourhood(self.locations)}
         return neighbourhoods
 
-
-class Neighbourhood(object):
-    def __init__(self, locations):
-        self.locations = locations
-        self.proximity_matrix = self.calculate_proximity_matrix()
-        self.ID = 1  # todo
-
     def calculate_proximity_matrix(self):  # create distances
         matrix = np.zeros((len(list(self.locations)), len(list(self.locations))))  # create
-
-        for i, x in enumerate(self.locations.values()):
-            ids = []
-            types = []
-            for k, y in enumerate(self.locations.values()):
+        self.proxy_matrix_row_indices = []
+        self.proxy_matrix_col_indices = []
+        locEnumeration = list(enumerate(self.locations.values()))
+        ids = []
+        types = []
+        for row in locEnumeration:
+            i = row[0]
+            x = row[1]
+            self.proxy_matrix_row_indices.append(x.ID)
+            if x.location_type != 'home':
+                self.proxy_matrix_col_indices.append(x.ID)
+                ids.append(x.ID)
+                types.append(x.location_type)
+            for col in locEnumeration:
+                k = col[0]
+                y = col[1]
                 if y.location_type != 'home':
-                    ids.append(y.ID)
-                    types.append(y.location_type)
-                    matrix[i, k] = np.sqrt(
-                        (x.coordinates[0] - y.coordinates[0]) ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
-            x.distances = dict(zip(ids, list(matrix[i, :])))
-            location_types_in_neighbourhood = dict(zip(ids, types))
-            ids_of_location_types = {}
+                    matrix[i, k] = np.sqrt((x.coordinates[0] - y.coordinates[0])
+                                           ** 2 + (x.coordinates[1] - y.coordinates[1]) ** 2)
 
-            for t in list(set(list(location_types_in_neighbourhood.values()))):
-                l = [x for x in location_types_in_neighbourhood if location_types_in_neighbourhood[x] == t]
-                ids_of_location_types[t] = l
-            x.ids_of_location_types = ids_of_location_types
+        self.proximity_matrix = matrix
 
-        return matrix
+        location_types_in_world = dict(zip(ids, types))
+        ids_of_location_types = {}
+        for t in list(set(list(location_types_in_world.values()))):
+            l = [x for x in location_types_in_world if location_types_in_world[x] == t]
+            ids_of_location_types[t] = l
+
+        self.ids_of_location_types = ids_of_location_types
+
 
 
 class Location(object):
@@ -190,6 +232,8 @@ class Location(object):
         self.distances = {}
         self.area = area
         self.ids_of_location_types = {}  # loc_id : distance
+        self.world_ref = None
+        self.special_locations = {}
 
     def get_location_id(self):
         return self.ID
@@ -215,9 +259,12 @@ class Location(object):
         if interaction_partner.is_infected:
             return(interaction_partner)
 
-    def next_hospital(self):
+    def next_location_of_type(self, type):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''
-        return self.closest_loc('hospital')[0]
+        if self.closest_loc(type):
+            return self.closest_loc(type)[0]
+        else:
+            return self.closest_loc_world(type)[0]
 
     def closest_loc(self, loc_type):
         ''' returns sorted list ID of the closest Location of type : loc_type, if type is identical the distance is 0'''
@@ -231,8 +278,46 @@ class Location(object):
         min_dist_index = list(distances_loc.values()).index(min(distances_loc.values()))
         sorted_items = sorted((value, key) for (key, value) in distances_loc.items())
         sorted_ids = [i for (v, i) in sorted_items]
-
         return sorted_ids
+
+    def closest_loc_world(self, loc_type, return_sorted_list=False):
+        try:
+            ids_of_type_in_world = ctypes.cast(
+                self.world_ref, ctypes.py_object).value.ids_of_location_types[loc_type]
+        except:
+            return None
+        if len(ids_of_type_in_world) > 1:
+            row_ind = ctypes.cast(
+                self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
+            col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
+                l) for l in ids_of_type_in_world if l != self.ID]
+            if len(col_ind) > 0:
+                respective_other_matrix_entries = list(ctypes.cast(
+                    self.world_ref, ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
+                if respective_other_matrix_entries:
+                    if not return_sorted_list:
+                        index_in_row_subset = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
+                            min(respective_other_matrix_entries))])
+                        ID_of_closest = ctypes.cast(
+                            self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]]
+                        return([ID_of_closest])
+                    else:
+                        indices_in_row_subset = list(np.argsort(respective_other_matrix_entries))
+                        IDs_sorted_by_dist = [ctypes.cast(
+                            self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]] for i in indices_in_row_subset]
+                        return(IDs_sorted_by_dist)
+                else:
+                    return([self])
+        elif len(ids_of_type_in_world) == 1:
+            return(ids_of_type_in_world)
+        else:
+            return([self])
+
+    def get_other_loc_by_id(self, id):
+        try:
+            return([ctypes.cast(self.world_ref, ctypes.py_object).value.locations[id]])
+        except:
+            return []
 
     def distance_loc(self, location_ID):
         # print(location_ID)

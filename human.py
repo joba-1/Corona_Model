@@ -290,7 +290,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(1)
+        return(0.2)
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -299,7 +299,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return(0.02)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -471,9 +471,9 @@ class Human(object):
             self.hospitalization_time = time
             self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
-            #hospital = self.loc.next_hospital()
-            #locDict = {i.ID: i for i in self.loc.neighbourhood.locations}
-            #self.schedule['locs'] = [locDict[hospital]]*len(list(self.schedule['times']))
+            if self.loc.special_locations['hospital']:
+                self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
+                    len(list(self.schedule['times']))
 
     def die(self, risk, time):
         """
@@ -490,6 +490,9 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.is_infected = False
+            if self.loc.special_locations['cemetery']:
+                self.schedule['locs'] = [self.loc.special_locations['cemetery'][0]] * \
+                    len(list(self.schedule['times']))
 
     def get_infectivity(self):
         """
