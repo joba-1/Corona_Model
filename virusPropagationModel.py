@@ -144,8 +144,10 @@ class ModeledPopulatedWorld(object):
         diagnosed_schedule = copy.deepcopy(npr.choice(
             self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
 
-        if diagnosed_schedule == 'standard':
-            diagnosed_schedule = schedule
+        if isinstance(diagnosed_schedule, str):
+            diag_type = diagnosed_schedule
+            diagnosed_schedule=copy.deepcopy(schedule)
+            diagnosed_schedule['type']=diag_type
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
