@@ -388,6 +388,7 @@ class Simulation(object):
         'type' can take on the values 'replacement' or 'multiplicative_factor';
         where 'replacement' specifies to replace the old attribue-value and
         'multiplicative_factor' specifies the multiplication of the old attribute-value with a given factor.
+        PLEASE NOTE: The value of the 'multiplicative_factor'-key MUST be numeric!
         The value to replace or multiply with is then found by the key 'value'.
         Examples:
             1:
