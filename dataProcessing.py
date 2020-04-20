@@ -33,6 +33,8 @@ def _recovery(infection_time):
     return float(recovery_df.loc[recovery_df['time/hours'] == infection_time, 'recover probability'])
 
 def _hospitalisation(infection_time, age):
+    if age > 99:
+        age = 99
     if infection_time == 0:
         return 0
     if infection_time > hospitalisation_df_max_time:
@@ -40,6 +42,8 @@ def _hospitalisation(infection_time, age):
     return float(hospitalisation_df.loc[hospitalisation_df['Time'] == infection_time, str(age)])
 
 def _icu_death_risk(icu_time, age):
+    if age > 99:
+        age = 99
     if icu_time == 0:
         return 0
     if icu_time > icu_death_risk_df_max_time:
@@ -47,6 +51,8 @@ def _icu_death_risk(icu_time, age):
     return float(icu_death_risk_df.loc[icu_death_risk_df['Hours in ICU'] == icu_time, str(age)])
 
 def _to_icu(hospital_time, age):
+    if age > 99:
+        age = 99
     if hospital_time == 0:
         return 0
     if hospital_time > to_icu_df_max_time:
@@ -54,6 +60,8 @@ def _to_icu(hospital_time, age):
     return float(to_icu_df.loc[to_icu_df['Time'] == hospital_time, str(age)])
 
 def _icu_to_hospital(icu_time, age):
+    if age > 99:
+        age = 99
     if icu_time == 0:
         return 0
     if icu_time > icu_to_hospital_df_max_time:
