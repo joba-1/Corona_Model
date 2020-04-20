@@ -66,25 +66,6 @@ class TestVPM(unittest.TestCase):
         self.simulation_a_a_inf.plot_flags_timecourse()
         self.simulation_a_a_inf.plot_location_type_occupancy_timecourse()
 
-    def test_feasibility_of_state_transitions(self):
-        self.testWorld_1 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=False)
-        self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
-        self.sim1 = Simulation(self.testWorld_1, 100)
-        self.sim2 = Simulation(self.testWorld_2, 100)
-        feasible_transitions = True
-        for i in self.sim1.people:
-            if i.state_transitions.count('Infected') > 1:
-                feasible_transitions = False
-                break
-        self.assertTrue(feasible_transitions,
-                        "Infeasible agent state-transition detected (the agent(s) got infected twice or more).")
-        for i in self.sim2.people:
-            if i.state_transitions.count('Infected') > 1:
-                feasible_transitions = False
-                break
-        self.assertTrue(feasible_transitions,
-                        "Infeasible agent state-transition detected (the agent(s) got infected twice or more).")
-
 
 if __name__ == '__main__':
     unittest.main()
