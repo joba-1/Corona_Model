@@ -416,7 +416,7 @@ class Human(object):
                 self.diagnosed = True
                 self.diagnosis_time = time
                 self.state_transitions += '-T'
-                #self.schedule = self.diagnosed_schedule
+                self.schedule = self.diagnosed_schedule
 
     def recover(self, recover_prob, time):
         """
