@@ -311,23 +311,15 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
         self.simulation_object = copy.deepcopy(object_to_simulate)
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
-        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+        if run_immediately:
+            self.simulate()
 
     def save(self, filename, date_suffix=True):
         """
@@ -350,6 +342,18 @@ class Simulation(object):
         else:
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
+
+    def simulate(self):
+        if isinstance(self.simulation_object, ModeledPopulatedWorld):
+            self.time = 0
+            self.simulation_timecourse = self.run_simulation()
+        elif isinstance(self.simulation_object, Simulation):
+            self.time = self.simulation_object.time
+            self.simulation_timecourse = pd.concat(
+                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+        else:
+            raise ValueError('Unexpected  \'object_to_simulate\' type')
+        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
         """
