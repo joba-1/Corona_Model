@@ -321,7 +321,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._to_icu(self.icu_duration, self.age)
+        return dp._icu_to_hospital(self.icu_duration, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
