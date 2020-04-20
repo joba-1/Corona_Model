@@ -11,6 +11,7 @@ import copy
 import numpy.random as npr
 import glob
 
+
 class ModeledPopulatedWorld(object):
     """
     A Class which initializes a world with location and humans (a static snapshot of its origin).
@@ -502,6 +503,9 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
+    def plot_infections_per_location_type(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type(self, save_figure=save_figure)
+
     def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
         """
         plots the time course for selected statuses
@@ -531,17 +535,16 @@ class Simulation(object):
     def plot_status_at_location(simulation_object, save_figure=False):
         """
         plots the occupancy of each status type at the different location types from the time course
-        
+
         """
         vpm_plt.plot_status_at_location(simulation_object, save_figure=save_figure)
 
     def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
         """
         map the occupancy of each status type at the different location types from the time course
-        
-        """        
-        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)    
 
+        """
+        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)
 
     def plot_distributions_of_durations(self, save_figure=False):
         """
