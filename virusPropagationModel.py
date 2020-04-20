@@ -389,6 +389,7 @@ class Simulation(object):
         where 'replacement' specifies to replace the old attribue-value and
         'multiplicative_factor' specifies the multiplication of the old attribute-value with a given factor.
         PLEASE NOTE: The value of the 'multiplicative_factor'-key MUST be numeric!
+                    Furthermore the target attribute must then be also numeric.
         The value to replace or multiply with is then found by the key 'value'.
         Examples:
             1:
