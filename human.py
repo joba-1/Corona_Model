@@ -1,4 +1,4 @@
-import numpy.random as npr  # numpy.random for generating random numbers
+import numpy.random.choice as choosing  # numpy.random for generating random numbers
 import logging as log  # logging for allowing to keep track of code development and putative errors
 import sys  # sys
 from location import *
@@ -225,13 +225,13 @@ class Human(object):
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             recoverProb = self.get_recover_prob()
-            what_happens = npr.choice(['die', 'recover', 'stay_infected'], p=[
-                                      self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
+            what_happens = choosing(['die', 'recover', 'stay_infected'], p=[
+                self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
                 self.recover(1.0, time)
-            elif what_happens == 'stay_infected':
+            else:
                 if self.icu:
                     self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
