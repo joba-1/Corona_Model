@@ -208,7 +208,6 @@ class Human(object):
         self.preliminary_status = 'S'
         self.got_infected_by = numpy.nan
         self.infected_in_contact_with = set()
-        self.state_transitions = '-S'
         self.is_infected = False
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
@@ -372,7 +371,6 @@ class Human(object):
         self.infection_time = 0
         self.was_infected = True
         self.place_of_infection = self.loc.ID
-        #self.state_transitions = '-Infected'
         self.is_infected = True
 
     def get_infected(self, time):
@@ -393,7 +391,6 @@ class Human(object):
                     self.was_infected = True
                     self.got_infected_by = infectious_person.ID
                     self.place_of_infection = self.loc.ID
-                    #self.state_transitions += '-Infected'
                     self.is_infected = True
         else:
             if self.loc.infection_risk()*self.behaviour_as_susceptible >= randomval():
@@ -401,7 +398,6 @@ class Human(object):
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
                 self.was_infected = True
-                #self.state_transitions += '-Infected'
                 self.is_infected = True
 
     def get_diagnosed(self, probability, time):
@@ -415,7 +411,6 @@ class Human(object):
             if probability >= randomval():
                 self.diagnosed = True
                 self.diagnosis_time = time
-                #self.state_transitions += '-T'
                 self.schedule = self.diagnosed_schedule
 
     def recover(self, recover_prob, time):
@@ -434,7 +429,6 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.schedule = self.original_schedule
-            #self.state_transitions += '-R'
             self.is_infected = False
 
     def get_ICUed(self, probability, time):
@@ -448,7 +442,6 @@ class Human(object):
             self.icu = True
             self.hospitalized = False
             self.icu_time = time
-            #self.state_transitions += '-ICU'
 
     def get_rehospitalized(self, probability, time):
         """
@@ -462,7 +455,6 @@ class Human(object):
             self.hospitalized = True
             self.icu = False
             self.rehospitalization_time = time
-            #self.state_transitions += '-H'
 
     def get_hospitalized(self, probability, time):
         """
@@ -477,7 +469,6 @@ class Human(object):
         if probability >= randomval():
             self.hospitalized = True
             self.hospitalization_time = time
-            #self.state_transitions += '-H'
             self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
             #hospital = self.loc.next_hospital()
@@ -498,7 +489,6 @@ class Human(object):
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
-            #self.state_transitions += '-D'
             self.is_infected = False
 
     def get_infectivity(self):
