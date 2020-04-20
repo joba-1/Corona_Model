@@ -400,8 +400,6 @@ class Simulation(object):
                   attr2:{'value':val2,'type':'multiplicative_factor'}}}
 
         """
-        # {id1:{attr1:{'value':val1,'type':'replacement'},attr2:{'value':val2,'type':'multiplicative_factor'}}}
-        # {all:{attr1:{'value':val1,'type':'replacement'},attr2:{'value':val2,'type':'multiplicative_factor'}}}
         if len(list(input.keys())) == 1:
             if list(input.keys())[0] == 'all':
                 for p in self.people:
