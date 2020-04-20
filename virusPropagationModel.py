@@ -8,6 +8,7 @@ import random
 import pandas as pd
 import numpy as np
 import copy
+import numpy.random as npr
 
 
 class ModeledPopulatedWorld(object):

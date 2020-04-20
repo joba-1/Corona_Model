@@ -1,8 +1,8 @@
-import numpy.random.choice as choosing  # numpy.random for generating random numbers
-import logging as log  # logging for allowing to keep track of code development and putative errors
-import sys  # sys
-from location import *
-import copy
+from numpy.random import choice as choosing  # numpy.random for generating random numbers
+# import logging as log  # logging for allowing to keep track of code development and putative errors
+# import sys  # sys
+#from location import *
+#import copy
 import numpy
 from random import random as randomval
 
