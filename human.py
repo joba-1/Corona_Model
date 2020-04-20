@@ -4,8 +4,8 @@ from numpy.random import choice as choosing  # numpy.random for generating rando
 #from location import *
 #import copy
 import numpy
+import dataProcessing as dp
 from random import random as randomval
-
 
 class Human(object):
     """
@@ -201,6 +201,8 @@ class Human(object):
         self.icu = False
         self.was_infected = False
         self.infection_duration = 0
+        self.hospitalization_duration = 0
+        self.icu_duration = 0
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
         loc.enter(self)
@@ -232,9 +234,11 @@ class Human(object):
                 self.recover(1.0, time)
             else:
                 if self.icu:
+                    self.icu_duration += 1
                     self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
                     if self.hospitalized:
+                        self.hospitalization_duration += 1
                         self.get_ICUed(self.get_icu_prob(), time)
                     else:
                         self.get_hospitalized(self.get_hospitalization_prob(), time)
@@ -290,7 +294,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.2)
+        return dp._diagnosis(self.infection_duration)
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -299,7 +303,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.02)
+        return dp._hospitalisation(self.infection_duration, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -308,7 +312,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.5)
+        return dp._hospital_to_icu(self.icu_duration, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
@@ -317,7 +321,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return(0.1)
+        return dp._to_icu(self.hospitalization_duration, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
@@ -329,7 +333,7 @@ class Human(object):
         if self.icu:
             return(0.0)
         else:
-            prob = self.infection_duration/480.
+            prob = dp._recovery(self.infection_duration)
             return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
@@ -337,13 +341,15 @@ class Human(object):
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
         """
-        if self.age < 60:
-            risk = 0.001
-        elif self.age < 75:
-            risk = 0.005
-        else:
-            risk = 0.01
-        return(risk*self.behaviour_as_susceptible)
+        #if self.age < 60:
+        #    risk = 0.001
+        #elif self.age < 75:
+        #    risk = 0.005
+        #else:
+        #    risk = 0.01
+        #if self.icu:
+        risk = dp._icu_death_risk(self.icu_duration, self.age)
+        return(risk)
 
     # status transitions humans can undergo
     """
@@ -501,10 +507,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        # infection_duration=self.infection_duration
-        ## use infection duration somehow to calculate infectivity ...##
-        infectivity = 0.1  # for now set to 1, should be function of infection-duration#
-        #infectivity = 1  # for now set to 1, should be function of infection-duration#
+        infectivity = dp._infectivity(self.infection_duration)  
         return(infectivity*self.behaviour_as_infected)
 
     def set_status_from_preliminary(self):
