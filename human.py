@@ -497,8 +497,8 @@ class Human(object):
             self.hospitalized = False
             self.diagnosed = False
             self.is_infected = False
-            if self.loc.special_locations['cemetery']:
-                self.schedule['locs'] = [self.loc.special_locations['cemetery'][0]] * \
+            if self.loc.special_locations['morgue']:
+                self.schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
                     len(list(self.schedule['times']))
 
     def get_infectivity(self):

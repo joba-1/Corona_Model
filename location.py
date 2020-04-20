@@ -50,8 +50,8 @@ class World(object):
 
         for l in self.locations:
             self.locations[l].world_ref = id(self)
-            self.locations[l].special_locations['cemetery'] = self.locations[l].get_other_loc_by_id(
-                self.locations[l].next_location_of_type('cemetery'))
+            self.locations[l].special_locations['morgue'] = self.locations[l].get_other_loc_by_id(
+                self.locations[l].next_location_of_type('morgue'))
             self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
                 self.locations[l].next_location_of_type('hospital'))
 
@@ -62,7 +62,7 @@ class World(object):
             locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
 
         locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
-        locations[0] = Location(0, (0, 0), 'cemetery', 1, 1e-8)
+        locations[0] = Location(0, (0, 0), 'morgue', 1, 1e-8)
         return locations
 
     def assign_location_classifier(self):
@@ -82,7 +82,7 @@ class World(object):
 
         loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
         loc_class_dic['hospital'] = ['hospital']
-        loc_class_dic['cemetery'] = ['cemetery']
+        loc_class_dic['morgue'] = ['morgue']
 
         loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
             + list(self.df_buildings['amenity'].unique())\
@@ -116,7 +116,7 @@ class World(object):
         col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
-        cemetery_bool = False
+        morgue_bool = False
         #healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
         col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
@@ -129,8 +129,8 @@ class World(object):
             # check if hospital will be true if at least one in dataframe
             if building_type == 'hospital':
                 hospital_bool = True
-            elif building_type == 'cemetery':
-                cemetery_bool = True
+            elif building_type == 'morgue':
+                morgue_bool = True
 
             # create location in dictionary, except excluded buildings
             if building_type != 'excluded_buildings':
@@ -139,7 +139,7 @@ class World(object):
                                         row['neighbourhood'],
                                         row['building_area'],)
         # if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
-        # if no cemetery in dataframe, one is created in low left corner, else model has problems #FIXME Future
+        # if no morgue in dataframe, one is created in low left corner, else model has problems #FIXME Future
         if not hospital_bool:
             distance = 0.00
             locations.update({len(self.df_buildings)+1: Location(len(self.df_buildings)+1,
@@ -148,11 +148,11 @@ class World(object):
                                                                  'hospital',
                                                                  'no',
                                                                  9.321282e-08,)})
-        if not cemetery_bool:
+        if not morgue_bool:
             locations.update({len(self.df_buildings)+2: Location(len(self.df_buildings)+2,
                                                                  (min(self.df_buildings['building_coordinates_x'])-distance,
                                                                   min(self.df_buildings['building_coordinates_y'])-distance),
-                                                                 'cemetery',
+                                                                 'morgue',
                                                                  'no',
                                                                  9.321282e-06,)})
 
@@ -217,7 +217,6 @@ class World(object):
             ids_of_location_types[t] = l
 
         self.ids_of_location_types = ids_of_location_types
-
 
 
 class Location(object):
