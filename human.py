@@ -4,6 +4,7 @@ import sys  # sys
 from location import *
 import copy
 import numpy
+from random import random as randomval
 
 
 class Human(object):
@@ -389,7 +390,7 @@ class Human(object):
             if infectious_person is not None:
                 if str(infectious_person.ID) not in self.infected_in_contact_with:
                     self.infected_in_contact_with.append(str(infectious_person.ID))
-                if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= npr.random_sample():
+                if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= randomval():
                     self.preliminary_status = 'I'
                     self.infection_time = time
                     self.was_infected = True
@@ -398,7 +399,7 @@ class Human(object):
                     self.state_transitions += '-Infected'
                     self.is_infected = True
         else:
-            if self.loc.infection_risk()*self.behaviour_as_susceptible >= npr.random_sample():
+            if self.loc.infection_risk()*self.behaviour_as_susceptible >= randomval():
                 self.preliminary_status = 'I'
                 self.infection_time = time
                 self.place_of_infection = self.loc.ID
@@ -414,7 +415,7 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if not self.diagnosed:
-            if probability >= npr.random_sample():
+            if probability >= randomval():
                 self.diagnosed = True
                 self.diagnosis_time = time
                 self.state_transitions += '-T'
@@ -429,7 +430,7 @@ class Human(object):
         Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
         """
-        if recover_prob >= npr.random_sample():
+        if recover_prob >= randomval():
             self.recover_time = time
             self.preliminary_status = 'R'
             self.icu = False
@@ -446,7 +447,7 @@ class Human(object):
         icu_time-attribute. Sets hospitalized-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.icu = True
             self.hospitalized = False
             self.icu_time = time
@@ -460,7 +461,7 @@ class Human(object):
         rehospitalization_time-attribute. Sets icu-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.hospitalized = True
             self.icu = False
             self.rehospitalization_time = time
@@ -476,7 +477,7 @@ class Human(object):
         CHANGE OF SCHEDULE MUST BE IMPLEMENTED HERE!!!
         Arguments to provide are: probability (float), time (int)
         """
-        if probability >= npr.random_sample():
+        if probability >= randomval():
             self.hospitalized = True
             self.hospitalization_time = time
             self.state_transitions += '-H'
@@ -494,7 +495,7 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if risk >= npr.random_sample():
+        if risk >= randomval():
             self.preliminary_status = 'D'
             self.death_time = time
             self.icu = False
