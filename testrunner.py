@@ -7,7 +7,9 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000, 300)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000,10,
+         world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv',
+          agent_agent_infection=True)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_modeled_pop_world_plotting(self):
