@@ -210,6 +210,7 @@ class Human(object):
         self.got_infected_by = numpy.nan
         self.infected_in_contact_with = set()
         self.is_infected = False
+        self.hospital_coeff = 0.01
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -387,11 +388,14 @@ class Human(object):
         If applicable writes name of agent infecting it to got_infected_by.
         Arguments to provide are: risk (float), time (int)
         """
+        coeff=1
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
                 self.infected_in_contact_with.add(str(infectious_person.ID))
-                if infectious_person.get_infectivity()*self.behaviour_as_susceptible >= randomval():
+                if self.loc.location_type=='hospital':
+                    coeff = self.hospital_coeff
+                if infectious_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'
                     self.infection_time = time
                     self.was_infected = True
