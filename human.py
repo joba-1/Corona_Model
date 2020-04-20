@@ -346,9 +346,15 @@ class Human(object):
         #    risk = 0.001
         # elif self.age < 75:
         #    risk = 0.005
+<<<<<<< HEAD
         else:
                 risk = 0.01
         if self.icu:
+=======
+        # else:
+        #    risk = 0.01
+        # if self.icu:
+>>>>>>> development
         risk = dp._icu_death_risk(self.icu_duration, self.age)
         return(risk)
 
