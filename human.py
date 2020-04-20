@@ -7,6 +7,7 @@ import numpy
 import dataProcessing as dp
 from random import random as randomval
 
+
 class Human(object):
     """
     Class holding humans as agents of ABM.
@@ -312,7 +313,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._hospital_to_icu(self.icu_duration, self.age)
+        return dp._to_icu(self.icu_duration, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
@@ -341,13 +342,13 @@ class Human(object):
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
         """
-        #if self.age < 60:
+        # if self.age < 60:
         #    risk = 0.001
-        #elif self.age < 75:
+        # elif self.age < 75:
         #    risk = 0.005
-        #else:
+        # else:
         #    risk = 0.01
-        #if self.icu:
+        # if self.icu:
         risk = dp._icu_death_risk(self.icu_duration, self.age)
         return(risk)
 
@@ -507,7 +508,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        infectivity = dp._infectivity(self.infection_duration)  
+        infectivity = dp._infectivity(self.infection_duration)
         return(infectivity*self.behaviour_as_infected)
 
     def set_status_from_preliminary(self):
