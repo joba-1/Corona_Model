@@ -173,36 +173,36 @@ def plot_status_at_location(simulation_object, save_figure=False):
                                     'S': np.zeros(len(zero_occupancy_array)),
                                      })
 
-    #for k,(stat,loc) in enumerate(status_at_loc):
+    for k,(stat,loc) in enumerate(status_at_loc):
 
-    #    loc1=loc.reset_index().set_index('time')
-    #    merged_df = loc1.merge(zero_occupancy_df,left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
-    #    col = k%2; row = int(k/2)
-    #    ax = axes[col,row]
-    #    merged_df.plot(y=['D','I','R','S'], ax=ax)
-    #    ax.set_title(stat)
-    #    ax.set_xlabel('Time [hours]')
+        loc1=loc.reset_index().set_index('time')
+        merged_df = loc1.merge(zero_occupancy_df,left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+        col = k%2; row = int(k/2)
+        ax = axes[col,row]
+        merged_df.plot(y=['D','I','R','S'], ax=ax)
+        ax.set_title(stat)
+        ax.set_xlabel('Time [hours]')
 
-    #plt.tight_layout()
+    plt.tight_layout()
    
     
      
-    for k,(stat,loc) in enumerate(status_at_loc):
+    #for k,(stat,loc) in enumerate(status_at_loc):
 
-        loc.set_index('time')
-        merged_df = loc.reset_index().set_index('time').merge(zero_occupancy_df, left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
-        #merged_df.drop('time', axis=1).reset_index()
-        merged_df.sort_values('time', inplace=True)
+    #    loc.set_index('time')
+    #    merged_df = loc.reset_index().set_index('time').merge(zero_occupancy_df, left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+    #    #merged_df.drop('time', axis=1).reset_index()
+    #    merged_df.sort_values('time', inplace=True)
         #plt.xlim(0,200)
-        col = k%2; row = int(k/2)
-        ax = axes[col,row]
-        for i,status in enumerate(['I','R','D','S']):
-            #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
-            merged_df.plot(ax=ax,x='time', y=status, kind='line', label=status, color=cmap(i))
-            ax.set_title(stat)
-            ax.set_xlabel('Time [hours]')
+    #    col = k%2; row = int(k/2)
+    #    ax = axes[col,row]
+    #    for i,status in enumerate(['I','R','D','S']):
+    #        #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
+    #        merged_df.plot(ax=ax,x='time', y=status, kind='line', label=status, color=cmap(i))
+    #        ax.set_title(stat)
+     #       ax.set_xlabel('Time [hours]')
 
-    plt.tight_layout() 
+    #plt.tight_layout() 
     plt.show()
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png')  
