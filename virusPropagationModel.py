@@ -520,7 +520,6 @@ class Simulation(object):
         merged_df = df.merge(agent_ages, on='h_ID')
         merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
         pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
-        print(len(pt))
         '''if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
             oldest_person = np.max(ages_in_s_t)
