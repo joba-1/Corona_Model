@@ -410,6 +410,7 @@ class Simulation(object):
             for i in list_of_peple_IDs_of_type:
                 rows_to_remove -= set([j for j, k in enumerate(humans_in_traject) if k == i])
             status_tc = traject.drop(list(rows_to_remove))[['time', 'status']]
+
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
             df = status_tc[status_tc['status'] == status].copy().rename(
@@ -525,7 +526,7 @@ class Simulation(object):
         :param specific_statuses:   List. Optional arg for getting only a
         subset  of statuses. if not specified, will plot all available statuses
         """
-        vpm_plt.plot_status_timecourse(self, specific_statuses, save_figure)
+        vpm_plt.plot_status_timecourse(self, specific_statuses, specific_people, save_figure)
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
