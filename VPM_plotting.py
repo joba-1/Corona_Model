@@ -78,6 +78,8 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, save_figur
                  trajectories[status][status].values, label=statusLabels[status])
 
     plt.title('status trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
     plt.legend()
     plt.show()
     if save_figure:
@@ -104,6 +106,9 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     for flag in flag_sums.columns:
         plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
     plt.title('flags trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
+    plt.xlabel('Time [hours]')
     plt.legend()
     plt.show()
     if save_figure:
@@ -137,6 +142,8 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
                                                       suffixes=('', '_zeros'), how='right').fillna(0)
         plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
     plt.title('location occupancy trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
     plt.legend()
     plt.show()
     if save_figure:
@@ -188,6 +195,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
             #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
             merged_df.plot(ax=ax,x='time', y=status, kind='line', label=status, color=cmap(i))
             ax.set_title(stat)
+            ax.set_xlabel('Time [hours]')
 
     plt.tight_layout()   
     
