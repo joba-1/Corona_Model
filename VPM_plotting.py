@@ -12,6 +12,12 @@ statusLabels = {
 }
 
 
+status_ID = {'I':1,
+            'S': 2,
+            'R': 3,
+            'D' :4
+            }
+
 def plot_distribution_of_location_types(modeled_pop_world_obj):
     """
     plots the distribution of the location types that were initialized in this world
@@ -148,7 +154,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
     df_ls = loc_stat.groupby(['location_type','time']).sum()
     status_at_loc = df_ls.reset_index().drop(['x_coordinate','y_coordinate','loc'],axis=1).groupby('location_type')
 
-    cmap = cm.get_cmap('Dark2')
+    cmap = cm.get_cmap('Set1')
     fig,axes = plt.subplots(2,int(n/2)+n%2, figsize=(8,8))
 
     zero_occupancy_array = loc_stat['time'].copy().unique()
@@ -173,23 +179,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
     
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png') 
-
-
-    for k,(stat,loc) in enumerate(status_at_loc):
-
-        loc.set_index('time')
-        merged_df = loc.reset_index().set_index('time').merge(zero_occupancy_df, left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
-        #merged_df.drop('time', axis=1).reset_index()
-        merged_df.sort_values('time', inplace=True)
-        #plt.xlim(0,200)
-        col = k%2; row = int(k/2)
-        ax = axes[col,row]
-        for i,status in enumerate(['I','R','D','S']):
-            #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
-            merged_df.plot(ax=ax,x='time', y=status, kind='line', label=status, color=cmap(i))
-            ax.set_title(stat)
-
-    plt.tight_layout()   
+  
     
 def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
@@ -210,7 +200,6 @@ def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
         if save_figure:
             plt.savefig('plots/loc_t_'+str(time)+'.png')        
-
 
 
 def plot_distributions_of_durations(simulation_object, save_figure=False):
