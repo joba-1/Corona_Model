@@ -242,7 +242,8 @@ class Human(object):
                         self.hospitalization_duration += 1
                         self.get_ICUed(self.get_icu_prob(), time)
                     else:
-                        self.get_hospitalized(self.get_hospitalization_prob(), time)
+                        if self.diagnosed:
+                            self.get_hospitalized(self.get_hospitalization_prob(), time)
 
     def get_status(self):  # for storing simulation data
         """
@@ -476,7 +477,6 @@ class Human(object):
         if probability >= randomval():
             self.hospitalized = True
             self.hospitalization_time = time
-            self.get_diagnosed(1.0, time)
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
                 self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
