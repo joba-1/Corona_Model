@@ -81,7 +81,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     plt.show()"""
 
 
-def plot_status_timecourse(simulation_object, specific_statuses=None, save_figure=False):
+def plot_status_timecourse(simulation_object, specific_statuses=None, specific_people=None, save_figure=False):
     """
     plots the time course for selected statuses
     :param simulation_object: obj of Simulation Class
@@ -89,7 +89,8 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, save_figur
     :param specific_statuses:   List. Optional arg for getting only a
     subset  of statuses. if not specified, will plot all available statuses
     """
-    trajectories = simulation_object.get_status_trajectories(specific_statuses)
+    trajectories = simulation_object.get_status_trajectories(
+        specific_statuses, specific_people=specific_people)
     assert set(statusLabels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
         "course "
     simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values

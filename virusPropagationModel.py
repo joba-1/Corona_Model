@@ -384,7 +384,7 @@ class Simulation(object):
         """
         return list(set(self.simulation_timecourse['status']))
 
-    def get_status_trajectories(self, specific_statuses=None):
+    def get_status_trajectories(self, specific_statuses=None, specific_people=None):
         """
         gets the commutative amount of each status per point in time as a trajectory
         :param specific_statuses: List. Optional arg for getting only a subset  of statuses
@@ -397,8 +397,19 @@ class Simulation(object):
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
+
         status_trajectories = {}
-        status_tc = self.simulation_timecourse[['time', 'status']]
+
+        if specific_people is None:
+            status_tc = self.simulation_timecourse[['time', 'status']]
+        else:
+            traject = self.simulation_timecourse
+            list_of_peple_IDs_of_type = [2, 34, 5]  # Specify doctors here##
+            humans_in_traject = list(traject['h_ID'])
+            rows_to_remove = set(traject.index)
+            for i in list_of_peple_IDs_of_type:
+                rows_to_remove -= set([j for j, k in enumerate(humans_in_traject) if k == i])
+            status_tc = traject.drop(list(rows_to_remove))[['time', 'status']]
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
             df = status_tc[status_tc['status'] == status].copy().rename(
@@ -506,7 +517,7 @@ class Simulation(object):
     def plot_infections_per_location_type(self, save_figure=False):
         vpm_plt.plot_infections_per_location_type(self, save_figure=save_figure)
 
-    def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
+    def plot_status_timecourse(self, specific_statuses=None, specific_people=None, save_figure=False):
         """
         plots the time course for selected statuses
         :param simulation_object: obj of Simulation Class
