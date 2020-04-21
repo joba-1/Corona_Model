@@ -348,8 +348,10 @@ class Human(object):
         #    risk = 0.005
         # else:
         #    risk = 0.01
-        # if self.icu:
-        risk = dp._icu_death_risk(self.icu_duration, self.age)
+        if not self.icu:
+            risk = dp._general_death_risk(self.infection_duration, self.age)
+        else:
+            risk= dp._icu_death_risk(self.icu_duration, self.age)
         return(risk)
 
     # status transitions humans can undergo
