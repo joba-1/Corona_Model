@@ -31,7 +31,8 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     age_groups_status_distribution = modeled_pop_world_obj.get_distribution_of_ages_and_infected(age_groups_step)
     width_of_bars = 0.50
     fig, ax = plt.subplots()
-    fig.set_figwidth(12)
+    fig_width_factor = 1/(age_groups_step/10)
+    fig.set_figwidth(12*fig_width_factor)
     fig.set_figheight(7)
     tot_ppl = modeled_pop_world_obj.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
@@ -40,7 +41,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     ax.bar(age_groups,per_of_inf,width_of_bars,label=statusLabels['I'],color='orangered')
     ax.bar(age_groups,per_of_sus,width_of_bars,bottom=per_of_inf,label=statusLabels['S'],color='gold')
     ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
-    ax.set_ylabel('% of total number of people')
+    ax.set_ylabel('% of population')
     ax.set_xlabel('Age groups')
     ax.legend()
     plt.tight_layout()
@@ -84,6 +85,8 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, save_figur
                  trajectories[status][status].values, label=statusLabels[status])
 
     plt.title('status trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
     plt.legend()
     plt.show()
     if save_figure:
@@ -110,6 +113,9 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     for flag in flag_sums.columns:
         plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
     plt.title('flags trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
+    plt.xlabel('Time [hours]')
     plt.legend()
     plt.show()
     if save_figure:
@@ -143,6 +149,8 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
                                                       suffixes=('', '_zeros'), how='right').fillna(0)
         plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
     plt.title('location occupancy trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
     plt.legend()
     plt.show()
     if save_figure:
@@ -165,21 +173,39 @@ def plot_status_at_location(simulation_object, save_figure=False):
                                     'S': np.zeros(len(zero_occupancy_array)),
                                      })
 
+    #for k,(stat,loc) in enumerate(status_at_loc):
+
+    #    loc1=loc.reset_index().set_index('time')
+    #    merged_df = loc1.merge(zero_occupancy_df,left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+    #    col = k%2; row = int(k/2)
+    #    ax = axes[col,row]
+    #    merged_df.plot(y=['D','I','R','S'], ax=ax)
+    #    ax.set_title(stat)
+    #    ax.set_xlabel('Time [hours]')
+
+    #plt.tight_layout()
+   
+    
+     
     for k,(stat,loc) in enumerate(status_at_loc):
 
-        loc1=loc.reset_index().set_index('time')
-        merged_df = loc1.merge(zero_occupancy_df,left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+        loc.set_index('time')
+        merged_df = loc.reset_index().set_index('time').merge(zero_occupancy_df, left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+        #merged_df.drop('time', axis=1).reset_index()
+        merged_df.sort_values('time', inplace=True)
+        #plt.xlim(0,200)
         col = k%2; row = int(k/2)
         ax = axes[col,row]
-        merged_df.plot(y=['D','I','R','S'], ax=ax)
-        ax.set_title(stat)
+        for i,status in enumerate(['I','R','D','S']):
+            #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
+            merged_df.plot(ax=ax,x='time', y=status, kind='line', label=status, color=cmap(i))
+            ax.set_title(stat)
+            ax.set_xlabel('Time [hours]')
 
-    plt.tight_layout()
+    plt.tight_layout() 
     plt.show()
-    
     if save_figure:
-        plt.savefig('outputs/loc_types_occupancy_plot.png') 
-  
+        plt.savefig('outputs/loc_types_occupancy_plot.png')  
     
 def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
