@@ -11,6 +11,7 @@ import copy
 import numpy.random as npr
 import glob
 
+
 class ModeledPopulatedWorld(object):
     """
     A Class which initializes a world with location and humans (a static snapshot of its origin).
@@ -90,6 +91,10 @@ class ModeledPopulatedWorld(object):
             for age in ages:
                 n = len(people) + 1
                 schedule, diagnosed_schedule = self.create_schedule(age, home)
+                if age > 99:
+                    age = 99
+                elif age < 0:
+                    age = 0
                 people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
@@ -144,8 +149,10 @@ class ModeledPopulatedWorld(object):
         diagnosed_schedule = copy.deepcopy(npr.choice(
             self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
 
-        if diagnosed_schedule == 'standard':
-            diagnosed_schedule = schedule
+        if isinstance(diagnosed_schedule, str):
+            diag_type = diagnosed_schedule
+            diagnosed_schedule=copy.deepcopy(schedule)
+            diagnosed_schedule['type']=diag_type
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
@@ -228,7 +235,7 @@ class ModeledPopulatedWorld(object):
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
 
 
 class Simulation(object):
@@ -313,23 +320,15 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
         self.simulation_object = copy.deepcopy(object_to_simulate)
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
-        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+        if run_immediately:
+            self.simulate()
 
     def save(self, filename, date_suffix=True):
         """
@@ -352,6 +351,18 @@ class Simulation(object):
         else:
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
+
+    def simulate(self):
+        if isinstance(self.simulation_object, ModeledPopulatedWorld):
+            self.time = 0
+            self.simulation_timecourse = self.run_simulation()
+        elif isinstance(self.simulation_object, Simulation):
+            self.time = self.simulation_object.time
+            self.simulation_timecourse = pd.concat(
+                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+        else:
+            raise ValueError('Unexpected  \'object_to_simulate\' type')
+        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
         """
@@ -380,6 +391,67 @@ class Simulation(object):
                 person_counter += 1
         return pd.DataFrame(list(timecourse))
 
+    def change_agent_attributes(self, input):
+        """
+        Applies the change of the values of certain specified agent-attributes.
+        The input is a dictionary with the IDs of agents, one wants to change an attribute for.
+        It is possible to have one or many entries with specific agent-ID(s); or use the key 'all',
+        to specifiy that the changes should be applied to all agents.
+        The corresponding value to this keys is another dictionary,
+        which hast the names of the attributes to change as keys().
+        In this attribute-specific dictionary one finds two keys 'value' and 'type'.
+        'type' can take on the values 'replacement' or 'multiplicative_factor';
+        where 'replacement' specifies to replace the old attribue-value and
+        'multiplicative_factor' specifies the multiplication of the old attribute-value with a given factor.
+        PLEASE NOTE: The value of the 'multiplicative_factor'-key MUST be numeric!
+                    Furthermore the target attribute must then be also numeric.
+        The value to replace or multiply with is then found by the key 'value'.
+        Examples:
+            1:
+            {all:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+            2:
+            {id1:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}},
+             id2:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+
+        """
+        if len(list(input.keys())) == 1:
+            if list(input.keys())[0] == 'all':
+                input_all = input['all']
+                for p in self.people:
+                    for attribute in input_all.keys():
+                        if input_all[attribute]['type'] == 'replacement':
+                            setattr(p, attribute, input_all[attribute]['value'])
+                        elif input_all[attribute]['type'] == 'multiplicative_factor':
+                            setattr(p, attribute, getattr(p, attribute) *
+                                    input_all[attribute]['multiplicative_factor'])
+            else:
+                id = list(input.keys())[0]
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
+        else:
+            for id in list(input.keys()):
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
+
     def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
@@ -387,7 +459,7 @@ class Simulation(object):
         """
         return list(set(self.simulation_timecourse['status']))
 
-    def get_status_trajectories(self, specific_statuses=None):
+    def get_status_trajectories(self, specific_statuses=None, specific_people=None):
         """
         gets the commutative amount of each status per point in time as a trajectory
         :param specific_statuses: List. Optional arg for getting only a subset  of statuses
@@ -400,8 +472,20 @@ class Simulation(object):
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
+
         status_trajectories = {}
-        status_tc = self.simulation_timecourse[['time', 'status']]
+
+        if specific_people is None:
+            status_tc = self.simulation_timecourse[['time', 'status']]
+        else:
+            traject = self.simulation_timecourse
+            list_of_peple_IDs_of_type = [p.ID for p in self.people if p.type==specific_people]  # Specify doctors here##
+            humans_in_traject = list(traject['h_ID'])
+            rows_to_remove = set(traject.index)
+            for i in list_of_peple_IDs_of_type:
+                rows_to_remove -= set([j for j, k in enumerate(humans_in_traject) if k == i])
+            status_tc = traject.drop(list(rows_to_remove))[['time', 'status']]
+
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
             df = status_tc[status_tc['status'] == status].copy().rename(
@@ -515,7 +599,7 @@ class Simulation(object):
         :comment: use pt.loc[:,t] to get the values for a specific point in time
         """
         assert type(group_ages) is bool
-        agent_ages = pd.DataFrame([{'h_ID': p.ID,'age': p.age} for p in self.people])
+        agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
         merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
@@ -548,7 +632,10 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
+    def plot_infections_per_location_type(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type(self, save_figure=save_figure)
+
+    def plot_status_timecourse(self, specific_statuses=None, specific_people=None, save_figure=False):
         """
         plots the time course for selected statuses
         :param simulation_object: obj of Simulation Class
@@ -556,7 +643,7 @@ class Simulation(object):
         :param specific_statuses:   List. Optional arg for getting only a
         subset  of statuses. if not specified, will plot all available statuses
         """
-        vpm_plt.plot_status_timecourse(self, specific_statuses, save_figure)
+        vpm_plt.plot_status_timecourse(self, specific_statuses, specific_people, save_figure)
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
@@ -597,3 +684,6 @@ class Simulation(object):
         :param save_figure:  Bool. Flag for saving the figure as an image
         """
         vpm_plt.plot_distributions_of_durations(self, save_figure)
+
+    def plot_infections_per_location_type_over_time(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
