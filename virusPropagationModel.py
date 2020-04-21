@@ -94,7 +94,7 @@ class ModeledPopulatedWorld(object):
                 if age > 99:
                     age = 99
                 elif age < 0:
-                    age = 0    
+                    age = 0
                 people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
@@ -602,11 +602,8 @@ class Simulation(object):
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
-                                'Hospitalized', 'ICUed'], inplace=True)
-        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
-                                   'status'], aggfunc='count', fill_value=0)
-        print(len(pt))
+        merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
         '''if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
             oldest_person = np.max(ages_in_s_t)

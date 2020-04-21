@@ -11,6 +11,19 @@ statusLabels = {
     'D': 'Dead'
 }
 
+defaultCmap = cm.get_cmap('Set3')
+mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
+statusAndFlagsColors = {
+    'I': mainModelCmap(0),  # red
+    'S': mainModelCmap(1),  # blue
+    'R': mainModelCmap(2),  # green
+    'D': 'black',
+
+    'WasInfected': mainModelCmap(0),  # red
+    'Diagnosed': mainModelCmap(4),  # orange
+    'Hospitalized': mainModelCmap(6),  # brown
+    'ICUed': mainModelCmap(7),  # pink
+}
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
     infection_events = modeled_pop_world_obj.get_infection_event_information()
@@ -24,7 +37,9 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
                                  'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
 
     simulation_timepoints = modeled_pop_world_obj.simulation_timecourse['time']
+    colorindex = 0
     for loc in unique_locs:
+
         times = list(
             infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
         infections_in_loc_type_time_series = []
@@ -33,7 +48,8 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
             df2 = df1.loc[df1['infection_time'] == t, :]
             infections_in_loc_type_time_series.append(df2.shape[0])
         #plt.plot(times, infections_in_loc_type_time_series, label=loc)
-        plt.scatter(times, infections_in_loc_type_time_series, label=loc)
+        plt.scatter(times, infections_in_loc_type_time_series, label=loc,color=defaultCmap(colorindex))
+        colorindex += 1
 
     plt.xlim(left=0, right=max(list(simulation_timepoints)))
     plt.title('Infection events over time')
@@ -62,7 +78,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
             loc_infection_dict[respective_type] += 1/total_buildings_of_type[respective_type]
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
-    plt.bar(x, list(loc_infection_dict.values()))
+    plt.bar(x, list(loc_infection_dict.values()),color=defaultCmap(0))
     plt.xticks(x, set(list(loc_infection_dict.keys())))
     plt.title('Total number of infections per location-type (relative to number of type)')
     plt.xlabel('Location-type')
@@ -76,7 +92,7 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
-    plt.bar(location_counts.keys(), location_counts.values())
+    plt.bar(location_counts.keys(), location_counts.values(),color=defaultCmap(0))
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
@@ -91,9 +107,8 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
     per_of_inf = (age_groups_status_distribution['I']/tot_ppl)*100
     per_of_sus = (age_groups_status_distribution['S'] / tot_ppl) * 100
-    ax.bar(age_groups, per_of_inf, width_of_bars, label=statusLabels['I'], color='orangered')
-    ax.bar(age_groups, per_of_sus, width_of_bars,
-           bottom=per_of_inf, label=statusLabels['S'], color='gold')
+    ax.bar(age_groups,per_of_inf,width_of_bars,label=statusLabels['I'],color=statusAndFlagsColors['I'])
+    ax.bar(age_groups,per_of_sus,width_of_bars,bottom=per_of_inf,label=statusLabels['S'],color=statusAndFlagsColors['S'])
     ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
     ax.set_ylabel('% of population')
     ax.set_xlabel('Age groups')
@@ -103,18 +118,15 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
 
 
 """def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):
-    age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(
-        age_groups_step)
+    age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(age_groups_step)
     width_of_bars = 0.50
     fig, ax = plt.subplots()
     fig.set_figwidth(12)
     fig.set_figheight(7)
     tot_ppl = simulation_object.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
-    statuses_in_distribution = [str(stat_in_dist)
-                                    for stat_in_dist in age_groups_status_distribution.columns]
-    statuses_to_plot = [status for status in statusLabels.keys()
-                                                               if status in statuses_in_distribution]
+    statuses_in_distribution = [str(stat_in_dist) for stat_in_dist in age_groups_status_distribution.columns]
+    statuses_to_plot = [status for status in statusLabels.keys() if status in statuses_in_distribution]
     print(statuses_to_plot)
     ax.bar(age_groups,age_groups_status_distribution['I'],width_of_bars,label=statusLabels['I'])
     ax.bar(age_groups,age_groups_status_distribution['S'],width_of_bars,bottom=age_groups_status_distribution['I'],label=statusLabels['S'])
@@ -142,7 +154,7 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
     simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
     for status in trajectories.keys():
         plt.plot(simulation_timepoints,
-                 trajectories[status][status].values, label=statusLabels[status])
+                 trajectories[status][status].values, label=statusLabels[status], color=statusAndFlagsColors[status])
 
     plt.title('status trajectories')
     plt.xlabel('Time [hours]')
@@ -171,7 +183,7 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     flag_sums = gdf.sum()
     simulation_timepoints = list(gdf.groups.keys())
     for flag in flag_sums.columns:
-        plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag))
+        plt.plot(simulation_timepoints, flag_sums[flag], label=str(flag), color=statusAndFlagsColors[flag])
     plt.title('flags trajectories')
     plt.xlabel('Time [hours]')
     plt.ylabel('# People')
@@ -197,6 +209,7 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
         loc_types = specific_types
     else:
         loc_types = available_loc_types
+    color_index = 0
     for loc_type in loc_types:
         df = locations_df[['time', 'loc_type']]
         zero_occupancy_array = df['time'].copy().unique()
@@ -206,7 +219,8 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
             len(zero_occupancy_array))}).set_index('time')
         merged_df = time_grouped_location_count.merge(zero_occupancy_df, left_index=True, right_index=True,
                                                       suffixes=('', '_zeros'), how='right').fillna(0)
-        plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type)
+        plt.plot(list(merged_df.index.values), merged_df[loc_type], label=loc_type,color=defaultCmap(color_index))
+        color_index += 1
     plt.title('location occupancy trajectories')
     plt.xlabel('Time [hours]')
     plt.ylabel('# People')
@@ -223,7 +237,6 @@ def plot_status_at_location(simulation_object, save_figure=False):
     status_at_loc = df_ls.reset_index().drop(
         ['x_coordinate', 'y_coordinate', 'loc'], axis=1).groupby('location_type')
 
-    cmap = cm.get_cmap('Set1')
     fig,axes = plt.subplots(2,int(n/2)+n%2, figsize=(8,8))
 
     zero_occupancy_array = loc_stat['time'].copy().unique()
@@ -236,20 +249,20 @@ def plot_status_at_location(simulation_object, save_figure=False):
 
     for k, (stat, loc) in enumerate(status_at_loc):
 
-        loc1 = loc.reset_index().set_index('time')
-        merged_df = loc1.merge(zero_occupancy_df, left_index=True,
-                               right_index=True, suffixes=('', '_zeros'), how='right').fillna(0)
-        col = k % 2
+        loc1=loc.reset_index().set_index('time')
+        merged_df = loc1.merge(zero_occupancy_df,left_index=True, right_index=True,suffixes=('', '_zeros'), how='right').fillna(0)
+        col = k%2
         row = int(k/2)
-        ax = axes[col, row]
-        merged_df.plot(y=['D', 'I', 'R', 'S'], ax=ax)
+        ax = axes[col,row]
+        cols_to_plot = ['D','I','R','S']
+        merged_df.plot(y=cols_to_plot, ax=ax, color=[statusAndFlagsColors[st] for st in cols_to_plot])
         ax.set_title(stat)
         ax.set_xlabel('Time [hours]')
 
     plt.tight_layout()
-   
-    
-     
+
+
+
     #for k,(stat,loc) in enumerate(status_at_loc):
 
     #    loc.set_index('time')
@@ -265,31 +278,29 @@ def plot_status_at_location(simulation_object, save_figure=False):
     #        ax.set_title(stat)
      #       ax.set_xlabel('Time [hours]')
 
-    #plt.tight_layout() 
+    #plt.tight_layout()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/loc_types_occupancy_plot.png')  
+        plt.savefig('outputs/loc_types_occupancy_plot.png')
     
 def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
     loc_stat = simulation_object.get_location_and_status()
 
     for time in range(time_steps):
-        loc_stat_t = loc_stat[loc_stat['time'] == time]
-        cmap = cm.get_cmap('Dark2')
+        loc_stat_t = loc_stat[loc_stat['time']==time]
 
         plt.figure(figsize=(10, 10))
         for k, stat in enumerate(['R', 'S', 'I', 'D']):
             plt.subplot(2, 2, k+1)
             plt.title(stat)
-            plt.scatter(loc_stat_t['x_coordinate'], loc_stat_t['y_coordinate'],
-                        s=20*loc_stat_t[stat], alpha=0.3, label=stat, color=cmap(k))
+            plt.scatter(loc_stat_t['x_coordinate'],loc_stat_t['y_coordinate'], s = 20*loc_stat_t[stat], alpha=0.3, label=stat, color=statusAndFlagsColors[stat])
         plt.suptitle('status at time '+str(time))
         plt.tight_layout()
         plt.legend()
 
         if save_figure:
-            plt.savefig('plots/loc_t_'+str(time)+'.png')
+            plt.savefig('plots/loc_t_'+str(time)+'.png')        
 
 def plot_distributions_of_durations(simulation_object, save_figure=False):
     """
@@ -299,7 +310,7 @@ def plot_distributions_of_durations(simulation_object, save_figure=False):
     and the time from hospitalisation to ICU.
     :param save_figure:  Bool. Flag for saving the figure as an image
     """
-    simulation_object.get_durations().hist()
+    simulation_object.get_durations().hist(color=defaultCmap(0))
     plt.tight_layout()
     plt.show()
     if save_figure:
