@@ -90,6 +90,10 @@ class ModeledPopulatedWorld(object):
             for age in ages:
                 n = len(people) + 1
                 schedule, diagnosed_schedule = self.create_schedule(age, home)
+                if age > 99:
+                    age = 99
+                elif age < 0:
+                    age = 0    
                 people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
