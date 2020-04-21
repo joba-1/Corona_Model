@@ -11,6 +11,7 @@ import copy
 import numpy.random as npr
 import glob
 
+
 class ModeledPopulatedWorld(object):
     """
     A Class which initializes a world with location and humans (a static snapshot of its origin).
@@ -234,7 +235,7 @@ class ModeledPopulatedWorld(object):
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
 
 
 class Simulation(object):
@@ -458,7 +459,7 @@ class Simulation(object):
         """
         return list(set(self.simulation_timecourse['status']))
 
-    def get_status_trajectories(self, specific_statuses=None):
+    def get_status_trajectories(self, specific_statuses=None, specific_people=None):
         """
         gets the commutative amount of each status per point in time as a trajectory
         :param specific_statuses: List. Optional arg for getting only a subset  of statuses
@@ -471,8 +472,20 @@ class Simulation(object):
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
                 str(set(self.statuses_in_timecourse)) + ')'
             statuses = specific_statuses
+
         status_trajectories = {}
-        status_tc = self.simulation_timecourse[['time', 'status']]
+
+        if specific_people is None:
+            status_tc = self.simulation_timecourse[['time', 'status']]
+        else:
+            traject = self.simulation_timecourse
+            list_of_peple_IDs_of_type = [p.ID for p in self.people if p.type==specific_people]  # Specify doctors here##
+            humans_in_traject = list(traject['h_ID'])
+            rows_to_remove = set(traject.index)
+            for i in list_of_peple_IDs_of_type:
+                rows_to_remove -= set([j for j, k in enumerate(humans_in_traject) if k == i])
+            status_tc = traject.drop(list(rows_to_remove))[['time', 'status']]
+
         t_c_times = status_tc['time'].copy().unique()  # copy?
         for status in statuses:
             df = status_tc[status_tc['status'] == status].copy().rename(
@@ -586,11 +599,13 @@ class Simulation(object):
         :comment: use pt.loc[:,t] to get the values for a specific point in time
         """
         assert type(group_ages) is bool
-        agent_ages = pd.DataFrame([{'h_ID': p.ID,'age': p.age} for p in self.people])
+        agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
-        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
+        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
+                                'Hospitalized', 'ICUed'], inplace=True)
+        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
+                                   'status'], aggfunc='count', fill_value=0)
         print(len(pt))
         '''if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
@@ -620,7 +635,10 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    def plot_status_timecourse(self, specific_statuses=None, save_figure=False):
+    def plot_infections_per_location_type(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type(self, save_figure=save_figure)
+
+    def plot_status_timecourse(self, specific_statuses=None, specific_people=None, save_figure=False):
         """
         plots the time course for selected statuses
         :param simulation_object: obj of Simulation Class
@@ -628,7 +646,7 @@ class Simulation(object):
         :param specific_statuses:   List. Optional arg for getting only a
         subset  of statuses. if not specified, will plot all available statuses
         """
-        vpm_plt.plot_status_timecourse(self, specific_statuses, save_figure)
+        vpm_plt.plot_status_timecourse(self, specific_statuses, specific_people, save_figure)
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
@@ -669,3 +687,6 @@ class Simulation(object):
         :param save_figure:  Bool. Flag for saving the figure as an image
         """
         vpm_plt.plot_distributions_of_durations(self, save_figure)
+
+    def plot_infections_per_location_type_over_time(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)

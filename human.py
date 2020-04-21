@@ -188,6 +188,7 @@ class Human(object):
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = schedule
         self.diagnosed_schedule = diagnosed_schedule
+        self.type = self.original_schedule['type']
         self.loc = loc  # current location
         self.home = loc
         self.place_of_infection = numpy.nan
@@ -354,6 +355,9 @@ class Human(object):
         #    risk = 0.001
         # elif self.age < 75:
         #    risk = 0.005
+        # else:
+        #    risk = 0.01
+        # if self.icu:
         # else:
         #    risk = 0.01
         # if self.icu:
