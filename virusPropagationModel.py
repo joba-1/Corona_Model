@@ -589,7 +589,6 @@ class Simulation(object):
         """
         vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)
 
-
     def plot_distributions_of_durations(self, save_figure=False):
         """
         plots the distributions of the total duration of the infection,
@@ -599,7 +598,3 @@ class Simulation(object):
         :param save_figure:  Bool. Flag for saving the figure as an image
         """
         vpm_plt.plot_distributions_of_durations(self, save_figure)
-
-modeledWorld1 = ModeledPopulatedWorld(1000, 300)
-simulation1 = Simulation(modeledWorld1, 100)
-simulation1.get_distribution_of_statuses_per_age(group_ages=True)
