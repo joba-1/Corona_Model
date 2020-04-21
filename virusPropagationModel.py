@@ -8,7 +8,8 @@ import random
 import pandas as pd
 import numpy as np
 import copy
-
+import numpy.random as npr
+import glob
 
 class ModeledPopulatedWorld(object):
     """
@@ -105,65 +106,72 @@ class ModeledPopulatedWorld(object):
 
         for bound in self.schedules['upper_bounds']:
             if age <= bound:
-                schedule = copy.deepcopy(npr.choice(self.schedules[bound][0],p=self.schedules[bound][1]))
+                schedule = copy.deepcopy(npr.choice(
+                    self.schedules[bound][0], p=self.schedules[bound][1]))
                 break
         my_locations = {}
         for loc in schedule['locs']:
             if not loc in my_locations:
-                if loc=='home':
-                    my_locations['home']=home.ID
+                if loc == 'home':
+                    my_locations['home'] = home.ID
                     continue
                 elif loc[-1].isdigit():
-                    l_type=loc[:-2]
+                    l_type = loc[:-2]
                 else:
-                    l_type=loc
-                closest=home.closest_loc(l_type)
+                    l_type = loc
+                closest = home.closest_loc(l_type)
                 if closest:
                     possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
                     if not possible_loc_ids:
                         possible_loc_ids = [l for l in closest[:10]]
                 else:
-                    possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                    possible_loc_ids = [l.ID for l in self.locations.values(
+                    ) if not l.ID in my_locations.values() and l.location_type == l_type]
                     if not possible_loc_ids:
-                        possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+                        possible_loc_ids = [
+                            l.ID for l in self.locations.values() if l.location_type == l_type]
 
                 probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
                 norm_probs = [float(v)/sum(probs) for v in probs]
-                loc_id = npr.choice(possible_loc_ids,p=norm_probs)
-                my_locations[loc]=loc_id
+                loc_id = npr.choice(possible_loc_ids, p=norm_probs)
+                my_locations[loc] = loc_id
 
-        for i,loc in enumerate(schedule['locs']):
+        for i, loc in enumerate(schedule['locs']):
             schedule['locs'][i] = self.locations[my_locations[loc]]
 
         ## diagnosed schedule ##
 
-        diagnosed_schedule = copy.deepcopy(npr.choice(self.schedules['diagnosed'][0],p=self.schedules['diagnosed'][1]))
+        diagnosed_schedule = copy.deepcopy(npr.choice(
+            self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
 
-        if diagnosed_schedule=='standard':
-            diagnosed_schedule=schedule
+        if diagnosed_schedule == 'standard':
+            diagnosed_schedule = schedule
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
                     if loc[-1].isdigit():
-                        l_type=loc[:-2]
+                        l_type = loc[:-2]
                     else:
-                        l_type=loc
-                    closest=home.closest_loc(l_type)
+                        l_type = loc
+                    closest = home.closest_loc(l_type)
                     if closest:
-                        possible_loc_ids = [l for l in closest[:10] if not l in my_locations.values()]
+                        possible_loc_ids = [l for l in closest[:10]
+                                            if not l in my_locations.values()]
                         if not possible_loc_ids:
                             possible_loc_ids = [l for l in closest[:10]]
                     else:
-                        possible_loc_ids = [l.ID for l in self.locations.values() if not l.ID in my_locations.values() and l.location_type == l_type]
+                        possible_loc_ids = [l.ID for l in self.locations.values(
+                        ) if not l.ID in my_locations.values() and l.location_type == l_type]
                         if not possible_loc_ids:
-                            possible_loc_ids = [l.ID for l in self.locations.values() if l.location_type == l_type]
+                            possible_loc_ids = [
+                                l.ID for l in self.locations.values() if l.location_type == l_type]
 
                     probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
                     norm_probs = [float(v)/sum(probs) for v in probs]
-                    loc_id = npr.choice(possible_loc_ids,p=norm_probs)
-                    my_locations[loc]=loc_id
+                    loc_id = npr.choice(possible_loc_ids, p=norm_probs)
+                    my_locations[loc] = loc_id
 
-            for i,loc in enumerate(diagnosed_schedule['locs']):
+            for i, loc in enumerate(diagnosed_schedule['locs']):
                 diagnosed_schedule['locs'][i] = self.locations[my_locations[loc]]
 
         return schedule, diagnosed_schedule
@@ -204,7 +212,7 @@ class ModeledPopulatedWorld(object):
             max_age += 10
         group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
-                                                          np.arange(0, max_age+10, age_groups_step),right=False)).sum()
+                                                          np.arange(0, max_age+10, age_groups_step), right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
@@ -447,7 +455,7 @@ class Simulation(object):
 
         table['x_coordinate'] = [self.locations[loc_id].coordinates[0] for loc_id in table['loc']]
         table['y_coordinate'] = [self.locations[loc_id].coordinates[1] for loc_id in table['loc']]
-
+        table['location_type'] = [self.locations[loc_id].location_type for loc_id in table['loc']]
         return table
 
     def get_durations(self):
@@ -566,6 +574,21 @@ class Simulation(object):
         :param save_figure: bool. Whether to save the figure
         """
         vpm_plt.plot_location_type_occupancy_timecourse(self, specific_types, save_figure)
+
+    def plot_status_at_location(simulation_object, save_figure=False):
+        """
+        plots the occupancy of each status type at the different location types from the time course
+
+        """
+        vpm_plt.plot_status_at_location(simulation_object, save_figure=save_figure)
+
+    def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
+        """
+        map the occupancy of each status type at the different location types from the time course
+
+        """
+        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)
+
 
     def plot_distributions_of_durations(self, save_figure=False):
         """

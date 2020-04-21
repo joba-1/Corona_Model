@@ -7,7 +7,9 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000, 300)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000,10,
+         world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv',
+          agent_agent_infection=True)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_modeled_pop_world_plotting(self):
@@ -30,6 +32,8 @@ class TestVPM(unittest.TestCase):
         self.simulation1.plot_flags_timecourse()
         self.simulation1.plot_location_type_occupancy_timecourse()
         self.simulation1.plot_distributions_of_durations()
+        self.simulation1.plot_status_at_location()
+        self.simulation1.map_status_at_loc()
 
     def test_multiple_subsequent_sims_and_plot(self):
         self.sim_1_1 = Simulation(self.simulation1, 50)
@@ -38,6 +42,7 @@ class TestVPM(unittest.TestCase):
         self.sim_1_2.plot_flags_timecourse()
         self.sim_1_2.plot_location_type_occupancy_timecourse()
         self.sim_1_2.plot_distributions_of_durations()
+
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
@@ -65,25 +70,6 @@ class TestVPM(unittest.TestCase):
         self.simulation_a_a_inf.plot_status_timecourse()
         self.simulation_a_a_inf.plot_flags_timecourse()
         self.simulation_a_a_inf.plot_location_type_occupancy_timecourse()
-
-    def test_feasibility_of_state_transitions(self):
-        self.testWorld_1 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=False)
-        self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
-        self.sim1 = Simulation(self.testWorld_1, 100)
-        self.sim2 = Simulation(self.testWorld_2, 100)
-        feasible_transitions = True
-        for i in self.sim1.people:
-            if i.state_transitions.count('Infected') > 1:
-                feasible_transitions = False
-                break
-        self.assertTrue(feasible_transitions,
-                        "Infeasible agent state-transition detected (the agent(s) got infected twice or more).")
-        for i in self.sim2.people:
-            if i.state_transitions.count('Infected') > 1:
-                feasible_transitions = False
-                break
-        self.assertTrue(feasible_transitions,
-                        "Infeasible agent state-transition detected (the agent(s) got infected twice or more).")
 
 
 if __name__ == '__main__':
