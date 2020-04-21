@@ -37,7 +37,9 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
                                  'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
 
     simulation_timepoints = modeled_pop_world_obj.simulation_timecourse['time']
+    colorindex = 0
     for loc in unique_locs:
+
         times = list(
             infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
         infections_in_loc_type_time_series = []
@@ -46,7 +48,8 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
             df2 = df1.loc[df1['infection_time'] == t, :]
             infections_in_loc_type_time_series.append(df2.shape[0])
         #plt.plot(times, infections_in_loc_type_time_series, label=loc)
-        plt.scatter(times, infections_in_loc_type_time_series, label=loc)
+        plt.scatter(times, infections_in_loc_type_time_series, label=loc,color=defaultCmap(colorindex))
+        colorindex += 1
 
     plt.xlim(left=0, right=max(list(simulation_timepoints)))
     plt.title('Infection events over time')
@@ -75,7 +78,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
             loc_infection_dict[respective_type] += 1/total_buildings_of_type[respective_type]
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
-    plt.bar(x, list(loc_infection_dict.values()))
+    plt.bar(x, list(loc_infection_dict.values()),color=defaultCmap(0))
     plt.xticks(x, set(list(loc_infection_dict.keys())))
     plt.title('Total number of infections per location-type (relative to number of type)')
     plt.xlabel('Location-type')
