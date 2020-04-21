@@ -52,14 +52,19 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
                       if str(l.ID) in infection_locations}
     unique_locs = list(set(list(location_types.values())))
     loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
+    total_buildings_of_type = {}
+    for i in unique_locs:
+        total_buildings_of_type[i] = len([1 for j in modeled_pop_world_obj.locations.keys(
+        ) if modeled_pop_world_obj.locations[j].location_type == i])
     for i in infection_events.index:
         if not infection_events.loc[i, 'infected_by'] == 'nan':
-            loc_infection_dict[location_types[infection_events.loc[i, 'place_of_infection']]] += 1
+            respective_type = location_types[infection_events.loc[i, 'place_of_infection']]
+            loc_infection_dict[respective_type] += 1/total_buildings_of_type[respective_type]
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
     plt.bar(x, list(loc_infection_dict.values()))
     plt.xticks(x, set(list(loc_infection_dict.keys())))
-    plt.title('Total number of infections per location-type')
+    plt.title('Total number of infections per location-type (relative to number of type)')
     plt.xlabel('Location-type')
     plt.ylabel('# Infection events')
     plt.show()
