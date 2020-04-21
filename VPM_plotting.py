@@ -25,7 +25,8 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     age_groups_status_distribution = modeled_pop_world_obj.get_distribution_of_ages_and_infected(age_groups_step)
     width_of_bars = 0.50
     fig, ax = plt.subplots()
-    fig.set_figwidth(12)
+    fig_width_factor = 1/(age_groups_step/10)
+    fig.set_figwidth(12*fig_width_factor)
     fig.set_figheight(7)
     tot_ppl = modeled_pop_world_obj.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
