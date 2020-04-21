@@ -16,16 +16,16 @@ def parse_schedule(file_name):
         line = line.split('\t')
         if line[0]:
             if line[0][0].isdigit() or line[0][0]=='i':
-                schedules[float(line[0])] = [[{'times':[], 'locs':[]}],[float(line[2])]]
+                schedules[float(line[0])] = [[{'times':[], 'locs':[], 'type':line[24].strip('\n')}],[float(line[2])]]
                 current_key = float(line[0])
                 current_sched = int(line[1])-1
                 upper_bounds.append(float(line[0]))
             else:
-                schedules[line[0]] = [[{'times':[], 'locs':[]}],[float(line[2])]]
+                schedules[line[0]] = [[{'times':[], 'locs':[], 'type':line[24].strip('\n')}],[float(line[2])]]
                 current_key = line[0]
                 current_sched = int(line[1])-1
         elif line[1]:
-            schedules[current_key][0].append({'times':[], 'locs':[]})
+            schedules[current_key][0].append({'times':[], 'locs':[], 'type':line[24].strip('\n')})
             schedules[current_key][1].append(float(line[2]))
             current_sched = int(line[1])-1
 
@@ -37,7 +37,7 @@ def parse_schedule(file_name):
 
             ## monday
             if line[3]=='standard':
-                schedules[current_key][0][current_sched]='standard'
+                schedules[current_key][0][current_sched]=line[24].strip('\n')
                 continue
             elif line[3][0]=='p':
                 if line[4]:

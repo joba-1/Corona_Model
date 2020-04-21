@@ -91,6 +91,10 @@ class ModeledPopulatedWorld(object):
             for age in ages:
                 n = len(people) + 1
                 schedule, diagnosed_schedule = self.create_schedule(age, home)
+                if age > 99:
+                    age = 99
+                elif age < 0:
+                    age = 0    
                 people.add(Human(n, age, schedule, diagnosed_schedule, home,
                                  enable_infection_interaction=agent_agent_infection))
         return people
@@ -145,8 +149,10 @@ class ModeledPopulatedWorld(object):
         diagnosed_schedule = copy.deepcopy(npr.choice(
             self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
 
-        if diagnosed_schedule == 'standard':
-            diagnosed_schedule = schedule
+        if isinstance(diagnosed_schedule, str):
+            diag_type = diagnosed_schedule
+            diagnosed_schedule=copy.deepcopy(schedule)
+            diagnosed_schedule['type']=diag_type
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
@@ -314,23 +320,15 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
         self.simulation_object = copy.deepcopy(object_to_simulate)
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
-        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+        if run_immediately:
+            self.simulate()
 
     def save(self, filename, date_suffix=True):
         """
@@ -353,6 +351,18 @@ class Simulation(object):
         else:
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
+
+    def simulate(self):
+        if isinstance(self.simulation_object, ModeledPopulatedWorld):
+            self.time = 0
+            self.simulation_timecourse = self.run_simulation()
+        elif isinstance(self.simulation_object, Simulation):
+            self.time = self.simulation_object.time
+            self.simulation_timecourse = pd.concat(
+                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+        else:
+            raise ValueError('Unexpected  \'object_to_simulate\' type')
+        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
         """
@@ -380,6 +390,67 @@ class Simulation(object):
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
         return pd.DataFrame(list(timecourse))
+
+    def change_agent_attributes(self, input):
+        """
+        Applies the change of the values of certain specified agent-attributes.
+        The input is a dictionary with the IDs of agents, one wants to change an attribute for.
+        It is possible to have one or many entries with specific agent-ID(s); or use the key 'all',
+        to specifiy that the changes should be applied to all agents.
+        The corresponding value to this keys is another dictionary,
+        which hast the names of the attributes to change as keys().
+        In this attribute-specific dictionary one finds two keys 'value' and 'type'.
+        'type' can take on the values 'replacement' or 'multiplicative_factor';
+        where 'replacement' specifies to replace the old attribue-value and
+        'multiplicative_factor' specifies the multiplication of the old attribute-value with a given factor.
+        PLEASE NOTE: The value of the 'multiplicative_factor'-key MUST be numeric!
+                    Furthermore the target attribute must then be also numeric.
+        The value to replace or multiply with is then found by the key 'value'.
+        Examples:
+            1:
+            {all:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+            2:
+            {id1:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}},
+             id2:{attr1:{'value':val1,'type':'replacement'},
+                  attr2:{'value':val2,'type':'multiplicative_factor'}}}
+
+        """
+        if len(list(input.keys())) == 1:
+            if list(input.keys())[0] == 'all':
+                input_all = input['all']
+                for p in self.people:
+                    for attribute in input_all.keys():
+                        if input_all[attribute]['type'] == 'replacement':
+                            setattr(p, attribute, input_all[attribute]['value'])
+                        elif input_all[attribute]['type'] == 'multiplicative_factor':
+                            setattr(p, attribute, getattr(p, attribute) *
+                                    input_all[attribute]['multiplicative_factor'])
+            else:
+                id = list(input.keys())[0]
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
+        else:
+            for id in list(input.keys()):
+                respective_person = [p for p in self.people if str(p.ID) == id]
+                if len(respective_person) > 0:
+                    for attribute in input[id].keys():
+                        if input[id][attribute]['type'] == 'replacement':
+                            setattr(respective_person, attribute, input[id][attribute]['value'])
+                        elif input[id][attribute]['type'] == 'multiplicative_factor':
+                            setattr(respective_person, attribute, getattr(respective_person,
+                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                else:
+                    print('Error: No agent with ID "{}"'.format(id))
 
     def get_statuses_in_timecourse(self):
         """

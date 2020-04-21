@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy.random as npr
 
+
 """
 SYNOPSIS:
 This script samples households from given distributions of age, household type
@@ -78,11 +79,16 @@ for hhd_type in list(age_dist_per_hhd_type):
     
     ## Age range: get lower bound, upper bound
     lower_bound = (age_dist_per_hhd_type[hhd_type] != 0).idxmax(1)
+    
     upper_bound = len(dist)
+    
+    if upper_bound > 99:
+        #print('99')
+        upper_bound = 99
     
     ## Update dictionary
     age_range = [age for age in range(lower_bound, upper_bound)]
-    age_dist_per_hhd_type_dict[hhd_type] = [age_range, dist[lower_bound:]]
+    age_dist_per_hhd_type_dict[hhd_type] = [age_range, dist[lower_bound:upper_bound]]
 
 ## Check data parsing
 #print(hhd_types_list)
