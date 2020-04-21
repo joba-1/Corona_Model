@@ -479,7 +479,7 @@ class Simulation(object):
             status_tc = self.simulation_timecourse[['time', 'status']]
         else:
             traject = self.simulation_timecourse
-            list_of_peple_IDs_of_type = [2, 34, 5]  # Specify doctors here##
+            list_of_peple_IDs_of_type = [p.ID for p in self.people if p.type==specific_people]  # Specify doctors here##
             humans_in_traject = list(traject['h_ID'])
             rows_to_remove = set(traject.index)
             for i in list_of_peple_IDs_of_type:
