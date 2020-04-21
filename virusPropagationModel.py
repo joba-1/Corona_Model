@@ -216,6 +216,10 @@ class ModeledPopulatedWorld(object):
         vpm_plt.plot_distribution_of_location_types(self)
 
     def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+        """
+        plots a histogram of the ages of the population and how many of those are infected
+        :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
+        """
         vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
 
 
@@ -479,6 +483,49 @@ class Simulation(object):
             'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
         return(df.sort_values('infection_time').reset_index(drop=True))
 
+    def get_distribution_of_statuses_per_age(self, group_ages=False, age_groups_step=10):
+        """
+        gets the distribution of the statuses over time, possibly for specified age groups
+        :param group_ages: bool. whether to sum the ages by groups
+        :param age_groups_step: int. the step between the ages grouped for the distribution
+        returns the entire time course if None
+        :return: DataFrame. The distribution of statuses by age group
+        :example:
+        status    D  I  R  S
+        age time
+        0   0     0  8  0  9
+            1     0  8  0  9
+            2     0  8  0  9
+            3     0  8  0  9
+            4     0  8  0  9
+              .. .. .. ..
+        100 95    0  0  0  2
+            96    0  0  0  2
+            97    0  0  0  2
+            98    0  0  0  2
+            99    0  0  0  2
+        :comment: use pt.loc[:,t] to get the values for a specific point in time
+        """
+        assert type(group_ages) is bool
+        agent_ages = pd.DataFrame([{'h_ID': p.ID,'age': p.age} for p in self.people])
+        df = self.simulation_timecourse
+        merged_df = df.merge(agent_ages, on='h_ID')
+        merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
+        print(len(pt))
+        '''if group_ages is True:
+            ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
+            oldest_person = np.max(ages_in_s_t)
+            max_age = round(oldest_person, -1)
+            if max_age < oldest_person:
+                max_age += 10
+            bins = pd.cut(ages_in_s_t, np.arange(0, max_age+10, age_groups_step), right=False)
+            print(bins)
+            pt.groupby(bins,level=[1,0])['status'].sum()
+            print(pt)
+            #pt.index.name = 'age groups' '''
+        return pt
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
@@ -529,3 +576,7 @@ class Simulation(object):
         :param save_figure:  Bool. Flag for saving the figure as an image
         """
         vpm_plt.plot_distributions_of_durations(self, save_figure)
+
+modeledWorld1 = ModeledPopulatedWorld(1000, 300)
+simulation1 = Simulation(modeledWorld1, 100)
+simulation1.get_distribution_of_statuses_per_age(group_ages=True)

@@ -33,7 +33,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     ax.bar(age_groups,per_of_inf,width_of_bars,label=statusLabels['I'],color='orangered')
     ax.bar(age_groups,per_of_sus,width_of_bars,bottom=per_of_inf,label=statusLabels['S'],color='gold')
     ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
-    ax.set_ylabel('% of total number of people')
+    ax.set_ylabel('% of population')
     ax.set_xlabel('Age groups')
     ax.legend()
     plt.tight_layout()
