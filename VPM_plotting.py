@@ -12,6 +12,39 @@ statusLabels = {
 }
 
 
+def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
+    infection_events = modeled_pop_world_obj.get_infection_event_information()
+    infection_locations = list(infection_events['place_of_infection'])
+    location_types = {str(l.ID): l.location_type for l in modeled_pop_world_obj.locations.values()
+                      if str(l.ID) in infection_locations}
+    unique_locs = list(set(list(location_types.values())))
+    for i in infection_events.index:
+        if not infection_events.loc[i, 'infected_by'] == 'nan':
+            infection_events.loc[i,
+                                 'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
+
+    simulation_timepoints = modeled_pop_world_obj.simulation_timecourse['time']
+    for loc in unique_locs:
+        times = list(
+            infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
+        infections_in_loc_type_time_series = []
+        for t in times:
+            df1 = infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, :]
+            df2 = df1.loc[df1['infection_time'] == t, :]
+            infections_in_loc_type_time_series.append(df2.shape[0])
+        #plt.plot(times, infections_in_loc_type_time_series, label=loc)
+        plt.scatter(times, infections_in_loc_type_time_series, label=loc)
+
+    plt.xlim(left=0, right=max(list(simulation_timepoints)))
+    plt.title('Infection events over time')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# Infection events')
+    plt.legend()
+    plt.show()
+    if save_figure:
+        plt.savefig('outputs/infections_per_time_per_loc_type.png')
+
+
 def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
     infection_events = modeled_pop_world_obj.get_infection_event_information()
     infection_locations = list(infection_events['place_of_infection'])
@@ -26,6 +59,9 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False):
     fig, ax = plt.subplots()
     plt.bar(x, list(loc_infection_dict.values()))
     plt.xticks(x, set(list(loc_infection_dict.keys())))
+    plt.title('Total number of infections per location-type')
+    plt.xlabel('Location-type')
+    plt.ylabel('# Infection events')
     plt.show()
 
 
@@ -61,15 +97,18 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
 
 
 """def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):
-    age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(age_groups_step)
+    age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(
+        age_groups_step)
     width_of_bars = 0.50
     fig, ax = plt.subplots()
     fig.set_figwidth(12)
     fig.set_figheight(7)
     tot_ppl = simulation_object.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
-    statuses_in_distribution = [str(stat_in_dist) for stat_in_dist in age_groups_status_distribution.columns]
-    statuses_to_plot = [status for status in statusLabels.keys() if status in statuses_in_distribution]
+    statuses_in_distribution = [str(stat_in_dist)
+                                    for stat_in_dist in age_groups_status_distribution.columns]
+    statuses_to_plot = [status for status in statusLabels.keys()
+                                                               if status in statuses_in_distribution]
     print(statuses_to_plot)
     ax.bar(age_groups,age_groups_status_distribution['I'],width_of_bars,label=statusLabels['I'])
     ax.bar(age_groups,age_groups_status_distribution['S'],width_of_bars,bottom=age_groups_status_distribution['I'],label=statusLabels['S'])
@@ -91,8 +130,9 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
     """
     trajectories = simulation_object.get_status_trajectories(
         specific_statuses, specific_people=specific_people)
-    assert set(statusLabels.keys()) >= set(trajectories.keys()), "label(s) missing for existing statuses in the time " \
-        "course "
+    assert set(statusLabels.keys()) >= set(trajectories.keys()
+                                           ), "label(s) missing for existing statuses in the time "
+    "course "
     simulation_timepoints = trajectories[list(trajectories.keys())[0]]['time'].values
     for status in trajectories.keys():
         plt.plot(simulation_timepoints,
@@ -145,10 +185,9 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
     locations_df = simulation_object.get_location_with_type_trajectory()
     available_loc_types = set(locations_df['loc_type'])
     if specific_types is not None:
-        assert available_loc_types >= set(specific_types), \
-            " specific types provided (" + str(specific_types) + ") " \
-                                                                 "do not match those in the timecourse (" + str(
-                available_loc_types) + " )"
+        assert available_loc_types >= set(
+            specific_types), " specific types provided (" + str(specific_types) + ") "
+        "do not match those in the timecourse (" + str(available_loc_types) + " )"
         loc_types = specific_types
     else:
         loc_types = available_loc_types
@@ -211,14 +250,14 @@ def plot_status_at_location(simulation_object, save_figure=False):
         loc.set_index('time')
         merged_df = loc.reset_index().set_index('time').merge(zero_occupancy_df, left_index=True,
                                                               right_index=True, suffixes=('', '_zeros'), how='right').fillna(0)
-        #merged_df.drop('time', axis=1).reset_index()
+        # merged_df.drop('time', axis=1).reset_index()
         merged_df.sort_values('time', inplace=True)
         # plt.xlim(0,200)
         col = k % 2
         row = int(k/2)
         ax = axes[col, row]
         for i, status in enumerate(['I', 'R', 'D', 'S']):
-            #ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
+            # ax.plot(list(loc['time'].values).append(times_0), list(loc[status].values).append(zeros))
             merged_df.plot(ax=ax, x='time', y=status, kind='line', label=status, color=cmap(i))
             ax.set_title(stat)
             ax.set_xlabel('Time [hours]')

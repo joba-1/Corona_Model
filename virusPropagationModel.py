@@ -229,7 +229,7 @@ class ModeledPopulatedWorld(object):
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self,age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
 
 
 class Simulation(object):
@@ -528,11 +528,13 @@ class Simulation(object):
         :comment: use pt.loc[:,t] to get the values for a specific point in time
         """
         assert type(group_ages) is bool
-        agent_ages = pd.DataFrame([{'h_ID': p.ID,'age': p.age} for p in self.people])
+        agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
-        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
+        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
+                                'Hospitalized', 'ICUed'], inplace=True)
+        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
+                                   'status'], aggfunc='count', fill_value=0)
         print(len(pt))
         '''if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
@@ -614,3 +616,6 @@ class Simulation(object):
         :param save_figure:  Bool. Flag for saving the figure as an image
         """
         vpm_plt.plot_distributions_of_durations(self, save_figure)
+
+    def plot_infections_per_location_type_over_time(self, save_figure=False):
+        vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
