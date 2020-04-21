@@ -57,7 +57,7 @@ class ModeledPopulatedWorld(object):
     """
 
     def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', input_schedules='schedules_standard'):
+                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard'):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
@@ -151,8 +151,8 @@ class ModeledPopulatedWorld(object):
 
         if isinstance(diagnosed_schedule, str):
             diag_type = diagnosed_schedule
-            diagnosed_schedule=copy.deepcopy(schedule)
-            diagnosed_schedule['type']=diag_type
+            diagnosed_schedule = copy.deepcopy(schedule)
+            diagnosed_schedule['type'] = diag_type
         else:
             for loc in diagnosed_schedule['locs']:
                 if not loc in my_locations:
@@ -479,7 +479,8 @@ class Simulation(object):
             status_tc = self.simulation_timecourse[['time', 'status']]
         else:
             traject = self.simulation_timecourse
-            list_of_peple_IDs_of_type = [p.ID for p in self.people if p.type==specific_people]  # Specify doctors here##
+            list_of_peple_IDs_of_type = [
+                p.ID for p in self.people if p.type == specific_people]  # Specify doctors here##
             humans_in_traject = list(traject['h_ID'])
             rows_to_remove = set(traject.index)
             for i in list_of_peple_IDs_of_type:
@@ -602,8 +603,10 @@ class Simulation(object):
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc','WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
-        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=['status'], aggfunc='count',fill_value=0)
+        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
+                                'Hospitalized', 'ICUed'], inplace=True)
+        pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
+                                   'status'], aggfunc='count', fill_value=0)
         '''if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
             oldest_person = np.max(ages_in_s_t)

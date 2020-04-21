@@ -231,8 +231,16 @@ class Human(object):
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             recoverProb = self.get_recover_prob()
-            what_happens = choosing(['die', 'recover', 'stay_infected'], p=[
-                self.personal_risk, recoverProb, 1-recoverProb-self.personal_risk])
+            death_prob = self.get_personal_risk()
+            if recoverProb+death_prob > 1:
+                print(self.age, self.infection_duration, recoverProb, death_prob)
+            elif recoverProb+death_prob < 0:
+                print(self.age, self.infection_duration, recoverProb, death_prob)
+            probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
+            # /sum([death_prob+recoverProb+1-recoverProb-death_prob])
+            #probabilities = [0.3, 0.3, 0.4]
+            #print(recoverProb, death_prob)
+            what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
@@ -354,7 +362,7 @@ class Human(object):
         if not self.icu:
             risk = dp._general_death_risk(self.infection_duration, self.age)
         else:
-            risk= dp._icu_death_risk(self.icu_duration, self.age)
+            risk = dp._icu_death_risk(self.icu_duration, self.age)
         return risk
 
     # status transitions humans can undergo
@@ -393,12 +401,12 @@ class Human(object):
         If applicable writes name of agent infecting it to got_infected_by.
         Arguments to provide are: risk (float), time (int)
         """
-        coeff=1
+        coeff = 1
         if self.infection_interaction_enabled:
             infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
                 self.infected_in_contact_with.add(str(infectious_person.ID))
-                if self.loc.location_type=='hospital':
+                if self.loc.location_type == 'hospital':
                     coeff = self.hospital_coeff
                 if infectious_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'
