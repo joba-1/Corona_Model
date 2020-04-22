@@ -70,6 +70,7 @@ class ModeledPopulatedWorld(object):
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
         self.initialize_infection(self.initial_infections)
+        self.location_types = self.get_location_types()
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True):
         """
@@ -195,16 +196,23 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.get_initially_infected()
 
-    def get_distribution_of_location_types(self, loc_types=None):
+    def get_location_types(self):
+        location_types= list(self.world.loc_class_dic.keys())
+        location_types.remove('excluded_buildings')
+        location_types.append('home')
+        print(location_types)
+        return location_types        
+
+    def get_distribution_of_location_types(self):
         """
         gets the counts of each type of location initialized in this world
         :param loc_types: the location types to count
         :return: dict. depicts per location type the sum (count) of this type in this world
         """
-        if loc_types is None:
-            loc_types = ['home', 'work', 'public', 'school', 'hospital', 'cemetery']
+        #if loc_types is None:
+        #    loc_types = ['home', 'work', 'public', 'school', 'hospital', 'cemetery']
         location_counts = {}
-        for loc_type in loc_types:
+        for loc_type in self.location_types:
             location_counts[loc_type] = sum(
                 [1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
