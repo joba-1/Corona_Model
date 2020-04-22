@@ -11,7 +11,7 @@ statusLabels = {
     'D': 'Dead'
 }
 
-defaultCmap = cm.get_cmap('Set3')
+defaultCmap = cm.get_cmap('Set2')  # as default for undefined objects
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
 statusAndFlagsColors = {
     'I': mainModelCmap(0),  # red
@@ -23,6 +23,16 @@ statusAndFlagsColors = {
     'Diagnosed': mainModelCmap(4),  # orange
     'Hospitalized': mainModelCmap(6),  # brown
     'ICUed': mainModelCmap(7),  # pink
+}
+locationsCmap1 = cm.get_cmap('Dark2')  # for our locations
+locationsCmap2 = cm.get_cmap('tab20')
+locationTypeColors = {
+    'home': locationsCmap1(0),  # aquamarine
+    'public': locationsCmap1(2),  # purple-blue
+    'work': locationsCmap1(3),  # deep pink
+    'hospital': locationsCmap1(5),  # mustard yellow
+    'school': locationsCmap2(17),  # olive green - khaki
+    'morgue': locationsCmap1(7)  # gray
 }
 
 
@@ -38,7 +48,6 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
                                  'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
 
     simulation_timepoints = modeled_pop_world_obj.simulation_timecourse['time']
-    colorindex = 0
     for loc in unique_locs:
 
         times = list(
@@ -50,8 +59,7 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
             infections_in_loc_type_time_series.append(df2.shape[0])
         #plt.plot(times, infections_in_loc_type_time_series, label=loc)
         plt.scatter(times, infections_in_loc_type_time_series,
-                    label=loc, color=defaultCmap(colorindex))
-        colorindex += 1
+                    label=loc, color=locationTypeColors[loc])
 
     plt.xlim(left=0, right=max(list(simulation_timepoints)))
     plt.title('Infection events over time')
@@ -83,7 +91,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
                 loc_infection_dict[respective_type] += 1
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
-    plt.bar(x, list(loc_infection_dict.values()), color=defaultCmap(0))
+    plt.bar(x, list(loc_infection_dict.values()), color=[locationTypeColors[loc] for loc in loc_infection_dict.keys()])
     plt.xticks(x, set(list(loc_infection_dict.keys())))
     if relative_to_building_number:
         plt.title('Number of infections per location-type (relative to total number of type)')
@@ -100,7 +108,8 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
-    plt.bar(location_counts.keys(), location_counts.values(), color=defaultCmap(0))
+    locations_types = location_counts.keys()
+    plt.bar(locations_types, location_counts.values(), color=[locationTypeColors[loc] for loc in locations_types])
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
@@ -329,7 +338,7 @@ def plot_distributions_of_durations(simulation_object, save_figure=False):
     and the time from hospitalisation to ICU.
     :param save_figure:  Bool. Flag for saving the figure as an image
     """
-    simulation_object.get_durations().hist(color=defaultCmap(0))
+    simulation_object.get_durations().hist(color=defaultCmap(1))
     plt.tight_layout()
     plt.show()
     if save_figure:
