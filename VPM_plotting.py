@@ -166,7 +166,11 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
         plt.plot(simulation_timepoints,
                  trajectories[status][status].values, label=statusLabels[status], color=statusAndFlagsColors[status])
 
-    plt.title('status trajectories')
+    if specific_people is None:
+        plt.title('status trajectories')
+    else:
+        plt.title('status trajectories ('+specific_people+')')
+
     plt.xlabel('Time [hours]')
     plt.ylabel('# People')
     plt.legend()
