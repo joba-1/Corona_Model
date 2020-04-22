@@ -232,15 +232,12 @@ class Human(object):
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             recoverProb = self.get_recover_prob()
             death_prob = self.get_personal_risk()
-            if recoverProb+death_prob > 1:
-                print(self.age, self.infection_duration, recoverProb, death_prob)
-            elif recoverProb+death_prob < 0:
-                print(self.age, self.infection_duration, recoverProb, death_prob)
-            probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
-            # /sum([death_prob+recoverProb+1-recoverProb-death_prob])
-            #probabilities = [0.3, 0.3, 0.4]
-            #print(recoverProb, death_prob)
-            what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
+            probabilities = [death_prob, recoverProb]
+            if sum(probabilities) > 1:
+                probabilities = [i/sum(probabilities) for i in probabilities]
+            #probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
+            #what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
+            what_happens = own_choose_function(probabilities)
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
@@ -533,3 +530,16 @@ class Human(object):
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
+
+
+def own_choose_function(probabilities):
+    """
+    Takes list with two entries [p1,p2] and creates a three option urne from them.
+    Then picks a random number between0 and 1 and checks in what section it falls.
+    (|p1|p2|1-p1-p2|).
+    """
+    val = randomval()
+    if val <= probabilities[0]:
+        return('die')
+    elif val <= sum(probabilities):
+        return('recover')
