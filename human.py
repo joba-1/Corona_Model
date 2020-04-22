@@ -230,11 +230,10 @@ class Human(object):
         elif self.is_infected:
             self.infection_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
-            recoverProb = self.get_recover_prob()
-            death_prob = self.get_personal_risk()
-            probabilities = [death_prob, recoverProb]
+            probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
+                print('Death- or recover-probability for age ' + str(self.age) ' and infection-duration '+str(self.infection_duration))
             #probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
             #what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
             what_happens = own_choose_function(probabilities)
@@ -536,7 +535,7 @@ def own_choose_function(probabilities):
     """
     Takes list with two entries [p1,p2] and creates a three option urne from them.
     Then picks a random number between0 and 1 and checks in what section it falls.
-    (|p1|p2|1-p1-p2|).
+    (|p1|p2| 1-p1-p2|).
     """
     val = randomval()
     if val <= probabilities[0]:
