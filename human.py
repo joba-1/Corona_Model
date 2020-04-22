@@ -233,7 +233,8 @@ class Human(object):
             probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
-                print('Death- or recover-probability for age ' + str(self.age) ' and infection-duration '+str(self.infection_duration))
+                print('Death- or recover-probability for age ' + str(self.age) +
+                      ' and infection-duration '+str(self.infection_duration))
             #probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
             #what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
             what_happens = own_choose_function(probabilities)
