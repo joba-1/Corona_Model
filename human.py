@@ -1,11 +1,8 @@
 from numpy.random import choice as choosing  # numpy.random for generating random numbers
-# import logging as log  # logging for allowing to keep track of code development and putative errors
-# import sys  # sys
-#from location import *
-#import copy
 import numpy
 import dataProcessing as dp
 from random import random as randomval
+import copy
 
 
 class Human(object):
@@ -186,7 +183,7 @@ class Human(object):
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
-        self.original_schedule = schedule
+        self.original_schedule = copy.deepcopy(schedule)
         self.diagnosed_schedule = diagnosed_schedule
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
@@ -235,8 +232,6 @@ class Human(object):
                 probabilities = [i/sum(probabilities) for i in probabilities]
                 print('Death- or recover-probability for age ' + str(self.age) +
                       ' and infection-duration '+str(self.infection_duration))
-            #probabilities = [death_prob, recoverProb, 1.-recoverProb-death_prob]
-            #what_happens = choosing(['die', 'recover', 'stay_infected'], p=probabilities)
             what_happens = own_choose_function(probabilities)
             if what_happens == 'die':
                 self.die(1.0, time)
@@ -530,6 +525,9 @@ class Human(object):
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
+
+    def reset_schedule(self):
+        self.schedule = self.original_schedule
 
 
 def own_choose_function(probabilities):
