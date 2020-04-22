@@ -635,8 +635,9 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    def plot_infections_per_location_type(self, save_figure=False):
-        vpm_plt.plot_infections_per_location_type(self, save_figure=save_figure)
+    def plot_infections_per_location_type(self, relative_to_building_number=True, save_figure=False):
+        vpm_plt.plot_infections_per_location_type(
+            self, save_figure=save_figure, relative_to_building_number=relative_to_building_number)
 
     def plot_status_timecourse(self, specific_statuses=None, specific_people=None, save_figure=False):
         """
