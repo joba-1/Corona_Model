@@ -71,14 +71,17 @@ class ModeledPopulatedWorld(object):
         self.number_of_people = len(self.people)
         self.initialize_infection(self.initial_infections)
 
-    def save(self, filename, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True):
         """
-        wrapper for saveandloadobjects.save
-        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        wrapper for VPM_save_and_load.save_simulation_object
+        :param obj_type_suffix: flag for saving the type of the object in the name of the file
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
         """
-        save_simulation_object(self, filename, date_suffix)
+        if obj_type_suffix:
+            save_simulation_object(self, filename+'_worldObj', date_suffix)
+        else:
+            save_simulation_object(self, filename, date_suffix)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -330,14 +333,17 @@ class Simulation(object):
         if run_immediately:
             self.simulate()
 
-    def save(self, filename, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True):
         """
-        wrapper for saveandloadobjects.save
-        :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
+        wrapper for VPM_save_and_load.save_simulation_object
+        :param obj_type_suffix: flag for saving the type of the object in the name of the file
         :param filename: string, file to which it should be saved - date and time will be added
         :param date_suffix: bool, whether to add date and time to filename
         """
-        save_simulation_object(self, filename, date_suffix)
+        if obj_type_suffix:
+            save_simulation_object(self, filename+'_simulationObj', date_suffix)
+        else:
+            save_simulation_object(self, filename, date_suffix)
 
     def get_person_attributes_per_time(self, person, only_status=False):
         """
