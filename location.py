@@ -2,6 +2,7 @@ import numpy as np
 import random
 import pandas as pd
 import ctypes
+from random import choice as choosing_one
 
 
 class Neighbourhood(object):
@@ -253,8 +254,7 @@ class Location(object):
         return risk
 
     def infection_interaction(self):  # this needs improvement, it's simple and preliminary
-        interaction_partner = random.choice(list(self.people_present))
-        #interaction_partner = np.random.choice(list(self.people_present))
+        interaction_partner = choosing_one(list(self.people_present))
         if interaction_partner.is_infected:
             return(interaction_partner)
 
