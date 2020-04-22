@@ -200,7 +200,6 @@ class ModeledPopulatedWorld(object):
         location_types= list(self.world.loc_class_dic.keys())
         location_types.remove('excluded_buildings')
         location_types.append('home')
-        print(location_types)
         return location_types        
 
     def get_distribution_of_location_types(self):
