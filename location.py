@@ -55,6 +55,7 @@ class World(object):
                 self.locations[l].next_location_of_type('morgue'))
             self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
                 self.locations[l].next_location_of_type('hospital'))
+        self.loc_class_dic = self.assign_location_classifier()    
 
     def initialize_locs_random(self):  # orginal
         locations = {}
