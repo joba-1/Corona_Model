@@ -265,6 +265,7 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
+                'IsInfected': int(self.is_infected),
                 'WasInfected': int(self.was_infected),
                 'WasDiagnosed': int(self.was_diagnosed),
                 'WasHospitalized': int(self.was_hospitalized),

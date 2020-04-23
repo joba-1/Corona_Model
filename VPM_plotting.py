@@ -19,12 +19,13 @@ statusAndFlagsColors = {
     'R': mainModelCmap(2),  # green
     'D': 'black',
 
+    'IsInfected': mainModelCmap(0),  # red
     'WasInfected': mainModelCmap(0),  # red
-    'WasDiagnosed': mainModelCmap(1),  # blue
+    'WasDiagnosed': mainModelCmap(4),  # blue
     'Diagnosed': mainModelCmap(4),  # orange
     'Hospitalized': mainModelCmap(6),  # brown
-    'WasHospitalized': mainModelCmap(8),
-    'WasICUed': mainModelCmap(9),
+    'WasHospitalized': mainModelCmap(6),
+    'WasICUed': mainModelCmap(7),
     'ICUed': mainModelCmap(7),  # pink
 }
 locationsCmap1 = cm.get_cmap('Dark2')  # for our locations
