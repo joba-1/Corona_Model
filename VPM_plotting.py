@@ -20,8 +20,11 @@ statusAndFlagsColors = {
     'D': 'black',
 
     'WasInfected': mainModelCmap(0),  # red
+    'WasDiagnosed': mainModelCmap(1),  # blue
     'Diagnosed': mainModelCmap(4),  # orange
     'Hospitalized': mainModelCmap(6),  # brown
+    'WasHospitalized': mainModelCmap(8),
+    'WasICUed': mainModelCmap(9),
     'ICUed': mainModelCmap(7),  # pink
 }
 locationsCmap1 = cm.get_cmap('Dark2')  # for our locations
@@ -91,7 +94,8 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
                 loc_infection_dict[respective_type] += 1
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
-    plt.bar(x, list(loc_infection_dict.values()), color=[locationTypeColors[loc] for loc in loc_infection_dict.keys()])
+    plt.bar(x, list(loc_infection_dict.values()), color=[
+            locationTypeColors[loc] for loc in loc_infection_dict.keys()])
     plt.xticks(x, set(list(loc_infection_dict.keys())))
     if relative_to_building_number:
         plt.title('Number of infections per location-type (relative to total number of type)')
@@ -109,7 +113,8 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
     locations_types = location_counts.keys()
-    plt.bar(locations_types, location_counts.values(), color=[locationTypeColors[loc] for loc in locations_types])
+    plt.bar(locations_types, location_counts.values(), color=[
+            locationTypeColors[loc] for loc in locations_types])
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
@@ -189,29 +194,31 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
 
 
 def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, save_figure=False):
-    trajectories_df = simulation_object.get_distribution_of_statuses_per_age(age_groups_step=age_groups_step)
+    trajectories_df = simulation_object.get_distribution_of_statuses_per_age(
+        age_groups_step=age_groups_step)
     fig = plt.figure()
     nr_of_figure_rows = round(age_groups_step / 2, 0) + (age_groups_step % 2)
     fig.set_figwidth(9)
     fig.set_figheight(3*nr_of_figure_rows)
-    for i,age_group_category in enumerate(trajectories_df.index.get_level_values(0).categories):
+    for i, age_group_category in enumerate(trajectories_df.index.get_level_values(0).categories):
         age_group_df = trajectories_df.loc[age_group_category]
-        ax = fig.add_subplot(nr_of_figure_rows,2,i+1)
+        ax = fig.add_subplot(nr_of_figure_rows, 2, i+1)
         statuses = age_group_df.columns
         for status in statuses:
             ax.plot(age_group_df.index.get_level_values('time'),
-                     age_group_df[status], label=statusLabels[status],
-                     color=statusAndFlagsColors[status])
+                    age_group_df[status], label=statusLabels[status],
+                    color=statusAndFlagsColors[status])
             ax.set_title(age_group_category)
             ax.set_xlabel('Time [hours]')
             ax.set_ylabel('# People')
-            #ax.legend()
+            # ax.legend()
     for ax in fig.get_axes():
         ax.label_outer()
     plt.tight_layout()
     plt.show()
     if save_figure:
         plt.savefig('outputs/age_groups_status_plot.png')
+
 
 def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=False):
     """
