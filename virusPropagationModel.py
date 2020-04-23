@@ -80,7 +80,7 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename+'_worldObj', date_suffix)
+            save_simulation_object(self, filename + '_worldObj', date_suffix)
         else:
             save_simulation_object(self, filename, date_suffix)
 
@@ -140,8 +140,8 @@ class ModeledPopulatedWorld(object):
                         possible_loc_ids = [
                             l.ID for l in self.locations.values() if l.location_type == l_type]
 
-                probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
-                norm_probs = [float(v)/sum(probs) for v in probs]
+                probs = [len(possible_loc_ids) - i for i in range(len(possible_loc_ids))]
+                norm_probs = [float(v) / sum(probs) for v in probs]
                 loc_id = npr.choice(possible_loc_ids, p=norm_probs)
                 my_locations[loc] = loc_id
 
@@ -177,8 +177,8 @@ class ModeledPopulatedWorld(object):
                             possible_loc_ids = [
                                 l.ID for l in self.locations.values() if l.location_type == l_type]
 
-                    probs = [len(possible_loc_ids)-i for i in range(len(possible_loc_ids))]
-                    norm_probs = [float(v)/sum(probs) for v in probs]
+                    probs = [len(possible_loc_ids) - i for i in range(len(possible_loc_ids))]
+                    norm_probs = [float(v) / sum(probs) for v in probs]
                     loc_id = npr.choice(possible_loc_ids, p=norm_probs)
                     my_locations[loc] = loc_id
 
@@ -197,10 +197,10 @@ class ModeledPopulatedWorld(object):
             p.get_initially_infected()
 
     def get_location_types(self):
-        location_types= list(self.world.loc_class_dic.keys())
+        location_types = list(self.world.loc_class_dic.keys())
         location_types.remove('excluded_buildings')
         location_types.append('home')
-        return location_types        
+        return location_types
 
     def get_distribution_of_location_types(self):
         """
@@ -208,7 +208,7 @@ class ModeledPopulatedWorld(object):
         :param loc_types: the location types to count
         :return: dict. depicts per location type the sum (count) of this type in this world
         """
-        #if loc_types is None:
+        # if loc_types is None:
         #    loc_types = ['home', 'work', 'public', 'school', 'hospital', 'cemetery']
         location_counts = {}
         for loc_type in self.location_types:
@@ -229,7 +229,8 @@ class ModeledPopulatedWorld(object):
             max_age += 10
         group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
-                                                          np.arange(0, max_age+10, age_groups_step), right=False)).sum()
+                                                          np.arange(0, max_age + age_groups_step, age_groups_step),
+                                                          right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
@@ -348,7 +349,7 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename+'_simulationObj', date_suffix)
+            save_simulation_object(self, filename + '_simulationObj', date_suffix)
         else:
             save_simulation_object(self, filename, date_suffix)
 
@@ -449,7 +450,8 @@ class Simulation(object):
                             setattr(respective_person, attribute, input[id][attribute]['value'])
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
-                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                                                                          attribute) * input[id][attribute][
+                                        'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
         else:
@@ -461,7 +463,8 @@ class Simulation(object):
                             setattr(respective_person, attribute, input[id][attribute]['value'])
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
-                                                                          attribute)*input[id][attribute]['multiplicative_factor'])
+                                                                          attribute) * input[id][attribute][
+                                        'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
@@ -568,12 +571,12 @@ class Simulation(object):
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
             'infection_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
         out = pd.DataFrame()
-        out['infection_to_recovery'] = df['recovery_time']-df['infection_time']
-        out['infection_to_death'] = df['death_time']-df['infection_time']
-        out['infection_to_hospital'] = df['hospitalized_time']-df['infection_time']
-        out['hospital_to_recovery'] = df['recovery_time']-df['hospitalized_time']
-        out['hospital_to_death'] = df['death_time']-df['hospitalized_time']
-        out['hospital_to_icu'] = df['hospital_to_ICU_time']-df['hospitalized_time']
+        out['infection_to_recovery'] = df['recovery_time'] - df['infection_time']
+        out['infection_to_death'] = df['death_time'] - df['infection_time']
+        out['infection_to_hospital'] = df['hospitalized_time'] - df['infection_time']
+        out['hospital_to_recovery'] = df['recovery_time'] - df['hospitalized_time']
+        out['hospital_to_death'] = df['death_time'] - df['hospitalized_time']
+        out['hospital_to_icu'] = df['hospital_to_ICU_time'] - df['hospitalized_time']
         return out
 
     def get_infection_event_information(self):
@@ -587,9 +590,9 @@ class Simulation(object):
         """
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
             'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
-        return(df.sort_values('infection_time').reset_index(drop=True))
+        return (df.sort_values('infection_time').reset_index(drop=True))
 
-    def get_distribution_of_statuses_per_age(self, group_ages=False, age_groups_step=10):
+    def get_distribution_of_statuses_per_age(self, group_ages=True, age_groups_step=10):
         """
         gets the distribution of the statuses over time, possibly for specified age groups
         :param group_ages: bool. whether to sum the ages by groups
@@ -619,18 +622,17 @@ class Simulation(object):
         merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
                                 'Hospitalized', 'ICUed'], inplace=True)
         pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
-                                   'status'], aggfunc='count', fill_value=0)
-        '''if group_ages is True:
+            'status'], aggfunc='count', fill_value=0)
+        if group_ages is True:
             ages_in_s_t = np.array(np.unique(np.array(pt.index.get_level_values('age'))))
             oldest_person = np.max(ages_in_s_t)
             max_age = round(oldest_person, -1)
             if max_age < oldest_person:
                 max_age += 10
-            bins = pd.cut(ages_in_s_t, np.arange(0, max_age+10, age_groups_step), right=False)
-            print(bins)
-            pt.groupby(bins,level=[1,0])['status'].sum()
-            print(pt)
-            #pt.index.name = 'age groups' '''
+            age_bins = pd.cut(pt.index.get_level_values('age'),
+                              np.arange(0, max_age + age_groups_step, age_groups_step),
+                              right=False)
+            pt = pt.groupby([age_bins, 'time']).sum()
         return pt
 
     def export_time_courses_as_csvs(self, identifier="output"):
@@ -704,3 +706,6 @@ class Simulation(object):
 
     def plot_infections_per_location_type_over_time(self, save_figure=False):
         vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
+
+    def plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False):
+        vpm_plt.plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False)

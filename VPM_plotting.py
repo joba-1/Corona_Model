@@ -188,6 +188,31 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
         plt.savefig('outputs/status_plot.png')
 
 
+def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, save_figure=False):
+    trajectories_df = simulation_object.get_distribution_of_statuses_per_age(age_groups_step=age_groups_step)
+    fig = plt.figure()
+    nr_of_figure_rows = round(age_groups_step / 2, 0) + (age_groups_step % 2)
+    fig.set_figwidth(9)
+    fig.set_figheight(3*nr_of_figure_rows)
+    for i,age_group_category in enumerate(trajectories_df.index.get_level_values(0).categories):
+        age_group_df = trajectories_df.loc[age_group_category]
+        ax = fig.add_subplot(nr_of_figure_rows,2,i+1)
+        statuses = age_group_df.columns
+        for status in statuses:
+            ax.plot(age_group_df.index.get_level_values('time'),
+                     age_group_df[status], label=statusLabels[status],
+                     color=statusAndFlagsColors[status])
+            ax.set_title(age_group_category)
+            ax.set_xlabel('Time [hours]')
+            ax.set_ylabel('# People')
+            #ax.legend()
+    for ax in fig.get_axes():
+        ax.label_outer()
+    plt.tight_layout()
+    plt.show()
+    if save_figure:
+        plt.savefig('outputs/age_groups_status_plot.png')
+
 def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=False):
     """
     plots the time course for the selected flags
