@@ -34,6 +34,7 @@ class TestVPM(unittest.TestCase):
         self.simulation1.plot_distributions_of_durations()
         self.simulation1.plot_status_at_location()
         self.simulation1.map_status_at_loc()
+        self.simulation1.plot_age_groups_status_timecourse()
 
     def test_multiple_subsequent_sims_and_plot(self):
         self.sim_1_1 = Simulation(self.simulation1, 50)
