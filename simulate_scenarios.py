@@ -1,10 +1,50 @@
 from virusPropagationModel import *
 import glob
 import os
+from multiprocessing import Pool
+import copy
+import timeit
+import argparse
+import sys
 
-modeledWorld = load_simulation_object('gangelt_full_schedules_v1_worldObj_22-04-2020_20-50-52')
 
-def simulate_scenario(max_time, start_2, start_3, closed_locs, infectivity, name='scenario_output/default'):   # times: 3 durations for simulations; closed_locs: list of forbidden locations
+modeledWorld = load_simulation_object('gangelt_small_schedules_v1_worldObj_23-04-2020_17-29-19')
+scenarios = [{'run':1},{'run':2}]
+eddas_scenarios = [{'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_100'},
+                    {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_200'},
+                    {'run':0 ,'max_time': 2000, 'start_3':700, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_300'},
+                    {'run':0 ,'max_time': 2000, 'start_3':900, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_500'}]
+eddas_scenario_0 = [copy.deepcopy(eddas_scenarios[0]) for i in range(10)]
+for i,d in enumerate(eddas_scenario_0):
+    d['run']=i
+
+
+def getOptions(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
+    parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
+    #parser.add_argument("-n", "--number", type=int, help="A number.")
+    #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
+    options = parser.parse_args(args)
+    return options
+
+
+def simulate_scenario(input_dict):   # times: 3 durations for simulations; closed_locs: list of forbidden locations
+    '''
+    input_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':'public', 'infectivity':0.2, 'name':'scenario_output/default'}
+    required: only 'run'
+    '''
+    
+    my_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'], 'infectivity':0.2, 'name':'scenario_output/default'}
+
+    my_dict.update(input_dict)
+
+    max_time = my_dict['max_time']
+    start_2 = my_dict['start_2']
+    start_3 = my_dict['start_3']
+    closed_locs = my_dict['closed_locs']
+    infectivity = my_dict['infectivity']
+    name = my_dict['name']
 
     simulation1 = Simulation(modeledWorld, start_2, run_immediately=False)
     simulation1.change_agent_attributes({'all':{'behaviour_as_infected':{'value':infectivity,'type':'replacement'}}})
@@ -21,10 +61,18 @@ def simulate_scenario(max_time, start_2, start_3, closed_locs, infectivity, name
         p.reset_schedule()
     simulation3.simulate()
 
-    simulation3.save(name)
+    print(my_dict['name']+'_'+str(my_dict['run']))
+    simulation3.save( name+'_'+str(my_dict['run']), date_suffix=False )
+    return simulation3.time
 
-scenarios = [[max_time, start_2, start_3, closed_locs, infectivity, '']
-            [max_time, start_2, start_3, closed_locs, infectivity, name],
-            [max_time, start_2, start_3, closed_locs, infectivity, name],
-            [max_time, start_2, start_3, closed_locs, infectivity, name],
-            [max_time, start_2, start_3, closed_locs, infectivity, name]]
+if __name__=='__main__':
+
+    start = timeit.default_timer()
+
+    with Pool(4) as pool:
+        result = pool.map(simulate_scenario, eddas_scenario_0)
+
+    stop = timeit.default_timer()
+
+    print(result)
+    print('time:  ',stop-start)
