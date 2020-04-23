@@ -7,8 +7,8 @@ import timeit
 import argparse
 import sys
 
-
-modeledWorld = load_simulation_object('gangelt_small_schedules_v1_worldObj_23-04-2020_17-29-19')
+modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', agent_agent_infection=True, input_schedules='schedules_v1')
+#modeledWorld = load_simulation_object('gangelt_small_schedules_v1_worldObj_23-04-2020_17-29-19')
 scenarios = [{'run':1},{'run':2}]
 eddas_scenarios = [{'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_100'},
                     {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_200'},
@@ -34,7 +34,7 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     input_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':'public', 'infectivity':0.2, 'name':'scenario_output/default'}
     required: only 'run'
     '''
-    
+
     my_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'], 'infectivity':0.2, 'name':'scenario_output/default'}
 
     my_dict.update(input_dict)
