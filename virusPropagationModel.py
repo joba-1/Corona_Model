@@ -229,7 +229,8 @@ class ModeledPopulatedWorld(object):
             max_age += 10
         group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
-                                                          np.arange(0, max_age + age_groups_step, age_groups_step),
+                                                          np.arange(
+                                                              0, max_age + age_groups_step, age_groups_step),
                                                           right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
@@ -451,7 +452,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                        'multiplicative_factor'])
+                                'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
         else:
@@ -464,7 +465,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                        'multiplicative_factor'])
+                                'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
@@ -577,6 +578,9 @@ class Simulation(object):
         out['hospital_to_recovery'] = df['recovery_time'] - df['hospitalized_time']
         out['hospital_to_death'] = df['death_time'] - df['hospitalized_time']
         out['hospital_to_icu'] = df['hospital_to_ICU_time'] - df['hospitalized_time']
+        out['infection_to_diagnosis'] = df['diagnosis_time'] - df['infection_time']
+        out['diagnosis_to_hospital'] = df['hospitalized_time'] - df['diagnosis_time']
+        out['diagnosis_to_recovery'] = df['recovery_time'] - df['diagnosis_time']
         return out
 
     def get_infection_event_information(self):

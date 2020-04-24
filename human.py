@@ -217,7 +217,6 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
-        self.contact_frequency = 1
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -329,7 +328,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._hospitalisation(self.diagnosis_duration, self.age)
+        return dp._hospitalisation(self.infection_duration, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -411,8 +410,7 @@ class Human(object):
         """
         coeff = 1
         if self.infection_interaction_enabled:
-            infectious_person = self.loc.infection_interaction(
-                contact_frequency=self.contact_frequency)
+            infectious_person = self.loc.infection_interaction()
             if infectious_person is not None:
                 self.infected_in_contact_with.add(str(infectious_person.ID))
                 if self.loc.location_type == 'hospital':
