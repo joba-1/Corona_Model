@@ -17,7 +17,7 @@ import timeit
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 #    options = parser.parse_args(args)
 #    return options
-folder = '/home/basar/corona_simulations'
+#folder = '/home/basar/corona_simulations'
 
 cmap = cm.get_cmap('Set1')
 
@@ -36,7 +36,7 @@ if __name__=='__main__':
     start = timeit.default_timer()
 
     with Pool(20) as pool:
-        status_trajectories_list = pool.map(get_df_list, sim_files)
+        status_trajectories_list = pool.map(get_df_list, sim_files[:10])
 
     for i,stat in enumerate(['I','S','R','D']):
 
@@ -45,7 +45,7 @@ if __name__=='__main__':
                       #keys=None, levels=None, names=None, verify_integrity=False,
                       #copy=True)
             df.columns = [stat+str(i) for i in range(len(status_trajectories_list))]
-            df.to_csv('outputs/'+filename[:-4]+'_'+stat+'.csv')
+            df.to_csv('outputs/'+'_gofid_'+filename[:-4]+'_'+stat+'.csv')
             #df.reset_index().drop('time')
 
             #df_sims.mean(axis=1)
@@ -56,7 +56,7 @@ if __name__=='__main__':
             ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
 
             
-            plt.savefig('outputs/plots/'+filename[:-4]+'_'+stat+'.png') 
+            plt.savefig('outputs/plots/'+'_gofid_'+filename[:-4]+'_'+stat+'.png') 
             plt.close()
         except:
             print(stat+'  is not in list')
