@@ -23,6 +23,7 @@ cmap = cm.get_cmap('Set1')
 
 file_list = os.listdir('/home/basar/corona_simulations/saved_objects/scenario_output')
 sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')]
+scenario = 'reopen_schools_100'
 
 status_trajectories_list= []
 
@@ -41,11 +42,11 @@ if __name__=='__main__':
     for i,stat in enumerate(['I','S','R','D']):
 
         #try:
-        df = pd.concat([status_trajectories_list[i][stat].set_index('time') for i in range(len(status_trajectories_list))], axis=1)#, join='outer', join_axes=None, ignore_index=False,
+        df = pd.concat([status_trajectories_list[j][stat].set_index('time') for j in range(len(status_trajectories_list))], axis=1)#, join='outer', join_axes=None, ignore_index=False,
                   #keys=None, levels=None, names=None, verify_integrity=False,
                   #copy=True)
         df.columns = [stat+str(i) for i in range(len(status_trajectories_list))]
-        df.to_csv('outputs/'+'_gofid_'+filename[:-4]+'_'+stat+'.csv')
+        df.to_csv('outputs/'+'_gofid_'+reopen_schools_100+'_'+stat+'.csv')
         #df.reset_index().drop('time')
 
         #df_sims.mean(axis=1)
@@ -56,7 +57,7 @@ if __name__=='__main__':
         ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
 
         
-        plt.savefig('outputs/plots/'+'_gofid_'+filename[:-4]+'_'+stat+'.png') 
+        plt.savefig('outputs/plots/'+'_gofid_'+reopen_schools_100+'_'+stat+'.png') 
         plt.close()
         #except:
         #    print(stat+'  is not in list')
