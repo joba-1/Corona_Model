@@ -6,6 +6,7 @@ import argparse
 import sys
 import matplotlib.cm as cm
 from multiprocessing import Pool
+import timeit
 
 
 #def getOptions(args=sys.argv[1:]):
