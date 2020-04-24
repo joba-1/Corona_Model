@@ -328,6 +328,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
+#        return dp._hospitalisation(self.diagnosis_duration, self.age)
         return dp._hospitalisation(self.infection_duration, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
