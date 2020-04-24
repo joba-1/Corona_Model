@@ -16,11 +16,11 @@ import matplotlib.cm as cm
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 #    options = parser.parse_args(args)
 #    return options
-folder = '~/../basar/corona_simulations'
+folder = '/home/basar/corona_simulations'
 
 cmap = cm.get_cmap('Set1')
 
-file_list = os.listdir('~/../basar/corona_simulations/saved_objects/scenario_output')
+file_list = os.listdir('/home/basar/corona_simulations/saved_objects/scenario_output')
 sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')]
 
 status_trajectories_list= []
