@@ -35,31 +35,31 @@ if __name__=='__main__':
 
     start = timeit.default_timer()
 
-    with Pool(20) as pool:
+    with Pool(10) as pool:
         status_trajectories_list = pool.map(get_df_list, sim_files[:10])
 
     for i,stat in enumerate(['I','S','R','D']):
 
-        try:
-            df = pd.concat([status_trajectories_list[i][stat].set_index('time') for i in range(len(status_trajectories_list))], axis=1)#, join='outer', join_axes=None, ignore_index=False,
-                      #keys=None, levels=None, names=None, verify_integrity=False,
-                      #copy=True)
-            df.columns = [stat+str(i) for i in range(len(status_trajectories_list))]
-            df.to_csv('outputs/'+'_gofid_'+filename[:-4]+'_'+stat+'.csv')
-            #df.reset_index().drop('time')
+        #try:
+        df = pd.concat([status_trajectories_list[i][stat].set_index('time') for i in range(len(status_trajectories_list))], axis=1)#, join='outer', join_axes=None, ignore_index=False,
+                  #keys=None, levels=None, names=None, verify_integrity=False,
+                  #copy=True)
+        df.columns = [stat+str(i) for i in range(len(status_trajectories_list))]
+        df.to_csv('outputs/'+'_gofid_'+filename[:-4]+'_'+stat+'.csv')
+        #df.reset_index().drop('time')
 
-            #df_sims.mean(axis=1)
+        #df_sims.mean(axis=1)
 
-            ax = df.plot(c=cmap(i),alpha=0.2, legend=False)
-            ax.plot()
-            df.mean(axis=1).plot(c='k')
-            ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
+        ax = df.plot(c=cmap(i),alpha=0.2, legend=False)
+        ax.plot()
+        df.mean(axis=1).plot(c='k')
+        ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
 
-            
-            plt.savefig('outputs/plots/'+'_gofid_'+filename[:-4]+'_'+stat+'.png') 
-            plt.close()
-        except:
-            print(stat+'  is not in list')
+        
+        plt.savefig('outputs/plots/'+'_gofid_'+filename[:-4]+'_'+stat+'.png') 
+        plt.close()
+        #except:
+        #    print(stat+'  is not in list')
 
     stop = timeit.default_timer()
 
