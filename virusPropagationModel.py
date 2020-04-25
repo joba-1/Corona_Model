@@ -10,6 +10,7 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
+from collections import OrderedDict as ordered_dict
 
 
 class ModeledPopulatedWorld(object):
@@ -354,19 +355,6 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix)
 
-    def get_person_attributes_per_time(self, person, only_status=False):
-        """
-        gets the location, status, and flags of a human object along with the current time
-        :param person: object of the Human class
-        :param only_status: bool. set True in case you dont want to return the flags too
-        :return: dict. with all the attributes mentioned above
-        """
-        if only_status:
-            attr = person.get_status()
-        else:
-            attr = {**person.get_status(), **person.get_flags()}
-        return {**attr, **{'time': self.time}}
-
     def simulate(self, mem_save=False, tuples=False):
         if isinstance(self.simulation_object, ModeledPopulatedWorld):
             self.time = 0
@@ -388,7 +376,7 @@ class Simulation(object):
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(tuple(self.get_person_attributes_per_time(p).values()))
+                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
             first_simulated_step = 1
         else:
             first_simulated_step = 0
@@ -399,8 +387,8 @@ class Simulation(object):
             for p in self.people:  # don't call if hospitalized
                 p.set_status_from_preliminary()
                 p.move(self.time)
-                timecourse.append(tuple(self.get_person_attributes_per_time(p).values()))
-        return pd.DataFrame(timecourse, columns=list(self.get_person_attributes_per_time(p).keys()))
+                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
+        return pd.DataFrame(timecourse, columns=list(p.get_stati_and_flags(self.time).keys()))
 
     def change_agent_attributes(self, input):
         """

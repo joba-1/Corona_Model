@@ -3,6 +3,7 @@ import numpy
 import dataProcessing as dp
 from random import random as randomval
 import copy
+from collections import OrderedDict as ordered_dict
 
 
 class Human(object):
@@ -252,27 +253,25 @@ class Human(object):
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
 
-    def get_status(self):  # for storing simulation data
+    def get_stati_and_flags(self, time):  # for storing simulation data (flags)
         """
-        Returns dictionary with agent-ID ('h_ID'), current location ('loc') and status ('status')
+        Returns dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags
         Arguments to provide are: none
         """
-        return {'h_ID': self.ID, 'loc': self.loc.ID, 'status': self.status}
-
-    def get_flags(self):  # for storing simulation data (flags)
-        """
-        Returns dictionary with agent-ID ('h_ID') and information on flags
-        Arguments to provide are: none
-        """
-        return {'h_ID': self.ID,
-                'IsInfected': int(self.is_infected),
-                'WasInfected': int(self.was_infected),
-                'WasDiagnosed': int(self.was_diagnosed),
-                'WasHospitalized': int(self.was_hospitalized),
-                'WasICUed': int(self.was_icued),
-                'Diagnosed': int(self.diagnosed),
-                'Hospitalized': int(self.hospitalized),
-                'ICUed': int(self.icu)}
+        out = ordered_dict()
+        out['time'] = time
+        out['h_ID'] = self.ID
+        out['loc'] = self.loc.ID
+        out['status'] = self.status
+        out['IsInfected'] = int(self.is_infected)
+        out['Diagnosed'] = int(self.diagnosed)
+        out['Hospitalized'] = int(self.hospitalized)
+        out['ICUed'] = int(self.icu)
+        out['WasInfected'] = int(self.was_infected)
+        out['WasDiagnosed'] = int(self.was_diagnosed)
+        out['WasHospitalized'] = int(self.was_hospitalized)
+        out['WasICUed'] = int(self.was_icued)
+        return(out)
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
