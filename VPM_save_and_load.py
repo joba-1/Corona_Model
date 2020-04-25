@@ -28,7 +28,7 @@ def wait_for_write(file_path):
         time.sleep(1)
 
 
-def save_simulation_object(saving_object, filename, date_suffix=True):
+def save_simulation_object(saving_object, filename, date_suffix=False):
     """
     pickles passed object to saved_objects/filename+date+time+'.pkl'
     :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved

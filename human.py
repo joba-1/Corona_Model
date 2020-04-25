@@ -201,6 +201,7 @@ class Human(object):
         self.icu = False
         self.was_infected = False
         self.infection_duration = 0
+        self.diagnosis_duration = 0
         self.hospitalization_duration = 0
         self.icu_duration = 0
         self.behaviour_as_infected = 1
@@ -213,6 +214,9 @@ class Human(object):
         self.is_infected = False
         self.hospital_coeff = 0.01
         self.diagnosis_probabiliy = 0
+        self.was_diagnosed = False
+        self.was_hospitalized = False
+        self.was_icued = False
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -226,6 +230,8 @@ class Human(object):
             self.get_infected(time)
         elif self.is_infected:
             self.infection_duration += 1
+            if self.diagnosed:
+                self.diagnosis_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
             probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
@@ -261,7 +267,15 @@ class Human(object):
         Returns dictionary with agent-ID ('h_ID') and information on flags
         Arguments to provide are: none
         """
-        return {'h_ID': self.ID, 'WasInfected': int(self.was_infected), 'Diagnosed': int(self.diagnosed), 'Hospitalized': int(self.hospitalized), 'ICUed': int(self.icu)}
+        return {'h_ID': self.ID,
+                'IsInfected': int(self.is_infected),
+                'WasInfected': int(self.was_infected),
+                'WasDiagnosed': int(self.was_diagnosed),
+                'WasHospitalized': int(self.was_hospitalized),
+                'WasICUed': int(self.was_icued),
+                'Diagnosed': int(self.diagnosed),
+                'Hospitalized': int(self.hospitalized),
+                'ICUed': int(self.icu)}
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
@@ -314,6 +328,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
+#        return dp._hospitalisation(self.diagnosis_duration, self.age)
         return dp._hospitalisation(self.infection_duration, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
@@ -428,6 +443,7 @@ class Human(object):
                 self.diagnosed = True
                 self.diagnosis_time = time
                 self.schedule = self.diagnosed_schedule
+                self.was_diagnosed = True
 
     def recover(self, recover_prob, time):
         """
@@ -458,6 +474,7 @@ class Human(object):
             self.icu = True
             self.hospitalized = False
             self.icu_time = time
+            self.was_icued = False
 
     def get_rehospitalized(self, probability, time):
         """
@@ -485,6 +502,7 @@ class Human(object):
         if probability >= randomval():
             self.hospitalized = True
             self.hospitalization_time = time
+            self.was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
                 self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
