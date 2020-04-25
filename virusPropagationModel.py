@@ -677,6 +677,28 @@ class Simulation(object):
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
+    # DF
+
+    def get_infections_per_location_type_over_time(self):
+        infection_events = self.get_infection_event_information()
+        infection_locations = list(infection_events['place_of_infection'])
+        location_types = {str(l.ID): l.location_type for l in self.locations.values()
+                          if str(l.ID) in infection_locations}
+        unique_locs = list(set(list(location_types.values())))
+        for i in infection_events.index:
+            if not infection_events.loc[i, 'infected_by'] == 'nan':
+                infection_events.loc[i,
+                                     'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
+        simulation_timepoints = self.simulation_timecourse['time']
+        out = pd.DataFrame(index=simulation_timepoints, columns=unique_locs)
+        for loc in unique_locs:
+            times = list(
+                infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
+            infections_in_loc_type_time_series = []
+            for t in times:
+                out.loc[t, loc] = len(set(np.where(infection_events['place_of_infection_loc_type'] == loc)[
+                                      0]).intersection(set(np.where(infection_events['infection_time'] == t)[0])))
+        return(out)
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
