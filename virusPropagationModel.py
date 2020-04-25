@@ -10,7 +10,6 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
-import json
 
 
 class ModeledPopulatedWorld(object):
@@ -368,18 +367,25 @@ class Simulation(object):
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
 
-    def simulate(self, mem_save=False):
+    def simulate(self, mem_save=False, tuples=False):
         if isinstance(self.simulation_object, ModeledPopulatedWorld):
             self.time = 0
             if mem_save:
-                self.simulation_timecourse = self.run_simulation_memory_optim()
+                if tuples:
+                    self.simulation_timecourse = self.run_simulation_memory_optim2()
+                else:
+                    self.simulation_timecourse = self.run_simulation_memory_optim()
             else:
                 self.simulation_timecourse = self.run_simulation()
         elif isinstance(self.simulation_object, Simulation):
             self.time = self.simulation_object.time
             if mem_save:
-                self.simulation_timecourse = pd.concat(
-                    [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim()], ignore_index=True)
+                if tuples:
+                    self.simulation_timecourse = pd.concat(
+                        [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim2()], ignore_index=True)
+                else:
+                    self.simulation_timecourse = pd.concat(
+                        [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim()], ignore_index=True)
             else:
                 self.simulation_timecourse = pd.concat(
                     [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
@@ -428,7 +434,6 @@ class Simulation(object):
         else:
             first_simulated_step = 0
         for step in range(first_simulated_step, self.time_steps):
-            person_counter = step * population_size
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
@@ -436,7 +441,29 @@ class Simulation(object):
                 p.set_status_from_preliminary()
                 p.move(self.time)
                 timecourse.append(list(self.get_person_attributes_per_time(p).values()))
-                person_counter += 1
+        return pd.DataFrame(timecourse, columns=list(self.get_person_attributes_per_time(p).keys()))
+
+    def run_simulation_memory_optim2(self):
+        """
+        simulates the trajectories of all the attributes of the population
+        :return: DataFrame which contains the time course of the simulation
+        """
+        population_size = len(self.people)
+        timecourse = []
+        if self.time == 0:
+            for p in self.people:  # makes sure he initial conditions are t=0 of the time course
+                timecourse.append(tuple(self.get_person_attributes_per_time(p).values()))
+            first_simulated_step = 1
+        else:
+            first_simulated_step = 0
+        for step in range(first_simulated_step, self.time_steps):
+            self.time += 1
+            for p in self.people:  #
+                p.update_state(self.time)
+            for p in self.people:  # don't call if hospitalized
+                p.set_status_from_preliminary()
+                p.move(self.time)
+                timecourse.append(tuple(self.get_person_attributes_per_time(p).values()))
         return pd.DataFrame(timecourse, columns=list(self.get_person_attributes_per_time(p).keys()))
 
     def change_agent_attributes(self, input):
