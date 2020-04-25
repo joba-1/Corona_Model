@@ -229,7 +229,8 @@ class ModeledPopulatedWorld(object):
             max_age += 10
         group_by_age = pd.crosstab(agent_ages.age, agent_ages.status)
         status_by_age_range = group_by_age.groupby(pd.cut(group_by_age.index,
-                                                          np.arange(0, max_age + age_groups_step, age_groups_step),
+                                                          np.arange(
+                                                              0, max_age + age_groups_step, age_groups_step),
                                                           right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
@@ -366,14 +367,21 @@ class Simulation(object):
             attr = {**person.get_status(), **person.get_flags()}
         return {**attr, **{'time': self.time}}
 
-    def simulate(self):
+    def simulate(self, mem_save=False):
         if isinstance(self.simulation_object, ModeledPopulatedWorld):
             self.time = 0
-            self.simulation_timecourse = self.run_simulation()
+            if mem_save:
+                self.simulation_timecourse = self.run_simulation_memory_optim()
+            else:
+                self.simulation_timecourse = self.run_simulation()
         elif isinstance(self.simulation_object, Simulation):
             self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+            if mem_save:
+                self.simulation_timecourse = pd.concat(
+                    [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim()], ignore_index=True)
+            else:
+                self.simulation_timecourse = pd.concat(
+                    [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
         else:
             raise ValueError('Unexpected  \'object_to_simulate\' type')
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
@@ -404,6 +412,32 @@ class Simulation(object):
                 timecourse[person_counter] = self.get_person_attributes_per_time(p)
                 person_counter += 1
         return pd.DataFrame(list(timecourse))
+
+    def run_simulation_memory_optim(self):
+        """
+        simulates the trajectories of all the attributes of the population
+        :return: DataFrame which contains the time course of the simulation
+        """
+        population_size = len(self.people)
+        timecourse = []
+        if self.time == 0:
+            for p in self.people:  # makes sure he initial conditions are t=0 of the time course
+                x = list(self.get_person_attributes_per_time(p).values())
+                timecourse.append(x)
+            first_simulated_step = 1
+        else:
+            first_simulated_step = 0
+        for step in range(first_simulated_step, self.time_steps):
+            person_counter = step * population_size
+            self.time += 1
+            for p in self.people:  #
+                p.update_state(self.time)
+            for p in self.people:  # don't call if hospitalized
+                p.set_status_from_preliminary()
+                p.move(self.time)
+                timecourse.append(list(self.get_person_attributes_per_time(p).values()))
+                person_counter += 1
+        return pd.DataFrame(timecourse, columns=list(self.get_person_attributes_per_time(p).keys()))
 
     def change_agent_attributes(self, input):
         """
@@ -451,7 +485,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                        'multiplicative_factor'])
+                                'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
         else:
@@ -464,7 +498,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                        'multiplicative_factor'])
+                                'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
