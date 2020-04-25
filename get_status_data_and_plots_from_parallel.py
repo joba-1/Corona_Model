@@ -36,8 +36,8 @@ if __name__=='__main__':
 
     start = timeit.default_timer()
 
-    with Pool(10) as pool:
-        status_trajectories_list = pool.map(get_df_list, sim_files[:10])
+    with Pool(20) as pool:
+        status_trajectories_list = pool.map(get_df_list, sim_files)
 
     for i,stat in enumerate(['I','S','R','D']):
 
