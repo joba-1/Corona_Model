@@ -639,6 +639,27 @@ class Simulation(object):
             pt = pt.groupby([age_bins, 'time']).sum()
         return pt
 
+    def get_infections_per_location_type(self, relative_to_building_number=True):
+        infection_events = self.get_infection_event_information()
+        infection_locations = list(infection_events['place_of_infection'])
+        location_types = {str(l.ID): l.location_type for l in self.locations.values()
+                          if str(l.ID) in infection_locations}
+        unique_locs = list(set(list(location_types.values())))
+        loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
+        total_buildings_of_type = {}
+        for i in unique_locs:
+            total_buildings_of_type[i] = len(
+                [1 for j in self.locations.keys() if self.locations[j].location_type == i])
+        for i in infection_events.index:
+            if not infection_events.loc[i, 'infected_by'] == 'nan':
+                respective_type = location_types[infection_events.loc[i, 'place_of_infection']]
+                if relative_to_building_number:
+                    loc_infection_dict[respective_type] += 1 / \
+                        total_buildings_of_type[respective_type]
+                else:
+                    loc_infection_dict[respective_type] += 1
+        return(loc_infection_dict)
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
