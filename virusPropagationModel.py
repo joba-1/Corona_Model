@@ -202,6 +202,7 @@ class ModeledPopulatedWorld(object):
         location_types.append('home')
         return location_types
 
+    # dict
     def get_distribution_of_location_types(self):
         """
         gets the counts of each type of location initialized in this world
@@ -216,6 +217,7 @@ class ModeledPopulatedWorld(object):
                 [1 for x in self.locations.values() if x.location_type == loc_type])
         return location_counts
 
+    # DF
     def get_distribution_of_ages_and_infected(self, age_groups_step=10):
         """
         gets the distribution of the statuses for specified age groups
