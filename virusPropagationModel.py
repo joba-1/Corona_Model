@@ -370,80 +370,16 @@ class Simulation(object):
     def simulate(self, mem_save=False, tuples=False):
         if isinstance(self.simulation_object, ModeledPopulatedWorld):
             self.time = 0
-            if mem_save:
-                if tuples:
-                    self.simulation_timecourse = self.run_simulation_memory_optim2()
-                else:
-                    self.simulation_timecourse = self.run_simulation_memory_optim()
-            else:
-                self.simulation_timecourse = self.run_simulation()
+            self.simulation_timecourse = self.run_simulation()
         elif isinstance(self.simulation_object, Simulation):
             self.time = self.simulation_object.time
-            if mem_save:
-                if tuples:
-                    self.simulation_timecourse = pd.concat(
-                        [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim2()], ignore_index=True)
-                else:
-                    self.simulation_timecourse = pd.concat(
-                        [self.simulation_object.simulation_timecourse, self.run_simulation_memory_optim()], ignore_index=True)
-            else:
-                self.simulation_timecourse = pd.concat(
-                    [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
+            self.simulation_timecourse = pd.concat(
+                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
         else:
             raise ValueError('Unexpected  \'object_to_simulate\' type')
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
-        """
-        simulates the trajectories of all the attributes of the population
-        :return: DataFrame which contains the time course of the simulation
-        """
-        population_size = len(self.people)
-        timecourse = np.empty(population_size * self.time_steps, dtype=object)
-        if self.time == 0:
-            p_cnt = 0
-            for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse[p_cnt] = self.get_person_attributes_per_time(p)
-                p_cnt += 1
-            first_simulated_step = 1
-        else:
-            first_simulated_step = 0
-        for step in range(first_simulated_step, self.time_steps):
-            person_counter = step * population_size
-            self.time += 1
-            for p in self.people:  #
-                p.update_state(self.time)
-            for p in self.people:  # don't call if hospitalized
-                p.set_status_from_preliminary()
-                p.move(self.time)
-                timecourse[person_counter] = self.get_person_attributes_per_time(p)
-                person_counter += 1
-        return pd.DataFrame(list(timecourse))
-
-    def run_simulation_memory_optim(self):
-        """
-        simulates the trajectories of all the attributes of the population
-        :return: DataFrame which contains the time course of the simulation
-        """
-        population_size = len(self.people)
-        timecourse = []
-        if self.time == 0:
-            for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(list(self.get_person_attributes_per_time(p).values()))
-            first_simulated_step = 1
-        else:
-            first_simulated_step = 0
-        for step in range(first_simulated_step, self.time_steps):
-            self.time += 1
-            for p in self.people:  #
-                p.update_state(self.time)
-            for p in self.people:  # don't call if hospitalized
-                p.set_status_from_preliminary()
-                p.move(self.time)
-                timecourse.append(list(self.get_person_attributes_per_time(p).values()))
-        return pd.DataFrame(timecourse, columns=list(self.get_person_attributes_per_time(p).keys()))
-
-    def run_simulation_memory_optim2(self):
         """
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
