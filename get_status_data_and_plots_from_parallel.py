@@ -46,7 +46,7 @@ if __name__=='__main__':
                       #keys=None, levels=None, names=None, verify_integrity=False,
                       #copy=True)
             df.columns = [stat+str(i) for i in range(len(status_trajectories_list))]
-            df.to_csv('outputs/'+'_gofid_'+scenario+'_'+stat+'.csv')
+            df.to_csv('outputs/'+scenario+'_'+stat+'.csv')
             #df.reset_index().drop('time')
 
             #df_sims.mean(axis=1)
@@ -55,9 +55,10 @@ if __name__=='__main__':
             ax.plot()
             df.mean(axis=1).plot(c='k')
             ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
+            ax.set_ylim(0,16000)
 
             
-            plt.savefig('outputs/plots/'+'_gofid_'+scenario+'_'+stat+'.png') 
+            plt.savefig('outputs/plots/'+scenario+'_'+stat+'.png') 
             plt.close()
         except:
             print(stat+'  is not in list')
