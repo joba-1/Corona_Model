@@ -668,8 +668,8 @@ class Simulation(object):
         if specific_flags is None:
             cols = list(self.simulation_timecourse.columns)
             random_person = random.choice(list(self.people))
-            status_cols = random_person.get_status().keys()
-            cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
+            cols_of_interest = ['IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed',
+                                'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time']
         else:
             cols_of_interest = specific_flags + ['time']
         df = self.simulation_timecourse[set(cols_of_interest)].copy()
