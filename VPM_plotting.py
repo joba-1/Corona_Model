@@ -227,11 +227,15 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     :param specific_flags: list. given flags to be included in the plot
     :param save_figure: bool. Flag for saving the figure as an image
     """
+    ['IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed',
+        'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed']
+
     if specific_flags is None:
         cols = list(simulation_object.simulation_timecourse.columns)
         random_person = random.choice(list(simulation_object.people))
-        status_cols = random_person.get_status().keys()
-        cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
+        cols_of_interest = ['IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed',
+                            'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed']
+
     else:
         cols_of_interest = specific_flags + ['time']
     df = simulation_object.simulation_timecourse[set(cols_of_interest)].copy()
