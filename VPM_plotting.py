@@ -98,7 +98,7 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
-    locations_types = location_counts.keys()
+    locations_types = list(location_counts.keys())
     plt.bar(locations_types, location_counts.values(), color=[
             locationTypeColors[loc] for loc in locations_types])
 
@@ -212,7 +212,7 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     :param specific_flags: list. given flags to be included in the plot
     :param save_figure: bool. Flag for saving the figure as an image
     """
-    flag_sums = get_flag_sums_over_time(specific_flags=specific_flags)
+    flag_sums = simulation_object.get_flag_sums_over_time(specific_flags=specific_flags)
     for flag in flag_sums.columns:
         if flag == 'time':
             continue
