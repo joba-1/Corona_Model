@@ -660,6 +660,20 @@ class Simulation(object):
                     loc_infection_dict[respective_type] += 1
         return(loc_infection_dict)
 
+    def get_flag_sums_over_time(self, specific_flags=None):
+        if specific_flags is None:
+            cols = list(simulation_object.simulation_timecourse.columns)
+            random_person = random.choice(list(simulation_object.people))
+            status_cols = random_person.get_status().keys()
+            cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
+        else:
+            cols_of_interest = specific_flags + ['time']
+        df = simulation_object.simulation_timecourse[set(cols_of_interest)].copy()
+        gdf = df.groupby('time')
+        flag_sums = gdf.sum()
+        simulation_timepoints = list(gdf.groups.keys())
+        flag_sums['time'] = simulation_timepoints
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
