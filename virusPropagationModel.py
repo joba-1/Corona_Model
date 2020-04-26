@@ -689,15 +689,13 @@ class Simulation(object):
             if not infection_events.loc[i, 'infected_by'] == 'nan':
                 infection_events.loc[i,
                                      'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
-        simulation_timepoints = self.simulation_timecourse['time']
-        out = pd.DataFrame(index=simulation_timepoints, columns=unique_locs)
-        for loc in unique_locs:
-            times = list(
-                infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
-            infections_in_loc_type_time_series = []
-            for t in times:
-                out.loc[t, loc] = len(set(np.where(infection_events['place_of_infection_loc_type'] == loc)[
-                                      0]).intersection(set(np.where(infection_events['infection_time'] == t)[0])))
+        infection_event_times = list(
+            range(max(list(set(list(infection_events['infection_time']))))))
+        out = pd.DataFrame(index=infection_event_times, columns=unique_locs)
+        for t in infection_event_times:
+            x = {loc: len(set(np.where(infection_events['place_of_infection_loc_type'] == loc)[0]).intersection(
+                set(np.where(infection_events['infection_time'] == t)[0]))) for loc in unique_locs}
+            out.loc[t, :] = x
         return(out)
 
     def export_time_courses_as_csvs(self, identifier="output"):

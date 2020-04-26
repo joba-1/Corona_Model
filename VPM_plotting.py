@@ -41,7 +41,8 @@ locationTypeColors = {
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
-    infections_per_loc_type_per_time = modeled_pop_world_obj.get_infections_per_location_type_over_time()
+    infections_per_loc_type_per_time = modeled_pop_world_obj.get_infections_per_location_type_over_time(
+    ).replace(to_replace=0, value=np.nan)
     for loc in infections_per_loc_type_per_time.columns:
         plt.scatter(list(infections_per_loc_type_per_time.index), list(infections_per_loc_type_per_time[loc]),
                     label=loc, color=locationTypeColors[loc])
