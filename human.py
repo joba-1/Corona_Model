@@ -313,10 +313,11 @@ class Human(object):
             self.loc = new_loc
             new_loc.enter(self)  # enter new location
 
-    def stay_home_instead_of_going_to(self, location_type):
-        for i in range(len(self.schedule['locs'])):
-            if self.schedule['locs'][i].location_type == location_type:
-                self.schedule['locs'][i] = self.home
+    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
+        if self.original_schedule['type'] not in excluded_human_types:
+            for i in range(len(self.schedule['locs'])):
+                if self.schedule['locs'][i].location_type == location_type:
+                    self.schedule['locs'][i] = self.home
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
@@ -457,7 +458,6 @@ class Human(object):
         based on recover-probability.
         Changes status-attribute to 'R', records current time to recover_time-attribute.
         Sets icu-,hospitalized- and diagnosed-attribute to False.
-        Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
         """
         if recover_prob >= randomval():
