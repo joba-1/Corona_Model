@@ -41,31 +41,13 @@ locationTypeColors = {
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
-    infection_events = modeled_pop_world_obj.get_infection_event_information()
-    infection_locations = list(infection_events['place_of_infection'])
-    location_types = {str(l.ID): l.location_type for l in modeled_pop_world_obj.locations.values()
-                      if str(l.ID) in infection_locations}
-    unique_locs = list(set(list(location_types.values())))
-    for i in infection_events.index:
-        if not infection_events.loc[i, 'infected_by'] == 'nan':
-            infection_events.loc[i,
-                                 'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
-
-    simulation_timepoints = modeled_pop_world_obj.simulation_timecourse['time']
-    for loc in unique_locs:
-
-        times = list(
-            infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, 'infection_time'])
-        infections_in_loc_type_time_series = []
-        for t in times:
-            df1 = infection_events.loc[infection_events['place_of_infection_loc_type'] == loc, :]
-            df2 = df1.loc[df1['infection_time'] == t, :]
-            infections_in_loc_type_time_series.append(df2.shape[0])
-        #plt.plot(times, infections_in_loc_type_time_series, label=loc)
-        plt.scatter(times, infections_in_loc_type_time_series,
+    infections_per_loc_type_per_time = modeled_pop_world_obj.get_infections_per_location_type_over_time(
+    ).replace(to_replace=0, value=np.nan)
+    for loc in infections_per_loc_type_per_time.columns:
+        plt.scatter(list(infections_per_loc_type_per_time.index), list(infections_per_loc_type_per_time[loc]),
                     label=loc, color=locationTypeColors[loc])
 
-    plt.xlim(left=0, right=max(list(simulation_timepoints)))
+    plt.xlim(left=0, right=max(list(infections_per_loc_type_per_time.index)))
     plt.title('Infection events over time')
     plt.xlabel('Time [hours]')
     plt.ylabel('# Infection events')
@@ -76,23 +58,8 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
 
 
 def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, relative_to_building_number=True):
-    infection_events = modeled_pop_world_obj.get_infection_event_information()
-    infection_locations = list(infection_events['place_of_infection'])
-    location_types = {str(l.ID): l.location_type for l in modeled_pop_world_obj.locations.values()
-                      if str(l.ID) in infection_locations}
-    unique_locs = list(set(list(location_types.values())))
-    loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
-    total_buildings_of_type = {}
-    for i in unique_locs:
-        total_buildings_of_type[i] = len([1 for j in modeled_pop_world_obj.locations.keys(
-        ) if modeled_pop_world_obj.locations[j].location_type == i])
-    for i in infection_events.index:
-        if not infection_events.loc[i, 'infected_by'] == 'nan':
-            respective_type = location_types[infection_events.loc[i, 'place_of_infection']]
-            if relative_to_building_number:
-                loc_infection_dict[respective_type] += 1/total_buildings_of_type[respective_type]
-            else:
-                loc_infection_dict[respective_type] += 1
+    loc_infection_dict = modeled_pop_world_obj.get_infections_per_location_type(
+        relative_to_building_number=relative_to_building_number)
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
     plt.bar(x, list(loc_infection_dict.values()), color=[
@@ -113,8 +80,8 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
-    locations_types = location_counts.keys()
-    plt.bar(locations_types, location_counts.values(), color=[
+    locations_types = list(location_counts.keys())
+    plt.bar(locations_types, list(location_counts.values()), color=[
             locationTypeColors[loc] for loc in locations_types])
 
 
@@ -227,19 +194,9 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     :param specific_flags: list. given flags to be included in the plot
     :param save_figure: bool. Flag for saving the figure as an image
     """
-    if specific_flags is None:
-        cols = list(simulation_object.simulation_timecourse.columns)
-        random_person = random.choice(list(simulation_object.people))
-        status_cols = random_person.get_status().keys()
-        cols_of_interest = [ele for ele in cols if ele not in list(status_cols)]
-    else:
-        cols_of_interest = specific_flags + ['time']
-    df = simulation_object.simulation_timecourse[set(cols_of_interest)].copy()
-    gdf = df.groupby('time')
-    flag_sums = gdf.sum()
-    simulation_timepoints = list(gdf.groups.keys())
+    flag_sums = simulation_object.get_flag_sums_over_time(specific_flags=specific_flags)
     for flag in flag_sums.columns:
-        plt.plot(simulation_timepoints, flag_sums[flag],
+        plt.plot(flag_sums.index, flag_sums[flag],
                  label=str(flag), color=statusAndFlagsColors[flag])
     plt.title('flags trajectories')
     plt.xlabel('Time [hours]')
