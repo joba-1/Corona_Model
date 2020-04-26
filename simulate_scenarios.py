@@ -15,15 +15,20 @@ eddas_scenarios = [{'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['sc
                     {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_200'},
                     {'run':0 ,'max_time': 2000, 'start_3':700, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_300'},
                     {'run':0 ,'max_time': 2000, 'start_3':900, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_500'}]
+
+no_mitigation = {'run':0 ,'max_time': 2000, 'start_2':1800, 'start_3':1900, 'closed_locs':[], 'reopen_locs':[], 'infectivity':0.2, 'name':'scenario_output/default'}
+
 eddas_scenario_0 = [copy.deepcopy(eddas_scenarios[0]) for i in range(100)]
-for i,d in enumerate(eddas_scenario_0):
+default_scenarios = [copy.deepcopy(no_mitigation) for i in range(100)]
+
+for i,d in enumerate(default_scenarios):
     d['run']=i
 
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
-    parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
+    parser.add_argument("-sc", "--scenrio", type=int, help="Choose your scenario else default")
+    #parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
     #parser.add_argument("-n", "--number", type=int, help="A number.")
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
     options = parser.parse_args(args)
@@ -71,7 +76,7 @@ if __name__=='__main__':
     start = timeit.default_timer()
 
     with Pool(20) as pool:
-        result = pool.map(simulate_scenario, eddas_scenario_0)
+        result = pool.map(simulate_scenario, default_scenarios)
 
     stop = timeit.default_timer()
 
