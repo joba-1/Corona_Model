@@ -186,7 +186,8 @@ class Human(object):
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
             schedule['times']), 'locs': copy.copy(schedule['locs'])}
-        #self.original_schedule = schedule
+        self.specific_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
+            schedule['times']), 'locs': copy.copy(schedule['locs'])}
         self.diagnosed_schedule = diagnosed_schedule
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
@@ -302,9 +303,13 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
-        if time % (24*7) in self.schedule['times']:  # here i check for a 24h cycling schedule
+        if not self.status == 'D' and not self.hospitalized and not self.icu and not self.diagnosed:
+            current_schedule = self.schedule
+        else:
+            current_schedule = self.specific_schedule
+        if time % (24*7) in current_schedule['times']:  # here i check for a 24h cycling schedule
             self.loc.leave(self)  # leave old location
-            new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
+            new_loc = current_schedule['locs'][current_schedule['times'].index(time % (24*7))]
             self.loc = new_loc
             new_loc.enter(self)  # enter new location
 
@@ -443,7 +448,7 @@ class Human(object):
             if probability >= randomval():
                 self.diagnosed = True
                 self.diagnosis_time = time
-                self.schedule = self.diagnosed_schedule
+                self.specific_schedule = self.diagnosed_schedule
                 self.was_diagnosed = True
 
     def recover(self, recover_prob, time):
@@ -461,7 +466,6 @@ class Human(object):
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
-            self.schedule = self.original_schedule
             self.is_infected = False
 
     def get_ICUed(self, probability, time):
@@ -506,8 +510,8 @@ class Human(object):
             self.was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
-                self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
-                    len(list(self.schedule['times']))
+                self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
+                    len(list(self.specific_schedule['times']))
 
     def die(self, risk, time):
         """
@@ -525,8 +529,8 @@ class Human(object):
             self.diagnosed = False
             self.is_infected = False
             if self.loc.special_locations['morgue']:
-                self.schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
-                    len(list(self.schedule['times']))
+                self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
+                    len(list(self.specific_schedule['times']))
 
     def get_infectivity(self):
         """
