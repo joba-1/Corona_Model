@@ -19,7 +19,7 @@ import numpy as np
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 #    options = parser.parse_args(args)
 #    return options
-#folder = '/home/basar/corona_simulations'
+folder = '~/../basar/corona_simulations'
 
 cmap = cm.get_cmap('Set1')
 
@@ -62,7 +62,6 @@ def plot_and_save_statii(status_trajectories_list,
                 df.to_csv('outputs/'+filename+'_'+stat+'.csv')
             #df.reset_index().drop('time')
 
-            #df_sims.mean(axis=1)
 
             ax = df.plot(c=cmap(i),alpha=0.2, legend=False)
             ax.plot()
@@ -140,4 +139,3 @@ if __name__=='__main__':
 
     stop = timeit.default_timer()
 
-    print('time:  ',stop-start)
