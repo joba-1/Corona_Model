@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import timeit
 import numpy as np
 
-
+#colors = vpm_plt.statusAndFlagsColors
 
 #def getOptions(args=sys.argv[1:]):
 #    parser = argparse.ArgumentParser(description="Parses command.")
@@ -22,7 +22,22 @@ import numpy as np
 folder = '~/../basar/corona_simulations'
 
 cmap = cm.get_cmap('Set1')
+mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
+statusAndFlagsColors = {
+    'I': mainModelCmap(0),  # red
+    'S': mainModelCmap(1),  # blue
+    'R': mainModelCmap(2),  # green
+    'D': 'black',
 
+    'IsInfected': mainModelCmap(0),  # red
+    'WasInfected': mainModelCmap(0),  # red
+    'WasDiagnosed': mainModelCmap(4),  # blue
+    'Diagnosed': mainModelCmap(4),  # orange
+    'Hospitalized': mainModelCmap(6),  # brown
+    'WasHospitalized': mainModelCmap(6),
+    'WasICUed': mainModelCmap(7),
+    'ICUed': mainModelCmap(7),  # pink
+}
 #file_list = os.listdir('/home/basar/corona_simulations/saved_objects/scenario_output')
 #sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')]
 #scenario = 'reopen_schools_100'
@@ -34,12 +49,21 @@ def get_df_list(filename):
     sim = load_simulation_object(filename)
     print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
-            'durations': sim.get_durations()}
+                              'durations': sim.get_durations(),
+            'flag_trajectories': sim.get_flag_sums_over_time(),
+            'infections_per_location_type':sim.get_infections_per_location_type()}
 
 sim_files =['sim0_simulationObj.pkl',
             'sim1_simulationObj.pkl',
             'sim2_simulationObj.pkl',
-            'sim3_simulationObj.pkl']
+            'sim3_simulationObj.pkl',
+            'sim4_simulationObj.pkl',
+            'sim5_simulationObj.pkl',
+            'sim6_simulationObj.pkl',
+            'sim7_simulationObj.pkl',
+            'sim8_simulationObj.pkl',
+            'sim9_simulationObj.pkl']
+
 
 def plot_and_save_statii(status_trajectories_list,
                          statii=['I','S','R','D'],
@@ -47,9 +71,12 @@ def plot_and_save_statii(status_trajectories_list,
                                  save_as_csv=True,
                                   save_plots=True):
     """
-    Generates from a list of status trajectories from different simulations plots and csv files
+    Generates from a list of status trajectories from different, one simulation
+    plot and and different csv files.
     for each status a plot is created that shows all trajectories and the mean
     """
+    fig, ax = plt.subplots(1,1, figsize=(8,8))
+
     for i,stat in enumerate(statii):
 
         try:
@@ -62,19 +89,21 @@ def plot_and_save_statii(status_trajectories_list,
                 df.to_csv('outputs/'+filename+'_'+stat+'.csv')
             #df.reset_index().drop('time')
 
+            #df_sims.mean(axis=1)
 
-            ax = df.plot(c=cmap(i),alpha=0.2, legend=False)
-            ax.plot()
-            df.mean(axis=1).plot(c='k')
+            df.plot(c=statusAndFlagsColors[stat],alpha=0.2, legend=False, ax=ax)
+            #ax.plot()
+            df.mean(axis=1).plot(c=statusAndFlagsColors[stat],ax=ax)
             ax.set_title(stat); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
             #ax.set_ylim(0,16000)
             ax.set_ylim(0,1500)
 
-            if save_plots:
-                plt.savefig('outputs/plots/'+scenario+'_'+stat+'.png') 
-            plt.close()
+ 
         except:
             print(stat+'  is not in list')
+    if save_plots:
+        plt.savefig('outputs/plots/'+filename+'_statii.png') 
+    plt.close()                    
 
 def plot_and_save_durations(simulation_trajectory_list,
                             dur_list=['infection_to_recovery',
@@ -112,11 +141,60 @@ def plot_and_save_durations(simulation_trajectory_list,
                 df_d_small.to_csv('outputs/'+filename+'_'+dur+'.csv')
 
     if save_plot:
-        plt.savefig('outputs/plots/'+scenario+'_'+dur+'.png') 
+        plt.savefig('outputs/plots/'+filename+'_'+dur+'.png') 
     plt.close()
 
-#def plot_and_save_flag_trajectories(flag_trajectories_list):
-#def plot_and_save_infection_per_location(infection_per_location_list):                    
+
+def plot_flags(flags_l, cummulative=False,
+                      filename='scenario',
+                      save_as_csv=True,
+                      save_plot=True):
+    
+    fig, ax = plt.subplots(1,1,figsize=(8,8))
+    if cummulative:
+        flags = ['WasHospitalized', 'WasDiagnosed', 'WasICUed',  'WasInfected']
+    else:
+        flags = ['Hospitalized', 'ICUed','IsInfected', 'Diagnosed']
+        
+    for i,flag in enumerate(flags):
+
+        try:
+            df = pd.concat([flags_l[i][flag] for i in range(len(flags_l))], axis=1)#, join='outer', join_axes=None, ignore_index=False,
+                      #keys=None, levels=None, names=None, verify_integrity=False,
+                      #copy=True)
+            df.columns = [flag+str(i) for i in range(len(flags_l))]
+            if save_as_csv:
+                df.to_csv('outputs/'+filename+'_'+flag+'.csv')
+            #df.reset_index().drop('time')
+
+            #df_sims.mean(axis=1)
+            for col in df.columns:
+                ax.plot(df.index,df[col],color=statusAndFlagsColors[flag],alpha=0.2,)
+            #df.plot(c=cmap(i),alpha=0.2, legend=False, ax=ax)
+            df.mean(axis=1).plot(ax=ax,c=statusAndFlagsColors[flag], label=flag)
+            ax.set_title(filename); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
+        except:
+            print(flag+'  is not in list')
+                        
+    legend = plt.legend()        
+        
+    if save_plot:
+        plt.savefig('outputs/plots/'+filename+'_flags.png') 
+
+def plot_and_save_infection_per_location(infection_per_location_list,
+                                                 filename='scenario',
+                                                    save_as_csv=True,
+                                                      save_plot=True): 
+    inf_per_loc_df = pd.DataFrame(infection_per_location_list)
+    inf_per_loc_df.boxplot()
+    plt.title('scenario')
+    plt.ylabel('infections per location type/locations of type')
+
+    if save_as_csv:
+        inf_per_loc_df.to_csv('outputs/'+filename+'_infections_per_location_type.csv')
+
+    if save_plot:
+        plt.savefig('outputs/plots/'+filename+'_infections_per_location_type.png')                   
 
 
 
@@ -130,12 +208,13 @@ if __name__=='__main__':
 
     status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
     simulation_trajectory_list = [df['durations'] for df in df_dict_list]
+    flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
 
-    plot_and_save_statii(status_trajectories_list) 
-    plot_and_save_durations(simulation_trajectory_list)
-    #plot_and_save_flag_trajectories()
-    #plot_and_save_location_occupancies()
-    
+    plot_and_save_statii(status_trajectories_list, filename=scenario) 
+    plot_and_save_durations(simulation_trajectory_list, filename=scenario)
+    plot_flags(flag_trajectories_list, cummulative=False, filename=scenario)
+    plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ')    
+
 
     stop = timeit.default_timer()
 
