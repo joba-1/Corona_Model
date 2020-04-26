@@ -80,7 +80,7 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
     locations_types = list(location_counts.keys())
-    plt.bar(locations_types, location_counts.values(), color=[
+    plt.bar(locations_types, list(location_counts.values()), color=[
             locationTypeColors[loc] for loc in locations_types])
 
 
