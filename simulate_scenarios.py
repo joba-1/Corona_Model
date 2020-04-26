@@ -74,7 +74,7 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
 if __name__=='__main__':
 
     if not 'scenario_output' in os.listdir('saved_objects'):
-        os.makedir('saved_objects/scenario_output')
+        os.mkdir('saved_objects/scenario_output')
         print('saved_objects/scenario_output created')
 
     start = timeit.default_timer()
