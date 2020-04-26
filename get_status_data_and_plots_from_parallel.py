@@ -41,8 +41,15 @@ sim_files =['sim0_simulationObj.pkl',
             'sim2_simulationObj.pkl',
             'sim3_simulationObj.pkl']
 
-def plot_and_save_statii(status_trajectories_list, statii=['I','S','R','D'], filename='scenario', save_as_csv=True, save_plots=True):
-
+def plot_and_save_statii(status_trajectories_list,
+                         statii=['I','S','R','D'],
+                              filename='scenario',
+                                 save_as_csv=True,
+                                  save_plots=True):
+    """
+    Generates from a list of status trajectories from different simulations plots and csv files
+    for each status a plot is created that shows all trajectories and the mean
+    """
     for i,stat in enumerate(statii):
 
         try:
@@ -80,7 +87,11 @@ def plot_and_save_durations(simulation_trajectory_list,
                                           filename='scenario',
                                              save_as_csv=True,
                                               save_plot=True):
-                                                    
+    """
+    Generates from a list of durations from different simulations one plot
+    and different csv files.
+    For each status a plot is created that shows all trajectories and the mean.
+    """                                               
     st_l = simulation_trajectory_list   
     n= len(dur_list)
     fig, axes = plt.subplots(int(n/2),2,figsize=(8,16))
@@ -103,7 +114,10 @@ def plot_and_save_durations(simulation_trajectory_list,
 
     if save_plot:
         plt.savefig('outputs/plots/'+scenario+'_'+dur+'.png') 
-    plt.close()                
+    plt.close()
+
+#def plot_and_save_flag_trajectories(flag_trajectories_list):
+#def plot_and_save_infection_per_location(infection_per_location_list):                    
 
 
 
@@ -117,9 +131,11 @@ if __name__=='__main__':
 
     status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
     simulation_trajectory_list = [df['durations'] for df in df_dict_list]
-    
+
     plot_and_save_statii(status_trajectories_list) 
     plot_and_save_durations(simulation_trajectory_list)
+    #plot_and_save_flag_trajectories()
+    #plot_and_save_location_occupancies()
     
 
     stop = timeit.default_timer()
