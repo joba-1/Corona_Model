@@ -27,7 +27,7 @@ for i,d in enumerate(default_scenarios):
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-sc", "--scenrio", type=int, help="Choose your scenario else default")
+    parser.add_argument("-sc", "--scenario", type=int, help="Choose your scenario else default")
     #parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
     #parser.add_argument("-n", "--number", type=int, help="A number.")
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
@@ -72,6 +72,10 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     return simulation3.time
 
 if __name__=='__main__':
+
+    if not 'scenario_output' in os.listdir('saved_objects'):
+        os.makedir('saved_objects/scenario_output')
+        print('saved_objects/scenario_output created')
 
     start = timeit.default_timer()
 
