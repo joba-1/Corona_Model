@@ -184,7 +184,9 @@ class Human(object):
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
-        self.original_schedule = copy.deepcopy(schedule)
+        self.original_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
+            schedule['times']), 'locs': copy.copy(schedule['locs'])}
+        #self.original_schedule = schedule
         self.diagnosed_schedule = diagnosed_schedule
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
