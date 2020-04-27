@@ -669,15 +669,25 @@ class Simulation(object):
         0           0             0            1      0           1             0         0          0
         1           0             0            1      0           1             0         0          0
         """
+        Temporary_list = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 0, 1]]
+        Cumulative_list = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]]
+
+        parsed_df = pd.DataFrame(index=self.simulation_timecourse.index, columns=[
+            'IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed', 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time'])
+        parsed_df['time'] = self.simulation_timecourse['time']
+
+        for i in range(5):
+            parsed_df.loc[self.simulation_timecourse['Temporary_Flags'] == i, [
+                'IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed']] = Temporary_list[i]
+            parsed_df.loc[self.simulation_timecourse['Cumulative_Flags'] == i, [
+                'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed']] = Cumulative_list[i]
+
         if specific_flags is None:
-            cols = list(self.simulation_timecourse.columns)
-            random_person = random.choice(list(self.people))
             cols_of_interest = ['IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed',
                                 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time']
         else:
             cols_of_interest = specific_flags + ['time']
-        df = self.simulation_timecourse[set(cols_of_interest)].copy()
-        gdf = df.groupby('time')
+        gdf = parsed_df.groupby('time')
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)

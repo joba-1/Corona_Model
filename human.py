@@ -269,15 +269,37 @@ class Human(object):
         out['h_ID'] = self.ID
         out['loc'] = self.loc.ID
         out['status'] = self.status
-        out['IsInfected'] = int(self.is_infected)
-        out['Diagnosed'] = int(self.diagnosed)
-        out['Hospitalized'] = int(self.hospitalized)
-        out['ICUed'] = int(self.icu)
-        out['WasInfected'] = int(self.was_infected)
-        out['WasDiagnosed'] = int(self.was_diagnosed)
-        out['WasHospitalized'] = int(self.was_hospitalized)
-        out['WasICUed'] = int(self.was_icued)
+        out['Temporary_Flags'] = self.encode_temporary_flags()
+        out['Cumulative_Flags'] = self.encode_cumulative_flags()
         return(out)
+
+    def encode_temporary_flags(self):
+        if self.is_infected:
+            if self.diagnosed:
+                if self.hospitalized:
+                    return(3)
+                elif self.icu:
+                    return(4)
+                else:
+                    return(2)
+            else:
+                return(1)
+        else:
+            return(0)
+
+    def encode_cumulative_flags(self):
+        if self.was_infected:
+            if self.was_diagnosed:
+                if self.was_hospitalized:
+                    return(3)
+                elif self.was_icued:
+                    return(4)
+                else:
+                    return(2)
+            else:
+                return(1)
+        else:
+            return(0)
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
