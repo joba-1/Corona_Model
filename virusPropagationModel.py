@@ -57,7 +57,7 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
+    def __init__(self, number_of_locs, initial_infections=1, world_from_file=False, agent_agent_infection=False,
                  geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
@@ -71,7 +71,7 @@ class ModeledPopulatedWorld(object):
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
         if automatic_initial_infections:
-            self.initialize_infection(self.initial_infections)
+            self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True):
@@ -189,12 +189,15 @@ class ModeledPopulatedWorld(object):
 
         return schedule, diagnosed_schedule
 
-    def initialize_infection(self, amount):
+    def initialize_infection(self, amount=1, specific_people_ids=None):
         """
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect
         """
-        to_infect = random.sample(self.people, amount)  # randomly choose who to infect
+        if specific_people_ids is None:
+            to_infect = random.sample(self.people, amount)  # randomly choose who to infect
+        else:
+            to_infect = [p for p in list(self.people) if p.ID in specific_people_ids]
         for p in to_infect:
             p.get_initially_infected()
 
