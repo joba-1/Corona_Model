@@ -277,39 +277,39 @@ class Human(object):
         if self.is_infected:
             if self.diagnosed:
                 if self.hospitalized:
-                    return(numpy.uint8(3))
+                    return(3)
                 elif self.icu:
-                    return(numpy.uint8(4))
+                    return(4)
                 else:
-                    return(numpy.uint8(2))
+                    return(2)
             else:
-                return(numpy.uint8(1))
+                return(1)
         else:
-            return(numpy.uint8(0))
+            return(0)
 
     def encode_cumulative_flags(self):
         if self.was_infected:
             if self.was_diagnosed:
                 if self.was_hospitalized:
-                    return(numpy.uint8(3))
+                    return(3)
                 elif self.was_icued:
-                    return(numpy.uint8(4))
+                    return(4)
                 else:
-                    return(numpy.uint8(2))
+                    return(2)
             else:
-                return(numpy.uint8(1))
+                return(1)
         else:
-            return(numpy.uint8(0))
+            return(0)
 
     def encode_stati(self):
         if self.status == 'S':
-            return(numpy.uint8(0))
+            return(0)
         elif self.status == 'I':
-            return(numpy.uint8(1))
+            return(1)
         elif self.status == 'R':
-            return(numpy.uint8(2))
+            return(2)
         elif self.status == 'D':
-            return(numpy.uint8(3))
+            return(3)
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
