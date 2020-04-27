@@ -539,7 +539,7 @@ class Simulation(object):
 
         """
         df = self.simulation_timecourse.copy()
-        df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        df.drop(columns=['Temporary_Flags', 'Cumulative_Flags'], inplace=True)
         d = pd.pivot_table(df, values='h_ID', index=['loc', 'time'],
                            columns=['status'], aggfunc='count')
         table = d.reset_index().fillna(0)
