@@ -467,7 +467,7 @@ class Simulation(object):
         stati_list = ['S', 'I', 'R', 'D']
         stati = self.simulation_timecourse['status']
         for i in range(len(stati_list)):
-            stati[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+            stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
         return list(set(stati['status']))
 
@@ -491,7 +491,7 @@ class Simulation(object):
         stati_list = ['S', 'I', 'R', 'D']
         timecourse_df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
-            timecourse_df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+            timecourse_df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
         if specific_people is None:
             status_tc = timecourse_df[['time', 'status']]
@@ -551,7 +551,7 @@ class Simulation(object):
         stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
-            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
         df.drop(columns=['Temporary_Flags', 'Cumulative_Flags'], inplace=True)
 
@@ -631,7 +631,7 @@ class Simulation(object):
         stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
-            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
         merged_df = df.merge(agent_ages, on='h_ID')
         merged_df.drop(columns=['loc', 'Temporary_Flags', 'Cumulative_Flags'], inplace=True)
@@ -738,7 +738,7 @@ class Simulation(object):
         stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
-            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
         df.set_index('time').to_csv(
             'outputs/' + identifier + '-humans_time_course.csv')
