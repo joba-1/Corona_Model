@@ -52,6 +52,11 @@ sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')]
 
 
 def get_df_list(filename):
+    """
+    load simulation file with filename in saved_objects/scenario_output/
+    : return : dict with data frames of 'stat_trajectories', 'durations', 'flag_trajectories',
+    'infections_per_location_type'
+    """
     sim = load_simulation_object('scenario_output/'+filename)
     #sim = load_simulation_object(filename)
     #print(filename)
@@ -94,12 +99,12 @@ def plot_and_save_statii(status_trajectories_list,
                 df.to_csv(output_folder+filename+'_'+stat+'.csv')
 
             df.plot(c=statusAndFlagsColors[stat],alpha=0.2, legend=False, ax=ax)
-            df.mean(axis=1).plot(c=statusAndFlagsColors[stat],ax=ax)
+            df.mean(axis=1).plot(c='k',ax=ax)#statusAndFlagsColors[stat]
 
         except:
             print(stat+'  is not in list')
 
-    ax.set_title(filename); ax.set_ylabel('counts'); ax.set_xlabel('time, h'); ax.set_ylim(0,1500)        
+    ax.set_title(filename); ax.set_ylabel('counts'); ax.set_xlabel('time, h'); #ax.set_ylim(0,1500)        
      
     if save_plots:
         plt.savefig(output_folder+'plots/'+filename+'_statii.png') 
