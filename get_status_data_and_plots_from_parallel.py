@@ -19,10 +19,11 @@ import numpy as np
     #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 #    options = parser.parse_args(args)
 #    return options
-folder = '~/../basar/corona_simulations'
+#folder = '~/../basar/corona_simulations'
 
 cmap = cm.get_cmap('Set1')
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
+
 statusAndFlagsColors = {
     'I': mainModelCmap(0),  # red
     'S': mainModelCmap(1),  # blue
@@ -39,18 +40,21 @@ statusAndFlagsColors = {
     'ICUed': mainModelCmap(7),  # pink
 }
 
-file_list = os.listdir('saved_objects/simulations')
-sim_files = ['simulations/'+x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')]
-#scenario = 'reopen_schools_100'
 scenario = 'different_worlds'
 output_folder = 'outputs/'+scenario+'/'
+input_folder =  'saved_objects/scenario_output'
+
+
+file_list = os.listdir(input_folder)
+sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
+#scenario = 'reopen_schools_100'
 
 
 
 def get_df_list(filename):
-    #sim = load_simulation_object('scenario_output/'+filename)
-    sim = load_simulation_object(filename)
-    print(filename)
+    sim = load_simulation_object('scenario_output/'+filename)
+    #sim = load_simulation_object(filename)
+    #print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
                               'durations': sim.get_durations(),
             'flag_trajectories': sim.get_flag_sums_over_time(),
@@ -204,6 +208,7 @@ if __name__=='__main__':
     except:
         pass
 
+    print(sim_files)
     start = timeit.default_timer()
 
     with Pool(20) as pool:

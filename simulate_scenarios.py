@@ -7,7 +7,7 @@ import timeit
 import argparse
 import sys
 
-modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', agent_agent_infection=True, input_schedules='schedules_v1')
+modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', agent_agent_infection=True, input_schedules='schedules_v1')
 modeledWorld.save('gangelt_full_schedules_v1')
 #modeledWorld = load_simulation_object('gangelt_small_schedules_v1_worldObj_23-04-2020_17-29-19')
 #scenarios = [{'run':1},{'run':2}]
@@ -19,7 +19,7 @@ eddas_scenarios = [{'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['sc
 no_mitigation = {'run':0 ,'max_time': 2000, 'start_2':1800, 'start_3':1900, 'closed_locs':[], 'reopen_locs':[], 'infectivity':0.2, 'name':'scenario_output/default'}
 
 eddas_scenario_0 = [copy.deepcopy(eddas_scenarios[0]) for i in range(100)]
-default_scenarios = [copy.deepcopy(no_mitigation) for i in range(100)]
+default_scenarios = [copy.deepcopy(no_mitigation) for i in range(10)]
 
 for i,d in enumerate(default_scenarios):
     d['run']=i
@@ -79,7 +79,7 @@ if __name__=='__main__':
 
     start = timeit.default_timer()
 
-    with Pool(20) as pool:
+    with Pool(10) as pool:
         result = pool.map(simulate_scenario, default_scenarios)
 
     stop = timeit.default_timer()
