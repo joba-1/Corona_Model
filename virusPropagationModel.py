@@ -464,7 +464,7 @@ class Simulation(object):
         gets a list of the statuses in the time course
         :return: list. list of available statuses
         """
-        stati_list['S', 'I', 'R', 'D']
+        stati_list = ['S', 'I', 'R', 'D']
         stati = self.simulation_timecourse['status']
         for i in range(len(stati_list)):
             stati[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
@@ -488,7 +488,7 @@ class Simulation(object):
 
         status_trajectories = {}
 
-        stati_list['S', 'I', 'R', 'D']
+        stati_list = ['S', 'I', 'R', 'D']
         timecourse_df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
             timecourse_df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
@@ -548,7 +548,7 @@ class Simulation(object):
         2          0      3      0.0     0.0     0.0     1.0      4              0
 
         """
-        stati_list['S', 'I', 'R', 'D']
+        stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
             df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
@@ -628,7 +628,7 @@ class Simulation(object):
         """
         assert type(group_ages) is bool
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
-        stati_list['S', 'I', 'R', 'D']
+        stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
             df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
@@ -735,7 +735,7 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        stati_list['S', 'I', 'R', 'D']
+        stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
             df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
