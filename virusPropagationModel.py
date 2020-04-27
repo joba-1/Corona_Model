@@ -465,10 +465,9 @@ class Simulation(object):
         :return: list. list of available statuses
         """
         stati_list = ['S', 'I', 'R', 'D']
-        stati = self.simulation_timecourse['status']
+        stati = self.simulation_timecourse.copy()
         for i in range(len(stati_list)):
             stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
-
         return list(set(stati['status']))
 
     # DF
