@@ -58,7 +58,7 @@ class ModeledPopulatedWorld(object):
     """
 
     def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard'):
+                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
@@ -70,7 +70,8 @@ class ModeledPopulatedWorld(object):
         self.schedules = parse_schedule(input_schedules)
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
-        self.initialize_infection(self.initial_infections)
+        if automatic_initial_infections:
+            self.initialize_infection(self.initial_infections)
         self.location_types = self.get_location_types()
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True):
