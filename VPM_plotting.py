@@ -180,8 +180,6 @@ def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, sav
             ax.set_xlabel('Time [hours]')
             ax.set_ylabel('# People')
             # ax.legend()
-    for ax in fig.get_axes():
-        ax.label_outer()
     plt.tight_layout()
     plt.show()
     if save_figure:

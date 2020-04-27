@@ -57,8 +57,8 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard'):
+    def __init__(self, number_of_locs, initial_infections=1, world_from_file=False, agent_agent_infection=False,
+                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
@@ -70,7 +70,8 @@ class ModeledPopulatedWorld(object):
         self.schedules = parse_schedule(input_schedules)
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
-        self.initialize_infection(self.initial_infections)
+        if automatic_initial_infections:
+            self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True):
@@ -188,12 +189,15 @@ class ModeledPopulatedWorld(object):
 
         return schedule, diagnosed_schedule
 
-    def initialize_infection(self, amount):
+    def initialize_infection(self, amount=1, specific_people_ids=None):
         """
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect
         """
-        to_infect = random.sample(self.people, amount)  # randomly choose who to infect
+        if specific_people_ids is None:
+            to_infect = random.sample(self.people, amount)  # randomly choose who to infect
+        else:
+            to_infect = [p for p in list(self.people) if p.ID in specific_people_ids]
         for p in to_infect:
             p.get_initially_infected()
 
@@ -460,7 +464,11 @@ class Simulation(object):
         gets a list of the statuses in the time course
         :return: list. list of available statuses
         """
-        return list(set(self.simulation_timecourse['status']))
+        stati_list = ['S', 'I', 'R', 'D']
+        stati = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+        return list(set(stati['status']))
 
     # DF
     def get_status_trajectories(self, specific_statuses=None, specific_people=None):
@@ -479,10 +487,15 @@ class Simulation(object):
 
         status_trajectories = {}
 
+        stati_list = ['S', 'I', 'R', 'D']
+        timecourse_df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            timecourse_df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
         if specific_people is None:
-            status_tc = self.simulation_timecourse[['time', 'status']]
+            status_tc = timecourse_df[['time', 'status']]
         else:
-            traject = self.simulation_timecourse
+            traject = timecourse_df
             list_of_peple_IDs_of_type = [
                 p.ID for p in self.people if p.type == specific_people]  # Specify doctors here##
             humans_in_traject = list(traject['h_ID'])
@@ -534,8 +547,13 @@ class Simulation(object):
         2          0      3      0.0     0.0     0.0     1.0      4              0
 
         """
+        stati_list = ['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
-        df.drop(columns=['WasInfected', 'Diagnosed', 'Hospitalized', 'ICUed'], inplace=True)
+        for i in range(len(stati_list)):
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
+        df.drop(columns=['Temporary_Flags', 'Cumulative_Flags'], inplace=True)
+
         d = pd.pivot_table(df, values='h_ID', index=['loc', 'time'],
                            columns=['status'], aggfunc='count')
         table = d.reset_index().fillna(0)
@@ -609,10 +627,13 @@ class Simulation(object):
         """
         assert type(group_ages) is bool
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
-        df = self.simulation_timecourse
+        stati_list = ['S', 'I', 'R', 'D']
+        df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
-                                'Hospitalized', 'ICUed'], inplace=True)
+        merged_df.drop(columns=['loc', 'Temporary_Flags', 'Cumulative_Flags'], inplace=True)
         pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
             'status'], aggfunc='count', fill_value=0)
         if group_ages is True:
@@ -665,15 +686,25 @@ class Simulation(object):
         0           0             0            1      0           1             0         0          0
         1           0             0            1      0           1             0         0          0
         """
+        Temporary_list = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 0, 1]]
+        Cumulative_list = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]]
+
+        parsed_df = pd.DataFrame(index=self.simulation_timecourse.index, columns=[
+            'IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed', 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time'])
+        parsed_df['time'] = self.simulation_timecourse['time']
+
+        for i in range(5):
+            parsed_df.loc[self.simulation_timecourse['Temporary_Flags'] == i, [
+                'IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed']] = Temporary_list[i]
+            parsed_df.loc[self.simulation_timecourse['Cumulative_Flags'] == i, [
+                'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed']] = Cumulative_list[i]
+
         if specific_flags is None:
-            cols = list(self.simulation_timecourse.columns)
-            random_person = random.choice(list(self.people))
             cols_of_interest = ['IsInfected', 'Diagnosed', 'Hospitalized', 'ICUed',
                                 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time']
         else:
             cols_of_interest = specific_flags + ['time']
-        df = self.simulation_timecourse[set(cols_of_interest)].copy()
-        gdf = df.groupby('time')
+        gdf = parsed_df.groupby('time')
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
@@ -703,7 +734,12 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.set_index('time').to_csv(
+        stati_list = ['S', 'I', 'R', 'D']
+        df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
+        df.set_index('time').to_csv(
             'outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]

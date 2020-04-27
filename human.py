@@ -184,7 +184,10 @@ class Human(object):
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
-        self.original_schedule = copy.deepcopy(schedule)
+        self.original_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
+            schedule['times']), 'locs': copy.copy(schedule['locs'])}
+        self.specific_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
+            schedule['times']), 'locs': copy.copy(schedule['locs'])}
         self.diagnosed_schedule = diagnosed_schedule
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
@@ -265,16 +268,48 @@ class Human(object):
         out['time'] = time
         out['h_ID'] = self.ID
         out['loc'] = self.loc.ID
-        out['status'] = self.status
-        out['IsInfected'] = int(self.is_infected)
-        out['Diagnosed'] = int(self.diagnosed)
-        out['Hospitalized'] = int(self.hospitalized)
-        out['ICUed'] = int(self.icu)
-        out['WasInfected'] = int(self.was_infected)
-        out['WasDiagnosed'] = int(self.was_diagnosed)
-        out['WasHospitalized'] = int(self.was_hospitalized)
-        out['WasICUed'] = int(self.was_icued)
+        out['status'] = self.encode_stati()
+        out['Temporary_Flags'] = self.encode_temporary_flags()
+        out['Cumulative_Flags'] = self.encode_cumulative_flags()
         return(out)
+
+    def encode_temporary_flags(self):
+        if self.is_infected:
+            if self.diagnosed:
+                if self.hospitalized:
+                    return(numpy.uint8(3))
+                elif self.icu:
+                    return(numpy.uint8(4))
+                else:
+                    return(numpy.uint8(2))
+            else:
+                return(numpy.uint8(1))
+        else:
+            return(numpy.uint8(0))
+
+    def encode_cumulative_flags(self):
+        if self.was_infected:
+            if self.was_diagnosed:
+                if self.was_hospitalized:
+                    return(numpy.uint8(3))
+                elif self.was_icued:
+                    return(numpy.uint8(4))
+                else:
+                    return(numpy.uint8(2))
+            else:
+                return(numpy.uint8(1))
+        else:
+            return(numpy.uint8(0))
+
+    def encode_stati(self):
+        if self.status == 'S':
+            return(numpy.uint8(0))
+        elif self.status == 'I':
+            return(numpy.uint8(1))
+        elif self.status == 'R':
+            return(numpy.uint8(2))
+        elif self.status == 'D':
+            return(numpy.uint8(3))
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
@@ -300,16 +335,21 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
-        if time % (24*7) in self.schedule['times']:  # here i check for a 24h cycling schedule
+        if not self.status == 'D' and not self.hospitalized and not self.icu and not self.diagnosed:
+            current_schedule = self.schedule
+        else:
+            current_schedule = self.specific_schedule
+        if time % (24*7) in current_schedule['times']:  # here i check for a 24h cycling schedule
             self.loc.leave(self)  # leave old location
-            new_loc = self.schedule['locs'][self.schedule['times'].index(time % (24*7))]
+            new_loc = current_schedule['locs'][current_schedule['times'].index(time % (24*7))]
             self.loc = new_loc
             new_loc.enter(self)  # enter new location
 
-    def stay_home_instead_of_going_to(self, location_type):
-        for i in range(len(self.schedule['locs'])):
-            if self.schedule['locs'][i].location_type == location_type:
-                self.schedule['locs'][i] = self.home
+    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
+        if self.original_schedule['type'] not in excluded_human_types:
+            for i in range(len(self.schedule['locs'])):
+                if self.schedule['locs'][i].location_type == location_type:
+                    self.schedule['locs'][i] = self.home
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
@@ -441,7 +481,7 @@ class Human(object):
             if probability >= randomval():
                 self.diagnosed = True
                 self.diagnosis_time = time
-                self.schedule = self.diagnosed_schedule
+                self.specific_schedule = self.diagnosed_schedule
                 self.was_diagnosed = True
 
     def recover(self, recover_prob, time):
@@ -450,7 +490,6 @@ class Human(object):
         based on recover-probability.
         Changes status-attribute to 'R', records current time to recover_time-attribute.
         Sets icu-,hospitalized- and diagnosed-attribute to False.
-        Sets schedule-attribute to original_schedule.
         Arguments to provide are: probability (float), time (int)
         """
         if recover_prob >= randomval():
@@ -459,7 +498,6 @@ class Human(object):
             self.icu = False
             self.hospitalized = False
             self.diagnosed = False
-            self.schedule = self.original_schedule
             self.is_infected = False
 
     def get_ICUed(self, probability, time):
@@ -504,8 +542,8 @@ class Human(object):
             self.was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
-                self.schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
-                    len(list(self.schedule['times']))
+                self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
+                    len(list(self.specific_schedule['times']))
 
     def die(self, risk, time):
         """
@@ -523,8 +561,8 @@ class Human(object):
             self.diagnosed = False
             self.is_infected = False
             if self.loc.special_locations['morgue']:
-                self.schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
-                    len(list(self.schedule['times']))
+                self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
+                    len(list(self.specific_schedule['times']))
 
     def get_infectivity(self):
         """
