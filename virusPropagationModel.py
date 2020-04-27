@@ -464,7 +464,12 @@ class Simulation(object):
         gets a list of the statuses in the time course
         :return: list. list of available statuses
         """
-        return list(set(self.simulation_timecourse['status']))
+        stati_list['S', 'I', 'R', 'D']
+        stati = self.simulation_timecourse['status']
+        for i in range(len(stati_list)):
+            stati[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
+        return list(set(stati['status']))
 
     # DF
     def get_status_trajectories(self, specific_statuses=None, specific_people=None):
@@ -483,10 +488,15 @@ class Simulation(object):
 
         status_trajectories = {}
 
+        stati_list['S', 'I', 'R', 'D']
+        timecourse_df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            timecourse_df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
         if specific_people is None:
-            status_tc = self.simulation_timecourse[['time', 'status']]
+            status_tc = timecourse_df[['time', 'status']]
         else:
-            traject = self.simulation_timecourse
+            traject = timecourse_df
             list_of_peple_IDs_of_type = [
                 p.ID for p in self.people if p.type == specific_people]  # Specify doctors here##
             humans_in_traject = list(traject['h_ID'])
@@ -538,8 +548,13 @@ class Simulation(object):
         2          0      3      0.0     0.0     0.0     1.0      4              0
 
         """
+        stati_list['S', 'I', 'R', 'D']
         df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
         df.drop(columns=['Temporary_Flags', 'Cumulative_Flags'], inplace=True)
+
         d = pd.pivot_table(df, values='h_ID', index=['loc', 'time'],
                            columns=['status'], aggfunc='count')
         table = d.reset_index().fillna(0)
@@ -613,7 +628,11 @@ class Simulation(object):
         """
         assert type(group_ages) is bool
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
-        df = self.simulation_timecourse
+        stati_list['S', 'I', 'R', 'D']
+        df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
         merged_df = df.merge(agent_ages, on='h_ID')
         merged_df.drop(columns=['loc', 'Temporary_Flags', 'Cumulative_Flags'], inplace=True)
         pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
@@ -716,7 +735,12 @@ class Simulation(object):
         export the human simulation time course, human commutative status time course, and locations time course
         :param identifier: a given identifying name for the file which will be included in the name of the exported file
         """
-        self.simulation_timecourse.set_index('time').to_csv(
+        stati_list['S', 'I', 'R', 'D']
+        df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):
+            df[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+
+        df.set_index('time').to_csv(
             'outputs/' + identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]

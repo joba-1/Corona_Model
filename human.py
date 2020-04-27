@@ -268,7 +268,7 @@ class Human(object):
         out['time'] = time
         out['h_ID'] = self.ID
         out['loc'] = self.loc.ID
-        out['status'] = self.status
+        out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         return(out)
@@ -300,6 +300,16 @@ class Human(object):
                 return(1)
         else:
             return(0)
+
+    def encode_stati(self):
+        if self.status == 'S':
+            return(0)
+        elif self.status == 'I':
+            return(1)
+        elif self.status == 'R':
+            return(2)
+        elif self.status == 'D':
+            return(3)
 
     def get_infection_info(self):  # for storing simulation data (flags)
         """
