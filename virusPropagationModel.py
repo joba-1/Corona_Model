@@ -615,8 +615,7 @@ class Simulation(object):
         agent_ages = pd.DataFrame([{'h_ID': p.ID, 'age': p.age} for p in self.people])
         df = self.simulation_timecourse
         merged_df = df.merge(agent_ages, on='h_ID')
-        merged_df.drop(columns=['loc', 'WasInfected', 'Diagnosed',
-                                'Hospitalized', 'ICUed'], inplace=True)
+        merged_df.drop(columns=['loc', 'Temporary_Flags', 'Cumulative_Flags'], inplace=True)
         pt = merged_df.pivot_table(values='h_ID', index=['age', 'time'], columns=[
             'status'], aggfunc='count', fill_value=0)
         if group_ages is True:
