@@ -13,15 +13,36 @@ import csv
 #modeledWorld.save('OneWorld', date_suffix=False )
 #modeledWorld = load_simulation_object('OneWorld')
 #scenarios = [{'run':1},{'run':2}]
-scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[], 'reopen_locs':[], 'infectivity':0.5, 'name':'no_mitigation'},
-             {'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['school'], 'infectivity':0.5, 'name':'reopen_schools_100'},
-             {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.5, 'name':'reopen_schools_200'},
-             {'run':0 ,'max_time': 2000, 'start_3':700, 'reopen_locs':['school'], 'infectivity':0.5, 'name':'reopen_schools_300'},
-             {'run':0 ,'max_time': 2000, 'start_3':900, 'reopen_locs':['school'], 'infectivity':0.5, 'name':'reopen_schools_500'}]
+scenarios = [{'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.5, 'name':'close_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.5, 'name':'close_all_reopen_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.5, 'name':'close_all_reopen_work'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_all_reopen_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_all_reopen_public'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.5, 'name':'close_public_school_reopen_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_public_school_reopen_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_public_school_reopen_public'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'}]             
+
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default")
+    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+                        1: no_mitigation \n \
+                        2: close_all\n \
+                        3: close_all_reopen_all\n \
+                        4: close_all_reopen_public\n \
+                        5: close_all_reopen_work\n \
+                        6: close_all_reopen_school\n \
+                        7: close_all_reopen_public\n \
+                        8: close_public_school\n \
+                        9: close_public_school_reopen_all\n \
+                        10: close_public_school_reopen_school\n \
+                        11: close_public_school_reopen_public\n \
+                        12: close_public_work\n \
+                        13: close_public_work ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
@@ -36,9 +57,9 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     required: only 'run'
     '''
 
-    my_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700,
+    my_dict = {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500,
      'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],
-      'infectivity':0.2, 'name':'default','output_folder':'scenario_output'}
+      'infectivity':0.5, 'name':'default','output_folder':'scenario_output'}
 
     my_dict.update(input_dict)
 

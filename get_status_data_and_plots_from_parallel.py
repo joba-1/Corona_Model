@@ -40,9 +40,9 @@ statusAndFlagsColors = {
     'ICUed': mainModelCmap(7),  # pink
 }
 
-scenario = 'different_worlds'
+scenario = 'no_mitigation'
 output_folder = 'outputs/'+scenario+'/'
-input_folder =  'saved_objects/scenario_output'
+input_folder =  'saved_objects/scenario_output_e'
 
 
 file_list = os.listdir(input_folder)
