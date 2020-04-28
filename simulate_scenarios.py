@@ -10,11 +10,11 @@ import csv
 
 
 
-#modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', agent_agent_infection=True, input_schedules='schedules_v1')
+modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', agent_agent_infection=True, input_schedules='schedules_v1')
 #modeledWorld.save('OneWorld', date_suffix=False )
-modeledWorld = load_simulation_object('OneWorld')
+#modeledWorld = load_simulation_object('OneWorld')
 #scenarios = [{'run':1},{'run':2}]
-scenarios = [{'run':0 ,'max_time': 2000, 'start_2':1800, 'start_3':1900, 'closed_locs':[], 'reopen_locs':[], 'infectivity':0.2, 'name':'default'},
+scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[], 'reopen_locs':[], 'infectivity':0.5, 'name':'default'},
              {'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'reopen_schools_100'},
              {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'reopen_schools_200'},
              {'run':0 ,'max_time': 2000, 'start_3':700, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'reopen_schools_300'},
