@@ -30,19 +30,18 @@ scenarios = [{'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_l
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
-                        1: no_mitigation \n \
-                        2: close_all\n \
-                        3: close_all_reopen_all\n \
-                        4: close_all_reopen_public\n \
-                        5: close_all_reopen_work\n \
-                        6: close_all_reopen_school\n \
-                        7: close_all_reopen_public\n \
-                        8: close_public_school\n \
-                        9: close_public_school_reopen_all\n \
-                        10: close_public_school_reopen_school\n \
-                        11: close_public_school_reopen_public\n \
-                        12: close_public_work\n \
-                        13: close_public_work ")
+                        0: no_mitigation \n \
+                        1: close_all\n \
+                        2: close_all_reopen_all\n \
+                        3: close_all_reopen_work\n \
+                        4: close_all_reopen_school\n \
+                        5: close_all_reopen_public\n \
+                        6: close_public_school\n \
+                        7: close_public_school_reopen_all\n \
+                        8: close_public_school_reopen_school\n \
+                        9: close_public_school_reopen_public\n \
+                        10: close_public_work\n \
+                        11: close_work_school ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
@@ -126,7 +125,7 @@ if __name__=='__main__':
 
     used_scenario = scenarios[scenario_type]
     used_scenario['output_folder'] = output_folder
-    used_scenarios = [copy.deepcopy(used_scenario) for i in range(4)]
+    used_scenarios = [copy.deepcopy(used_scenario) for i in range(number)]
 
     for i,d in enumerate(used_scenarios):
         d['run']=i    

@@ -21,7 +21,7 @@ import numpy as np
 #    return options
 #folder = '~/../basar/corona_simulations'
 
-cmap = cm.get_cmap('Set1')
+#cmap = cm.get_cmap('Set1')
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
 
 statusAndFlagsColors = {
@@ -40,14 +40,25 @@ statusAndFlagsColors = {
     'ICUed': mainModelCmap(7),  # pink
 }
 
-scenario = 'no_mitigation'
-output_folder = 'outputs/'+scenario+'/'
-input_folder =  'saved_objects/scenario_output_e'
+#scenario = 'no_mitigation'
+#output_folder = 'outputs/'+scenario+'/'
+#input_folder =  'saved_objects/scenario_output_e'
 
 
-file_list = os.listdir(input_folder)
-sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
+#file_list = os.listdir(input_folder)
+#sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
 #scenario = 'reopen_schools_100'
+
+def getOptions(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
+    #parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
+    #parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
+    #parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
+    parser.add_argument("-if", "--input_folder", type=str, help="name of the folder with the simulations ")
+    options = parser.parse_args(args)
+    return options
+
 
 
 
@@ -57,7 +68,7 @@ def get_df_list(filename):
     : return : dict with data frames of 'stat_trajectories', 'durations', 'flag_trajectories',
     'infections_per_location_type'
     """
-    sim = load_simulation_object('scenario_output/'+filename)
+    sim = load_simulation_object(filename)
     #sim = load_simulation_object(filename)
     #print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
@@ -99,7 +110,7 @@ def plot_and_save_statii(status_trajectories_list,
                 df.to_csv(output_folder+filename+'_'+stat+'.csv')
 
             df.plot(c=statusAndFlagsColors[stat],alpha=0.2, legend=False, ax=ax)
-            df.mean(axis=1).plot(c='k',ax=ax)#statusAndFlagsColors[stat]
+            df.mean(axis=1).plot(c='k',ax=ax, label=stat)#statusAndFlagsColors[stat]
 
         except:
             print(stat+'  is not in list')
@@ -130,12 +141,21 @@ def plot_and_save_durations(simulation_trajectory_list,
     fig, axes = plt.subplots(int(n/2),2,figsize=(8,16))
 
     for k,dur in enumerate(dur_list):
+
+        max_v=max([d[dur].max() for d in st_l])
+        
+        if np.isnan(max_v):
+            max_value = 600
+        else:
+            max_value = (int(max_v/10)+1)*10
+             
+
         row = k%2
         col = int(k/2)
         ax= axes[col][row]
         print(dur)
-        data = [np.histogram(st_l[i][dur].values, bins=10, range=(0,600))[0] for i in range(len(st_l))]
-        bins = np.histogram(st_l[0][dur].values, bins=10, range=(0,600))[1] 
+        data = [np.histogram(st_l[i][dur].values, bins=10, range=(0,max_value))[0] for i in range(len(st_l))]
+        bins = np.histogram(st_l[0][dur].values, bins=10, range=(0,max_value))[1] 
         bins1 = [x for x in bins[1:]]
         df_d_small = pd.DataFrame(columns=bins1, data=data)
         ax.set_title(dur)
@@ -207,11 +227,34 @@ def plot_and_save_infection_per_location(infection_per_location_list,
 
 if __name__=='__main__':
 
+    options = getOptions(sys.argv[1:])
+
+    if options.scenario: # take scenario type as argument or take default
+        scenario = options.scenario   
+    else:
+        scenario = 'default' #no_mitigation'
+
+    if options.input_folder: # take scenario type as argument or take default
+        input_folder = options.input_folder   
+    else:
+        input_folder = 'scenario_output'
+        
+    #if options.scenario_type: # take scenario type as argument or take default
+    #    scenario_type = options.scenario_type   
+    #else:
+    #    scenario_type = 0    
+
+
+    output_folder = 'outputs/'+scenario+'/'
+
     try:
         os.mkdir(output_folder)
         os.mkdir(output_folder+'/plots')
     except:
         pass
+
+    file_list = os.listdir('saved_objects/'+input_folder)
+    sim_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')] #and x.startswith('sim')] needs to be sorted if several simualtions in folder
 
     print(sim_files)
     start = timeit.default_timer()
