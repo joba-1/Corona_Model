@@ -74,7 +74,7 @@ class ModeledPopulatedWorld(object):
             self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):# folder='saved_objects/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -82,9 +82,9 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_worldObj', date_suffix)
+            save_simulation_object(self, filename + '_worldObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
     def initialize_people(self, agent_agent_infection):
         """
