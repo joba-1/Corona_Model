@@ -52,7 +52,7 @@ statusAndFlagsColors = {
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
-    #parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
+    parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     #parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     #parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
     parser.add_argument("-if", "--input_folder", type=str, help="name of the folder with the simulations ")
@@ -238,6 +238,11 @@ if __name__=='__main__':
         input_folder = options.input_folder   
     else:
         input_folder = 'scenario_output'
+
+    if options.cores: # used cores
+        cores = options.cores   
+    else:
+        cores = 50     
         
     #if options.scenario_type: # take scenario type as argument or take default
     #    scenario_type = options.scenario_type   
@@ -259,7 +264,7 @@ if __name__=='__main__':
     print(sim_files)
     start = timeit.default_timer()
 
-    with Pool(20) as pool:
+    with Pool(cores) as pool:
         df_dict_list = pool.map(get_df_list, sim_files)
 
 
