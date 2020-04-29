@@ -67,7 +67,7 @@ class ModeledPopulatedWorld(object):
         self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
                            geofile_name=self.geofile_name)
         self.locations = self.world.locations
-        self.schedules = parse_schedule(input_schedules)
+        self.input_schedules = input_schedules
         self.people = self.initialize_people(self.agent_agent_infection)
         self.number_of_people = len(self.people)
         if automatic_initial_infections:
@@ -115,10 +115,11 @@ class ModeledPopulatedWorld(object):
 
         ## standard schedule ##
 
-        for bound in self.schedules['upper_bounds']:
+        schedules = parse_schedule(self.input_schedules)
+        for bound in schedules['upper_bounds']:
             if age <= bound:
                 schedule = copy.deepcopy(npr.choice(
-                    self.schedules[bound][0], p=self.schedules[bound][1]))
+                    schedules[bound][0], p=schedules[bound][1]))
                 break
         my_locations = {}
         for loc in schedule['locs']:
@@ -153,7 +154,7 @@ class ModeledPopulatedWorld(object):
         ## diagnosed schedule ##
 
         diagnosed_schedule = copy.deepcopy(npr.choice(
-            self.schedules['diagnosed'][0], p=self.schedules['diagnosed'][1]))
+            schedules['diagnosed'][0], p=schedules['diagnosed'][1]))
 
         if isinstance(diagnosed_schedule, str):
             diag_type = diagnosed_schedule
