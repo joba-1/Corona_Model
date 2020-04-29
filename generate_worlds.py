@@ -2,6 +2,8 @@ from virusPropagationModel import *
 import glob
 import os
 from multiprocessing import Pool
+import argparse
+import sys
 
 
 
@@ -14,14 +16,27 @@ def ini_and_save_world(i):
     print('worlds/Gangelt_MA_1_'+str(i)+' created')
     #return('worlds/Gangelt_MA_1_'+str(i))
 
+def getOptions(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-f", "--folder", type=str, help="save folder")
+    options = parser.parse_args(args)
+    return options    
+
 
 if __name__ == '__main__':
 
+    options=getOptions()
+
+    if options.folder:
+        output_folder = options.folder
+    else:
+        output_folder = '/home/basar/corona_simulations/saved_objects/worlds'   
+
     try:
-        os.mkdir('saved_objects/worlds')
+        os.mkdir(output_folder)
     except:
         pass    
 
     
-    with Pool(50) as pool:
-        pool.map(ini_and_save_world,[i for i in range(100)])
+    with Pool(2) as pool:
+        pool.map(ini_and_save_world,[i for i in range(10)])

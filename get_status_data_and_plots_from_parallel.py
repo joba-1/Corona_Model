@@ -62,13 +62,14 @@ def getOptions(args=sys.argv[1:]):
 
 
 
-def get_df_list(filename):
+def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
     """
     load simulation file with filename in saved_objects/scenario_output/
     : return : dict with data frames of 'stat_trajectories', 'durations', 'flag_trajectories',
     'infections_per_location_type'
     """
-    sim = load_simulation_object(filename)
+    print(filename, input_folder)
+    sim = load_simulation_object(filename, folder=input_folder)
     #sim = load_simulation_object(filename)
     #print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
@@ -237,7 +238,7 @@ if __name__=='__main__':
     if options.input_folder: # take scenario type as argument or take default
         input_folder = options.input_folder   
     else:
-        input_folder = 'scenario_output'
+        input_folder = 'saved_objects/scenario_output/'
 
     if options.cores: # used cores
         cores = options.cores   
@@ -258,8 +259,8 @@ if __name__=='__main__':
     except:
         pass
 
-    file_list = os.listdir('saved_objects/'+input_folder)
-    sim_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')] #and x.startswith('sim')] needs to be sorted if several simualtions in folder
+    file_list = os.listdir(input_folder)
+    sim_files = [x for x in file_list if x.endswith('pkl')] #and x.startswith('sim')] needs to be sorted if several simualtions in folder
 
     print(sim_files)
     start = timeit.default_timer()
