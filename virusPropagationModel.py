@@ -82,9 +82,9 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_worldObj', date_suffix, folder='saved_objects/')
+            save_simulation_object(self, filename + '_worldObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix, folder='saved_objects/')
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
     def initialize_people(self, agent_agent_infection):
         """
