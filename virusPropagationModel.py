@@ -350,7 +350,7 @@ class Simulation(object):
         if run_immediately:
             self.simulate()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -358,9 +358,9 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_simulationObj', date_suffix)
+            save_simulation_object(self, filename + '_simulationObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
     def simulate(self, mem_save=False, tuples=False):
         if isinstance(self.simulation_object, ModeledPopulatedWorld):
