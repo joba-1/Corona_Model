@@ -207,8 +207,7 @@ def initialize_household():
         #for i in range(2):
         #    ages.append(npr.choice(ages_to_sample[18:], p=age_dist_adults))
     
-        # Sample two parents
-        ages.append(int(npr.normal(oldest_kid + age_to_become_a_parent, std_dev_parents)))
+        # Sample one parent
         ages.append(int(npr.normal(oldest_kid + age_to_become_a_parent, std_dev_parents)))
 
         #ages = list(npr.choice(ages_to_sample, hhd_mmbrs, p=age_dist)) 
