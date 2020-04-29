@@ -340,10 +340,13 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        self.simulation_object = copy.deepcopy(object_to_simulate)
+        if copy_sim_object:
+            self.simulation_object = copy.deepcopy(object_to_simulate)
+        else:
+            self.simulation_object = object_to_simulate
         self.time_steps = time_steps
         self.people = self.simulation_object.people
         self.locations = self.simulation_object.locations
