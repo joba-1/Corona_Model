@@ -251,7 +251,7 @@ if __name__=='__main__':
     #    scenario_type = 0    
 
 
-    output_folder = 'outputs/'+scenario+'/'
+    output_folder = '/home/basar/corona_simulations_save/outputs/'+scenario+'/'
 
     try:
         os.mkdir(output_folder)
