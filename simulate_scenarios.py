@@ -6,25 +6,46 @@ import copy
 import timeit
 import argparse
 import sys
+import csv
 
 
-modeledWorld = load_simulation_object('gangelt_small_schedules_v1_worldObj_23-04-2020_17-29-19')
-scenarios = [{'run':1},{'run':2}]
-eddas_scenarios = [{'run':0 ,'max_time': 2000, 'start_3':500, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_100'},
-                    {'run':0 ,'max_time': 2000, 'start_3':600, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_200'},
-                    {'run':0 ,'max_time': 2000, 'start_3':700, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_300'},
-                    {'run':0 ,'max_time': 2000, 'start_3':900, 'reopen_locs':['school'], 'infectivity':0.2, 'name':'scenario_output/reopen_schools_500'}]
-eddas_scenario_0 = [copy.deepcopy(eddas_scenarios[0]) for i in range(10)]
-for i,d in enumerate(eddas_scenario_0):
-    d['run']=i
+
+#modeledWorld.save('OneWorld', date_suffix=False )
+#modeledWorld = load_simulation_object('OneWorld')
+#scenarios = [{'run':1},{'run':2}]
+scenarios = [{'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.5, 'name':'close_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.5, 'name':'close_all_reopen_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.5, 'name':'close_all_reopen_work'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_all_reopen_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_all_reopen_public'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.5, 'name':'close_public_school_reopen_all'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_public_school_reopen_school'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_public_school_reopen_public'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
+             {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'}]             
 
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
-    parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
-    #parser.add_argument("-n", "--number", type=int, help="A number.")
-    #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
+    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+                        0: no_mitigation \n \
+                        1: close_all\n \
+                        2: close_all_reopen_all\n \
+                        3: close_all_reopen_work\n \
+                        4: close_all_reopen_school\n \
+                        5: close_all_reopen_public\n \
+                        6: close_public_school\n \
+                        7: close_public_school_reopen_all\n \
+                        8: close_public_school_reopen_school\n \
+                        9: close_public_school_reopen_public\n \
+                        10: close_public_work\n \
+                        11: close_work_school ")
+    parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
+    parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
+    parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
+    parser.add_argument("-f", "--folder", type=str, help="name of the folder in saved_objects/ ")
     options = parser.parse_args(args)
     return options
 
@@ -34,8 +55,10 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     input_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':'public', 'infectivity':0.2, 'name':'scenario_output/default'}
     required: only 'run'
     '''
-    
-    my_dict = {'run':0 ,'max_time': 2000, 'start_2':400, 'start_3':700, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'], 'infectivity':0.2, 'name':'scenario_output/default'}
+
+    my_dict = {'run':0 ,'max_time': 1000, 'start_2':200, 'start_3':500,
+     'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],
+      'infectivity':0.5, 'name':'default','output_folder':'scenario_output'}
 
     my_dict.update(input_dict)
 
@@ -43,6 +66,7 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     start_2 = my_dict['start_2']
     start_3 = my_dict['start_3']
     closed_locs = my_dict['closed_locs']
+    reopen_locs = my_dict['reopen_locs']
     infectivity = my_dict['infectivity']
     name = my_dict['name']
 
@@ -51,28 +75,82 @@ def simulate_scenario(input_dict):   # times: 3 durations for simulations; close
     simulation1.simulate()
 
     simulation2 = Simulation(simulation1, start_3-start_2, run_immediately=False)
+    del simulation1
     for p in simulation2.people:
         for loc in closed_locs:
             p.stay_home_instead_of_going_to(loc)
     simulation2.simulate()
 
     simulation3 = Simulation(simulation2, max_time-start_3, run_immediately=False)
+    del simulation2
     for p in simulation3.people:
         p.reset_schedule()
+        for loc in list(set(closed_locs)-set(reopen_locs)):
+            p.stay_home_instead_of_going_to(loc)
+
     simulation3.simulate()
 
     print(my_dict['name']+'_'+str(my_dict['run']))
-    simulation3.save( name+'_'+str(my_dict['run']), date_suffix=False )
+    simulation3.save( my_dict['output_folder']+'/'+name+'_'+str(my_dict['run']), date_suffix=False )
     return simulation3.time
 
 if __name__=='__main__':
 
+    options = getOptions(sys.argv[1:])
+
+    if options.scenario_type: # take scenario type as argument or take default
+        scenario_type = options.scenario_type   
+    else:
+        scenario_type = 0
+
+    if options.cores: # used cores
+        cores = options.cores   
+    else:
+        cores = 50 
+
+    if options.number : # number of simulations
+        number = options.number   
+    else:
+        number = 100 
+
+    if options.world:
+        modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', agent_agent_infection=True, input_schedules='schedules_v1')
+    else:    
+        modeledWorld = ModeledPopulatedWorld(1,10, world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_1.csv', agent_agent_infection=True, input_schedules='schedules_v1')
+
+    if options.folder : # number of simulations
+        output_folder = options.folder   
+    else:
+        output_folder = 'scenario_output'     
+
+    used_scenario = scenarios[scenario_type]
+    used_scenario['output_folder'] = output_folder
+    used_scenarios = [copy.deepcopy(used_scenario) for i in range(number)]
+
+    for i,d in enumerate(used_scenarios):
+        d['run']=i    
+
+    if not output_folder in os.listdir('saved_objects'):
+        os.mkdir('saved_objects/'+output_folder)
+        print('saved_objects/'+output_folder+' created')
+    #else:
+    #    os.mkdir('saved_objects/'+output_folder+)
+    #    print('saved_objects/'+output_folder+' created')
+        
+
     start = timeit.default_timer()
 
-    with Pool(4) as pool:
-        result = pool.map(simulate_scenario, eddas_scenario_0)
+    with Pool(cores) as pool:
+        result = pool.map(simulate_scenario, used_scenarios)
 
     stop = timeit.default_timer()
+
+    used_scenario['runs']=len(used_scenarios)
+    
+    with open('saved_objects/'+output_folder+'/sim_parameters.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        for key in used_scenario:
+            writer.writerow([key, used_scenario[key]])
 
     print(result)
     print('time:  ',stop-start)
