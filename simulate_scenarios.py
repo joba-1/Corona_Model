@@ -10,10 +10,6 @@ import csv
 import pickle
 
 
-
-#modeledWorld.save('OneWorld', date_suffix=False )
-#modeledWorld = load_simulation_object('OneWorld')
-#scenarios = [{'run':1},{'run':2}]
 scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.5, 'name':'close_all'},
@@ -157,7 +153,7 @@ def get_simualtion_settings(options):
     if options.folder : # number of simulations
         output_folder = options.folder   
     else:
-        output_folder = 'saved_objects/scenario_output/'    
+        output_folder = '/home/basar/corona_simulations/saved_objects/scenario_output/'    
         
 
     return scenario_type, cores, number, modeledWorld, output_folder    
@@ -168,7 +164,6 @@ if __name__=='__main__':
     #'/home/basar/corona_simulations/saved_objects/worlds'
     input_folder = 'saved_objects/worlds/'
 
-    
     world_list = os.listdir(input_folder)
     world_files = [x for x in world_list if x.endswith('pkl')] #and x.startswith('sim')] needs to be sorted if several simualtions in folder
     options = getOptions(sys.argv[1:])
