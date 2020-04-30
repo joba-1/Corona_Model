@@ -343,13 +343,22 @@ class Simulation(object):
     def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        if copy_sim_object:
-            self.simulation_object = copy.deepcopy(object_to_simulate)
-        else:
-            self.simulation_object = object_to_simulate
-        self.time_steps = time_steps
-        self.people = self.simulation_object.people
-        self.locations = self.simulation_object.locations
+        if isinstance(object_to_simulate, ModeledPopulatedWorld):
+            self.time_steps = time_steps
+            self.people = copy.deepcopy(object_to_simulate.people)
+            self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.simulation_timecourse = pd.DataFrame()
+            self.time = 0
+        elif isinstance(object_to_simulate, Simulation):
+            self.time_steps = time_steps
+            if copy_sim_object:
+                self.people = copy.deepcopy(object_to_simulate.people)
+                self.locations = copy.deepcopy(object_to_simulate.locations)
+            else:
+                self.people = object_to_simulate.people
+                self.locations = object_to_simulate.locations
+            self.simulation_timecourse = object_to_simulate.simulation_timecourse
+            self.time = object_to_simulate.time
         if run_immediately:
             self.simulate()
 
@@ -365,16 +374,9 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix, **kwargs)
 
-    def simulate(self, mem_save=False, tuples=False):
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
+    def simulate(self):
+        self.simulation_timecourse = pd.concat(
+            [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
