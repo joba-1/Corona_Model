@@ -190,7 +190,7 @@ def get_simualtion_settings(options):
     #    scenario_type = 0    
 
 
-    output_folder_plots = '/home/basar/corona_simulations_save/outputs/'+scenario+'/'
+    output_folder_plots = 'outputs/'+scenario+'/'#'/home/basar/corona_simulations_save/outputs/'+scenario+'/'
 
     try:
         os.mkdir(output_folder_plots)
@@ -200,7 +200,7 @@ def get_simualtion_settings(options):
 
         
 
-    return scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots
+    return scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots, scenario
 
 
 if __name__ == '__main__':
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
-    scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots = get_simualtion_settings(options)
+    scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots, scenario = get_simualtion_settings(options)
 
     used_scenario = scenarios[scenario_type]
     used_scenario['output_folder'] = output_folder
@@ -258,5 +258,5 @@ if __name__ == '__main__':
         for key in used_scenario:
             writer.writerow([key, used_scenario[key]])
 
-    print(result)
+    print(df_dict_list)
     print('time:  ', stop-start)
