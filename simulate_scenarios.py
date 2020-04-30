@@ -1,4 +1,5 @@
 from virusPropagationModel import *
+from get_status_data_and_plots_from_parallel import *
 import glob
 import os
 from multiprocessing import Pool
@@ -74,8 +75,13 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument(
-        "-w", "--world", help="number of world in '/home/basar/corona_simulations/saved_objects/worlds' ")
+        "-w", "--world", type=int, help="number of world in '/home/basar/corona_simulations/saved_objects/worlds' ")
     parser.add_argument("-f", "--folder", type=str, help="name of the folder in saved_objects/ ")
+
+    parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
+    #parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
+    #parser.add_argument("-w", "--world", help="any input means small world else the whole gangelt is used")
+
     options = parser.parse_args(args)
     return options
 
@@ -93,7 +99,7 @@ def simulate_scenario(input_dict):
 
     my_dict = {'run': 0, 'max_time': 1000, 'start_2': 200, 'start_3': 500,
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
-               'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default', 'output_folder': 'scenario_output'}
+               'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default', 'output_folder': 'scenario_output', 'world':None}
 
     my_dict.update(input_dict)
 
@@ -105,6 +111,9 @@ def simulate_scenario(input_dict):
     infectivity = my_dict['infectivity']
     hospital_coeff = my_dict['hospital_coeff']
     name = my_dict['name']+'_inf_'+str(infectivity)
+    modeledWorld = my_dict['world']
+
+    #print(type(modeledWorld))
 
     simulation1 = Simulation(modeledWorld, start_2, run_immediately=False)
     simulation1.change_agent_attributes(
@@ -113,26 +122,31 @@ def simulate_scenario(input_dict):
         {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
     simulation1.simulate()
 
-    simulation2 = Simulation(simulation1, start_3-start_2, run_immediately=False)
+    #simulation2 = Simulation(simulation1, start_3-start_2, run_immediately=False)
     #del simulation1
-    for p in simulation2.people:
+    for p in simulation1.people:
         for loc in closed_locs:
             p.stay_home_instead_of_going_to(loc)
-    simulation2.simulate()
+    simulation1.time_steps = start_3-start_2
+    simulation1.simulate()
 
-    simulation3 = Simulation(simulation2, max_time-start_3, run_immediately=False)
+    #simulation3 = Simulation(simulation2, max_time-start_3, run_immediately=False)
     #del simulation2
-    for p in simulation3.people:
+    for p in simulation1.people:
         p.reset_schedule()
         for loc in list(set(closed_locs)-set(reopen_locs)):
             p.stay_home_instead_of_going_to(loc)
-
-    simulation3.simulate()
+    simulation1.time_steps = max_time-start_3
+    simulation1.simulate()
 
     print(my_dict['name']+'_'+str(my_dict['run']))
-    simulation3.save(name+'_'+str(my_dict['run']),
+    simulation1.save(name+'_'+str(my_dict['run']),
                      date_suffix=False, folder=my_dict['output_folder'])
-    return simulation3.time
+
+    return {'stat_trajectories': simulation1.get_status_trajectories(),
+                              'durations': simulation1.get_durations(),
+            'flag_trajectories': simulation1.get_flag_sums_over_time(),
+            'infections_per_location_type':simulation1.get_infections_per_location_type()}
 
 
 def get_simualtion_settings(options):
@@ -161,10 +175,32 @@ def get_simualtion_settings(options):
     if options.folder:  # number of simulations
         output_folder = options.folder
     else:
-        output_folder = '/home/basar/corona_simulations/saved_objects/scenario_output/'    
+        output_folder = '/home/basar/corona_simulations/saved_objects/scenario_output/'
+
+
+
+    if options.scenario: # take scenario type as argument or take default
+        scenario = options.scenario   
+    else:
+        scenario = 'default' #no_mitigation'
+        
+    #if options.scenario_type: # take scenario type as argument or take default
+    #    scenario_type = options.scenario_type   
+    #else:
+    #    scenario_type = 0    
+
+
+    output_folder_plots = '/home/basar/corona_simulations_save/outputs/'+scenario+'/'
+
+    try:
+        os.mkdir(output_folder_plots)
+        os.mkdir(output_folder_plots+'/plots')
+    except:
+        pass
+
         
 
-    return scenario_type, cores, number, modeledWorld, output_folder
+    return scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots
 
 
 if __name__ == '__main__':
@@ -176,7 +212,7 @@ if __name__ == '__main__':
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
-    scenario_type, cores, number, modeledWorld, output_folder = get_simualtion_settings(options)
+    scenario_type, cores, number, modeledWorld, output_folder, output_folder_plots = get_simualtion_settings(options)
 
     used_scenario = scenarios[scenario_type]
     used_scenario['output_folder'] = output_folder
@@ -196,9 +232,22 @@ if __name__ == '__main__':
     start = timeit.default_timer()
 
     infect_world(modeledWorld, IDs=[i for i in range(5)])
+    for sc in used_scenarios:
+        sc['world'] = modeledWorld
 
     with Pool(cores) as pool:
-        result = pool.map(simulate_scenario, used_scenarios)
+        df_dict_list = pool.map(simulate_scenario, used_scenarios)
+
+    status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
+    simulation_trajectory_list = [df['durations'] for df in df_dict_list]
+    flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
+    infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+
+    plot_and_save_statii(status_trajectories_list, filename=scenario, output_folder=output_folder_plots) 
+    plot_and_save_durations(simulation_trajectory_list, filename=scenario, output_folder=output_folder_plots)
+    plot_flags(flag_trajectories_list, cummulative=False, filename=scenario, output_folder=output_folder_plots)
+    plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ', output_folder=output_folder_plots)
+    plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario, output_folder=output_folder_plots)
 
     stop = timeit.default_timer()
 

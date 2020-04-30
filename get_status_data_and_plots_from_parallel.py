@@ -93,7 +93,7 @@ def plot_and_save_statii(status_trajectories_list,
                          statii=['I','S','R','D'],
                               filename='scenario',
                                  save_as_csv=True,
-                                  save_plots=True):
+                                  save_plots=True, output_folder='outputs/'):
     """
     Generates from a list of status trajectories from different, one simulation
     plot and and different csv files.
@@ -131,7 +131,7 @@ def plot_and_save_durations(simulation_trajectory_list,
                                            'hospital_to_icu'],
                                           filename='scenario',
                                              save_as_csv=True,
-                                              save_plot=True):
+                                              save_plot=True, output_folder='outputs/'):
     """
     Generates from a list of durations from different simulations one plot
     and different csv files.
@@ -174,7 +174,7 @@ def plot_and_save_durations(simulation_trajectory_list,
 def plot_flags(flags_l, cummulative=False,
                       filename='scenario',
                       save_as_csv=True,
-                      save_plot=True):
+                      save_plot=True, output_folder='outputs/'):
     
     fig, ax = plt.subplots(1,1,figsize=(8,8))
     if cummulative:
@@ -211,7 +211,7 @@ def plot_flags(flags_l, cummulative=False,
 def plot_and_save_infection_per_location(infection_per_location_list,
                                                  filename='scenario',
                                                     save_as_csv=True,
-                                                      save_plot=True):
+                                                      save_plot=True, output_folder='outputs/'):
     fig, ax = plt.subplots(1,1,figsize=(8,6)) 
     inf_per_loc_df = pd.DataFrame(infection_per_location_list)
     inf_per_loc_df.boxplot(ax=ax)
@@ -275,11 +275,11 @@ if __name__=='__main__':
     infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
 
     
-    plot_and_save_statii(status_trajectories_list, filename=scenario) 
-    plot_and_save_durations(simulation_trajectory_list, filename=scenario)
-    plot_flags(flag_trajectories_list, cummulative=False, filename=scenario)
-    plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ')
-    plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario)   
+    plot_and_save_statii(status_trajectories_list, filename=scenario, output_folder=output_folder) 
+    plot_and_save_durations(simulation_trajectory_list, filename=scenario, output_folder=output_folder)
+    plot_flags(flag_trajectories_list, cummulative=False, filename=scenario, output_folder=output_folder)
+    plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ', output_folder=output_folder)
+    plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario, output_folder=output_folder)   
 
 
     stop = timeit.default_timer()
