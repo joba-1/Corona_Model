@@ -73,6 +73,7 @@ def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
     #sim = load_simulation_object(filename)
     #print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
+            'medic_trajectories': sim.get_status_trajectories(specific_people='medical_professional'),
                               'durations': sim.get_durations(),
             'flag_trajectories': sim.get_flag_sums_over_time(),
             'infections_per_location_type':sim.get_infections_per_location_type()}
@@ -270,12 +271,14 @@ if __name__=='__main__':
 
 
     status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
+    medic_trajectories_list = [df['medic_trajectories'] for df in df_dict_list]
     simulation_trajectory_list = [df['durations'] for df in df_dict_list]
     flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
     infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
 
     
-    plot_and_save_statii(status_trajectories_list, filename=scenario, output_folder=output_folder) 
+    plot_and_save_statii(status_trajectories_list, filename=scenario, output_folder=output_folder)
+    plot_and_save_statii(medic_trajectories_list, filename=scenario+'_medical_professionals', output_folder=output_folder) 
     plot_and_save_durations(simulation_trajectory_list, filename=scenario, output_folder=output_folder)
     plot_flags(flag_trajectories_list, cummulative=False, filename=scenario, output_folder=output_folder)
     plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ', output_folder=output_folder)
