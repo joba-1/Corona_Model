@@ -83,6 +83,10 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
     locations_types = list(location_counts.keys())
     plt.bar(locations_types, list(location_counts.values()), color=[
             locationTypeColors[loc] for loc in locations_types])
+    plt.title('Distribution of generated location types')
+    plt.xlabel('Location type')
+    plt.ylabel('# generated of this type')
+    plt.show()
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
@@ -194,9 +198,9 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     """
     flag_sums = simulation_object.get_flag_sums_over_time(specific_flags=specific_flags)
     for flag in flag_sums.columns:
-        plt.plot(flag_sums.index, flag_sums[flag],
+        plt.plot(flag_sums.index, flag_sums[flag], linestyle='--' if 'Was' in flag else '-',
                  label=str(flag), color=statusAndFlagsColors[flag])
-    plt.title('flags trajectories')
+    plt.title('flag trajectories')
     plt.xlabel('Time [hours]')
     plt.ylabel('# People')
     plt.xlabel('Time [hours]')
