@@ -705,7 +705,8 @@ class Simulation(object):
                                 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time']
         else:
             cols_of_interest = specific_flags + ['time']
-        gdf = parsed_df.groupby('time')
+        sub_df = parsed_df.loc[:, cols_of_interest]
+        gdf = sub_df.groupby('time')
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
