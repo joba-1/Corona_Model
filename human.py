@@ -221,6 +221,7 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
+        self.contact_persons = {}
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -450,16 +451,17 @@ class Human(object):
         """
         coeff = 1
         if self.infection_interaction_enabled:
-            infectious_person = self.loc.infection_interaction()
-            if infectious_person is not None:
-                self.infected_in_contact_with.add(str(infectious_person.ID))
+            contact_person = self.loc.infection_interaction()
+            self.contact_persons.add(contact_person.ID)
+            if contact_person.is_infected:
+                self.infected_in_contact_with.add(str(contact_person.ID))
                 if self.loc.location_type == 'hospital':
                     coeff = self.hospital_coeff
-                if infectious_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
+                if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'
                     self.infection_time = time
                     self.was_infected = True
-                    self.got_infected_by = infectious_person.ID
+                    self.got_infected_by = contact_person.ID
                     self.place_of_infection = self.loc.ID
                     self.is_infected = True
         else:
