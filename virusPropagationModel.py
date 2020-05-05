@@ -250,12 +250,12 @@ class ModeledPopulatedWorld(object):
         """
         vpm_plt.plot_distribution_of_location_types(self)
 
-    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step, **kwargs)
 
 
 class Simulation(object):
