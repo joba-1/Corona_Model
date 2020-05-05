@@ -11,32 +11,16 @@ import csv
 import pickle
 
 
-scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.5, 'name':'close_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.5, 'name':'close_all_reopen_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.5, 'name':'close_all_reopen_work'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_all_reopen_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_all_reopen_public'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.5, 'name':'close_public_school_reopen_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_public_school_reopen_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_public_school_reopen_public'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.3, 'name':'close_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.3, 'name':'close_all_reopen_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.3, 'name':'close_all_reopen_work'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_all_reopen_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_all_reopen_public'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.3, 'name':'close_public_school_reopen_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_public_school_reopen_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_public_school_reopen_public'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_work'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_work_school'}]              
+scenarios = [{'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.05, 'name':'no_mitigation_if05'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.10, 'name':'no_mitigation_if10'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.15, 'name':'no_mitigation_if15'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.20, 'name':'no_mitigation_if20'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.25, 'name':'no_mitigation_if25'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.30, 'name':'no_mitigation_if30'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.35, 'name':'no_mitigation_if35'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.40, 'name':'no_mitigation_if40'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.45, 'name':'no_mitigation_if45'},
+             {'run':0 ,'max_time': 2000, 'start_2':2, 'start_3':5, 'closed_locs':[],'reopen_locs':[],'infectivity':0.50, 'name':'no_mitigation_if50'}]
 
 #world_list = os.listdir('/home/basar/corona_simulations/saved_objects/worlds')
 #world_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')]
@@ -45,32 +29,16 @@ scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_l
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
-                        0: no_mitigation \n \
-                        1: no_mitigation_medics_02 \n \
-                        2: close_all\n \
-                        3: close_all_reopen_all\n \
-                        4: close_all_reopen_work\n \
-                        5: close_all_reopen_school\n \
-                        6: close_all_reopen_public\n \
-                        7: close_public_school\n \
-                        8: close_public_school_reopen_all\n \
-                        9: close_public_school_reopen_school\n \
-                        10: close_public_school_reopen_public\n \
-                        11: close_public_work\n \
-                        12: close_work_school \n \
-                        13: no_mitigation \n \
-                        14: no_mitigation_medics_02 \n \
-                        15: close_all\n \
-                        16: close_all_reopen_all\n \
-                        17: close_all_reopen_work\n \
-                        18: close_all_reopen_school\n \
-                        19: close_all_reopen_public\n \
-                        20: close_public_school\n \
-                        21: close_public_school_reopen_all\n \
-                        22: close_public_school_reopen_school\n \
-                        23: close_public_school_reopen_public\n \
-                        24: close_public_work\n \
-                        25: close_work_school ")
+                        0: no_mitigation if 0.05 \n \
+                        1: no_mitigation if 0.10 \n \
+                        2: no_mitigation if 0.15 \n \
+                        3: no_mitigation if 0.20 \n \
+                        4: no_mitigation if 0.25 \n \
+                        5: no_mitigation if 0.30 \n \
+                        6: no_mitigation if 0.35 \n \
+                        7: no_mitigation if 0.40 \n \
+                        8: no_mitigation if 0.45 \n \
+                        9: no_mitigation if 0.50 ")
 
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
@@ -97,7 +65,7 @@ def simulate_scenario(input_dict):
     required: only 'run'
     '''
 
-    my_dict = {'run': 0, 'max_time': 1000, 'start_2': 200, 'start_3': 500,
+    my_dict = {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500,
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
                'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default', 'output_folder': 'scenario_output', 'world':None}
 
@@ -205,8 +173,8 @@ def get_simualtion_settings(options):
 
 if __name__ == '__main__':
 
-    # '/home/basar/corona_simulations/saved_objects/worlds'
-    input_folder = 'saved_objects/worlds/'
+    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds'
+    #input_folder = 'saved_objects/worlds/'
 
     world_list = os.listdir(input_folder)
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
