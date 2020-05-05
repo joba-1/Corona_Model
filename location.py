@@ -255,7 +255,7 @@ class Location(object):
         return risk
 
     def infection_interaction(self):  # this needs improvement, it's simple and preliminary
-        return(choosing_one(list(self.people_present))
+        return(choosing_one(list(self.people_present)))
 
     def next_location_of_type(self, type):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''
@@ -267,41 +267,41 @@ class Location(object):
     def closest_loc(self, loc_type):
         ''' returns sorted list ID of the closest Location of type : loc_type, if type is identical the distance is 0'''
         try:
-            ids_of_type_in_neighbourhood=self.ids_of_location_types[loc_type]
+            ids_of_type_in_neighbourhood = self.ids_of_location_types[loc_type]
         except:
             # print('location type: {} is not in the neighbourhood'.format(loc_type))
             return None
-        distances_loc={loc_id: self.distance_loc(loc_id)
+        distances_loc = {loc_id: self.distance_loc(loc_id)
                          for loc_id in self.ids_of_location_types[loc_type]}
-        min_dist_index=list(distances_loc.values()).index(min(distances_loc.values()))
-        sorted_items=sorted((value, key) for (key, value) in distances_loc.items())
-        sorted_ids=[i for (v, i) in sorted_items]
+        min_dist_index = list(distances_loc.values()).index(min(distances_loc.values()))
+        sorted_items = sorted((value, key) for (key, value) in distances_loc.items())
+        sorted_ids = [i for (v, i) in sorted_items]
         return sorted_ids
 
     def closest_loc_world(self, loc_type, return_sorted_list=False):
         try:
-            ids_of_type_in_world=ctypes.cast(
+            ids_of_type_in_world = ctypes.cast(
                 self.world_ref, ctypes.py_object).value.ids_of_location_types[loc_type]
         except:
             return None
         if len(ids_of_type_in_world) > 1:
-            row_ind=ctypes.cast(
+            row_ind = ctypes.cast(
                 self.world_ref, ctypes.py_object).value.proxy_matrix_row_indices.index(self.ID)
-            col_ind=[ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
+            col_ind = [ctypes.cast(self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices.index(
                 l) for l in ids_of_type_in_world if l != self.ID]
             if len(col_ind) > 0:
-                respective_other_matrix_entries=list(ctypes.cast(
+                respective_other_matrix_entries = list(ctypes.cast(
                     self.world_ref, ctypes.py_object).value.proximity_matrix[row_ind, col_ind])
                 if respective_other_matrix_entries:
                     if not return_sorted_list:
-                        index_in_row_subset=int(respective_other_matrix_entries[respective_other_matrix_entries.index(
+                        index_in_row_subset = int(respective_other_matrix_entries[respective_other_matrix_entries.index(
                             min(respective_other_matrix_entries))])
-                        ID_of_closest=ctypes.cast(
+                        ID_of_closest = ctypes.cast(
                             self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]]
                         return([ID_of_closest])
                     else:
-                        indices_in_row_subset=list(np.argsort(respective_other_matrix_entries))
-                        IDs_sorted_by_dist=[ctypes.cast(
+                        indices_in_row_subset = list(np.argsort(respective_other_matrix_entries))
+                        IDs_sorted_by_dist = [ctypes.cast(
                             self.world_ref, ctypes.py_object).value.proxy_matrix_col_indices[col_ind[index_in_row_subset]] for i in indices_in_row_subset]
                         return(IDs_sorted_by_dist)
                 else:
