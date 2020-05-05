@@ -1,0 +1,21 @@
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_005 -f saved_objects/no_mitigation_IF_005/
+tar -cf - $saved_objects/no_mitigation_IF_005/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_005.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_005/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_010 -f saved_objects/no_mitigation_IF_010/
+tar -cf - $saved_objects/no_mitigation_IF_010/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_010.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_010/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_015 -f saved_objects/no_mitigation_IF_015/
+tar -cf - $saved_objects/no_mitigation_IF_015/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_015.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_015/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_020 -f saved_objects/no_mitigation_IF_020/
+tar -cf - $saved_objects/no_mitigation_IF_020/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_020.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_020/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_025 -f saved_objects/no_mitigation_IF_025/
+tar -cf - $saved_objects/no_mitigation_IF_025/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_025.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_025/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_030 -f saved_objects/no_mitigation_IF_030/
+tar -cf - $saved_objects/no_mitigation_IF_030/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_030.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_030/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_035 -f saved_objects/no_mitigation_IF_035/
+tar -cf - $saved_objects/no_mitigation_IF_035/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_035.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_035/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_040 -f saved_objects/no_mitigation_IF_040/
+tar -cf - $saved_objects/no_mitigation_IF_040/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_040.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_040/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_045 -f saved_objects/no_mitigation_IF_045/
+tar -cf - $saved_objects/no_mitigation_IF_045/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_045.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_045/
+python3 simulate_scenarios.py -w 0 -st 0 -sc no_mitigation_IF_050 -f saved_objects/no_mitigation_IF_050/
+tar -cf - $saved_objects/no_mitigation_IF_050/ | lbzip2 -9 > $/mnt/corona/CORONA_DATA/simulations/no_mitigation_IF_050.tar.bz2 && rm -rf saved_objects/no_mitigation_IF_050/
+
