@@ -221,7 +221,7 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
-        self.contact_persons = {}
+        self.contact_persons = set()
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
