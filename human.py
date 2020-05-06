@@ -231,10 +231,12 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         if self.status == 'R':
+            self.interact()
             pass
         elif self.status == 'S':
             self.get_infected(time)
         elif self.is_infected:
+            self.interact()
             self.infection_duration += 1
             if self.diagnosed:
                 self.diagnosis_duration += 1
