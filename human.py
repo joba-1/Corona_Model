@@ -1,4 +1,5 @@
 from numpy.random import choice as choosing  # numpy.random for generating random numbers
+from random import choice as choosing_one
 import numpy
 import dataProcessing as dp
 from random import random as randomval
@@ -441,6 +442,11 @@ class Human(object):
         self.place_of_infection = self.loc.ID
         self.is_infected = True
 
+    def interact(self, time):
+        contact_person = choosing_one(list(self.loc.people_present))
+        self.contact_persons.add((time, str(contact_person.ID)))
+        return(contact_person)
+
     def get_infected(self, time):
         """
         Determines whether an agent gets infected, at the current location and time.
@@ -450,26 +456,17 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
-        if self.infection_interaction_enabled:
-            contact_person = self.loc.infection_interaction()
-            self.contact_persons.add(contact_person.ID)
-            if contact_person.is_infected:
-                self.infected_in_contact_with.add(str(contact_person.ID))
-                if self.loc.location_type == 'hospital':
-                    coeff = self.hospital_coeff
-                if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                    self.preliminary_status = 'I'
-                    self.infection_time = time
-                    self.was_infected = True
-                    self.got_infected_by = contact_person.ID
-                    self.place_of_infection = self.loc.ID
-                    self.is_infected = True
-        else:
-            if self.loc.infection_risk()*self.behaviour_as_susceptible >= randomval():
+        contact_person = self.interact(time)
+        if contact_person.is_infected:
+            self.infected_in_contact_with.add(str(contact_person.ID))
+            if self.loc.location_type == 'hospital':
+                coeff = self.hospital_coeff
+            if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                 self.preliminary_status = 'I'
                 self.infection_time = time
-                self.place_of_infection = self.loc.ID
                 self.was_infected = True
+                self.got_infected_by = contact_person.ID
+                self.place_of_infection = self.loc.ID
                 self.is_infected = True
 
     def get_diagnosed(self, probability, time):

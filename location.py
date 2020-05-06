@@ -248,15 +248,6 @@ class Location(object):
     def leave(self, person):
         self.people_present.remove(person)
 
-    def infection_risk(self):  # this needs improvement, it's simple and preliminary
-        infected = sum([p.get_infectivity() for p in self.people_present if p.is_infected])
-        # / float(len(self.people_present))  # get fraction of infected individuals in location
-        risk = function2specify(infected, self.location_factor)
-        return risk
-
-    def infection_interaction(self):  # this needs improvement, it's simple and preliminary
-        return(choosing_one(list(self.people_present)))
-
     def next_location_of_type(self, type):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''
         if self.closest_loc(type):
