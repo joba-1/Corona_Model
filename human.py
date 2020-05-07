@@ -214,16 +214,13 @@ class Human(object):
         loc.enter(self)
         self.personal_risk = self.get_personal_risk()  # todesrisiko
         self.preliminary_status = 'S'
-        self.got_infected_by = numpy.nan
-        self.infected_in_contact_with = set()
         self.is_infected = False
         self.hospital_coeff = 0.01
         self.diagnosis_probabiliy = 0
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
-        self.contact_persons = list()
-        self.last_interaction = 0
+        self.contact_person = numpy.nan
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -231,9 +228,10 @@ class Human(object):
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
+        self.contact_person = numpy.nan
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
-            self.interact(time)
+            contact_person = self.interact(time)
             pass
         elif self.status == 'S':
             ##encounter interaction with a random person currently at own location and return person##
@@ -286,6 +284,7 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
+        out['Interaction_partner'] = self.contact_person
         return(out)
 
     def encode_temporary_flags(self):
@@ -356,10 +355,6 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
-                'infected_in_contact_with': ' , '.join(self.infected_in_contact_with),
-                'infected_by': str(self.got_infected_by),
-                'place_of_infection': str(self.place_of_infection),
-                'infection_time': self.infection_time,
                 'recovery_time':  self.recover_time,
                 'death_time':     self.death_time,
                 'diagnosis_time': self.diagnosis_time,
@@ -480,9 +475,8 @@ class Human(object):
         ## pick one other agent currently at same location ##
         contact_person = choosing_one(list(self.loc.people_present))
         ## add this partners ID to own record of interaction-partners ##
-        self.contact_persons.append((str(contact_person.ID), time))
-        contact_person.contact_persons.append((str(self.ID), time))
-        ## set owns and partners times of last interaction to the current timestep ##
+        if contact_person:
+            self.contact_person = numpy.uint8(contact_person.ID)
         ## return the interaction-partner ##
         return(contact_person)
 
@@ -500,16 +494,12 @@ class Human(object):
             ## check if interaction-partner is infected##
             if contact_person.is_infected:
                 ## add interaction partner to own list of contacts with infected individuals ##
-                self.infected_in_contact_with.add(str(contact_person.ID))
                 if self.loc.location_type == 'hospital':
                     # modulate infection-probability coefficient if one is in the hospital
                     coeff = self.hospital_coeff
                 ## evaluate whether infection occurs, based on probability ##
                 if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'  # set owns preliminary status to infected ##
-                    self.infection_time = time  # record own time of infection ##
-                    self.got_infected_by = contact_person.ID  # record person, got infected by ##
-                    self.place_of_infection = self.loc.ID  # record own place of infection ##
                     self.was_infected = True  # set own was_infected argument to True##
                     self.is_infected = True  # set own is_infected argument to True##
 
