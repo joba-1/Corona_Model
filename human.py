@@ -261,7 +261,8 @@ class Human(object):
 
     def get_stati_and_flags(self, time):  # for storing simulation data (flags)
         """
-        Returns dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags
+        Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
+        All stati temporary and cumulative flags are encoded by one integer to save memory.
         Arguments to provide are: none
         """
         out = ordered_dict()
@@ -274,6 +275,14 @@ class Human(object):
         return(out)
 
     def encode_temporary_flags(self):
+        """
+        Encodes the four different temporary-flags into one specific integer.
+        0: Agent is not infected.
+        1: Agent is infected.
+        2: Agent is infected and diagnosed.
+        3: Agent is infected, diagnosed and hospitalized  (not ICU).
+        4: Agent is infected, diagnosed and in ICU  (not hospital).
+        """
         if self.is_infected:
             if self.diagnosed:
                 if self.hospitalized:
@@ -288,6 +297,14 @@ class Human(object):
             return(numpy.uint8(0))
 
     def encode_cumulative_flags(self):
+        """
+        Encodes the four different cumulative-flags into one specific integer.
+        0: Agent has never been infected.
+        1: Agent has been infected.
+        2: Agent has been infected and diagnosed.
+        3: Agent has been infected, diagnosed and hospitalized.
+        4: Agent has been infected, diagnosed and in ICU.
+        """
         if self.was_infected:
             if self.was_diagnosed:
                 if self.was_hospitalized:
@@ -302,6 +319,13 @@ class Human(object):
             return(numpy.uint8(0))
 
     def encode_stati(self):
+        """
+        Encodes the four different stati into one specific integer.
+        0: 'S'
+        1: 'I'
+        2: 'R'
+        3: 'D'
+        """
         if self.status == 'S':
             return(numpy.uint8(0))
         elif self.status == 'I':
@@ -334,15 +358,21 @@ class Human(object):
         Moves agent to next location, according to its schedule.
         Arguments to provide are: time (int)
         """
-        # {'times':[0,10,16], 'locs':[<location1>,<location2>,<location3>]}
+        ## Firstly decide which schedule to follow ##
         if not self.status == 'D' and not self.hospitalized and not self.icu and not self.diagnosed:
+            ## if alive and not diagnosed, hospitalized or ICUed##
+            ## follow own regular schedule ##
             current_schedule = self.schedule
         else:
+            ## if dead, diagnosed, hospitalized or ICUed##
+            ## follow schedule, specific to condition##
             current_schedule = self.specific_schedule
+        ## move according to relevant schedule ##
         if time % (24*7) in current_schedule['times']:  # here i check for a 24h cycling schedule
             self.loc.leave(self)  # leave old location
-            new_loc = current_schedule['locs'][current_schedule['times'].index(time % (24*7))]
-            self.loc = new_loc
+            new_loc = current_schedule['locs'][current_schedule['times'].index(
+                time % (24*7))]  # find new location in  schedule#
+            self.loc = new_loc  # set own location to new location#
             new_loc.enter(self)  # enter new location
 
     def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
