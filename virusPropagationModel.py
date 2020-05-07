@@ -383,7 +383,7 @@ class Simulation(object):
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
             first_simulated_step = 1
         else:
             first_simulated_step = 0
@@ -394,8 +394,8 @@ class Simulation(object):
             for p in self.people:  # don't call if hospitalized
                 p.set_status_from_preliminary()
                 p.move(self.time)
-                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
-        return pd.DataFrame(timecourse, columns=list(p.get_stati_and_flags(self.time).keys()))
+                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
 
     def change_agent_attributes(self, input):
         """

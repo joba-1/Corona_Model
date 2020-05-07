@@ -183,6 +183,7 @@ class Human(object):
         self.infection_interaction_enabled = enable_infection_interaction
         self.ID = ID
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
+        self.preliminary_status = copy.copy(status)
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
@@ -193,6 +194,10 @@ class Human(object):
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
         self.home = loc
+        loc.enter(self)
+        self.behaviour_as_infected = 1
+        self.behaviour_as_susceptible = 1
+        self.hospital_coeff = 0.01
         self.infection_time = numpy.nan
         self.diagnosis_time = numpy.nan
         self.hospitalization_time = numpy.nan
@@ -200,27 +205,22 @@ class Human(object):
         self.death_time = numpy.nan
         self.icu_time = numpy.nan
         self.rehospitalization_time = numpy.nan
-        self.diagnosed = False
-        self.hospitalized = False
-        self.icu = False
-        self.was_infected = False
         self.infection_duration = 0
         self.diagnosis_duration = 0
         self.hospitalization_duration = 0
         self.icu_duration = 0
-        self.behaviour_as_infected = 1
-        self.behaviour_as_susceptible = 1
-        loc.enter(self)
-        self.personal_risk = self.get_personal_risk()  # todesrisiko
-        self.preliminary_status = 'S'
+        self.diagnosed = False
+        self.hospitalized = False
+        self.icu = False
+        self.was_infected = False
         self.is_infected = False
-        self.hospital_coeff = 0.01
-        self.diagnosis_probabiliy = 0
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
         self.contact_person = numpy.nan
-        self.infection_event = numpy.nan
+        self.infection_event = numpy.uint8(0)
+
+
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -272,7 +272,7 @@ class Human(object):
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
 
-    def get_stati_and_flags(self, time):  # for storing simulation data (flags)
+    def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
         """
         Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
         All stati temporary and cumulative flags are encoded by one integer to save memory.
@@ -285,7 +285,7 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = numpy.uint8(self.contact_person)
+        out['Interaction_partner'] = self.contact_person
         out['Infection_event'] = numpy.uint8(self.infection_event)
         return(out)
 
