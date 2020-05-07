@@ -218,10 +218,11 @@ class Human(object):
         self.was_hospitalized = False
         self.was_icued = False
         self.contact_person = numpy.nan
-        self.infection_event = numpy.uint8(0)
+        self.infection_event = 0
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
+
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
@@ -229,7 +230,7 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         self.contact_person = numpy.nan
-        self.infection_event = numpy.uint8(0)
+        self.infection_event = 0
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
             contact_person = self.interact(time)
@@ -490,6 +491,7 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
+        out = 0
         ## check if there is an existing interaction-partner ##
         if contact_person:
             ## check if interaction-partner is infected##
@@ -504,7 +506,8 @@ class Human(object):
                     self.was_infected = True  # set own was_infected argument to True##
                     self.is_infected = True  # set own is_infected argument to True##
                     self.infection_time = time
-                    return(1)
+                    out = 1
+        return(out)
 
     def get_diagnosed(self, probability, time):
         """
