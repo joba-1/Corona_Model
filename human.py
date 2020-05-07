@@ -232,14 +232,20 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         if self.status == 'R':
+            #encounter interaction with a random person currently at own location#
             self.interact(time)
             pass
         elif self.status == 'S':
-            self.get_infected(time, self.interact(time))
-        elif self.is_infected:
+            ##encounter interaction with a random person currently at own location and return person##
             contact_person = self.interact(time)
-            if contact_person:
-                if contact_person.preliminary_status == 'S':
+            ##get potentially infected by picked person ##
+            self.get_infected(time, contact_person)
+        elif self.is_infected:
+            ##encounter interaction with a random person currently at own location and return person##
+            contact_person = self.interact(time)
+            if contact_person:  # if an interaction partner has been found ##
+                if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
+                    ##potentially infect this person ##
                     contact_person.get_infected(time, self)
             self.infection_duration += 1
             if self.diagnosed:
@@ -435,13 +441,28 @@ class Human(object):
         self.is_infected = True
 
     def interact(self, time):
+        """
+        Establishes interaction with other agents.
+        Firstly checks whether the given was already involved in an interaction this timestep.
+        Then picks one other agent among the present.
+        If this other did not have an interaction this timestep, the interaction takes place.
+        The interaction partner is returned and the interaction-information is recorded in both participants.
+        Arguments to provide are: time (int)
+        """
+        ## check if agent already had an interaction during this timestep ##
         if self.last_interaction != time:
+            ## pick one other agent currently at same location ##
             contact_person = choosing_one(list(self.loc.people_present))
+            ## check if the contact person already had an interaction during this timestep ##
             if contact_person.last_interaction != time:
+                ## add this partners ID to own record of interaction-partners ##
                 self.contact_persons.add(str(contact_person.ID))
+                ## add oneselfs ID to partners record of interaction-partners ##
                 contact_person.contact_persons.add(str(self.ID))
+                ## set owns and partners times of last interaction to the current timestep ##
                 self.last_interaction = time
                 contact_person.last_interaction = time
+                ## return the interaction-partner ##
                 return(contact_person)
 
     def get_infected(self, time, contact_person):
@@ -453,18 +474,23 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
+        ## check if there is an existing interaction-partner ##
         if contact_person:
+            ## check if interaction-partner is infected##
             if contact_person.is_infected:
+                ## add interaction partner to own list of contacts with infected individuals ##
                 self.infected_in_contact_with.add(str(contact_person.ID))
                 if self.loc.location_type == 'hospital':
+                    # modulate infection-probability coefficient if one is in the hospital
                     coeff = self.hospital_coeff
+                ## evaluate whether infection occurs, based on probability ##
                 if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                    self.preliminary_status = 'I'
-                    self.infection_time = time
-                    self.was_infected = True
-                    self.got_infected_by = contact_person.ID
-                    self.place_of_infection = self.loc.ID
-                    self.is_infected = True
+                    self.preliminary_status = 'I'  # set owns preliminary status to infected ##
+                    self.infection_time = time  # record own time of infection ##
+                    self.got_infected_by = contact_person.ID  # record person, got infected by ##
+                    self.place_of_infection = self.loc.ID  # record own place of infection ##
+                    self.was_infected = True  # set own was_infected argument to True##
+                    self.is_infected = True  # set own is_infected argument to True##
 
     def get_diagnosed(self, probability, time):
         """
