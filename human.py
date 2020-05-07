@@ -222,7 +222,7 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
-        self.contact_persons = set()
+        self.contact_persons = list()
         self.last_interaction = 0
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
@@ -443,27 +443,18 @@ class Human(object):
     def interact(self, time):
         """
         Establishes interaction with other agents.
-        Firstly checks whether the given was already involved in an interaction this timestep.
-        Then picks one other agent among the present.
-        If this other did not have an interaction this timestep, the interaction takes place.
+        Picks one other agent among the present.
         The interaction partner is returned and the interaction-information is recorded in both participants.
         Arguments to provide are: time (int)
         """
-        ## check if agent already had an interaction during this timestep ##
-        if self.last_interaction != time:
-            ## pick one other agent currently at same location ##
-            contact_person = choosing_one(list(self.loc.people_present))
-            ## check if the contact person already had an interaction during this timestep ##
-            if contact_person.last_interaction != time:
-                ## add this partners ID to own record of interaction-partners ##
-                self.contact_persons.add(str(contact_person.ID))
-                ## add oneselfs ID to partners record of interaction-partners ##
-                contact_person.contact_persons.add(str(self.ID))
-                ## set owns and partners times of last interaction to the current timestep ##
-                self.last_interaction = time
-                contact_person.last_interaction = time
-                ## return the interaction-partner ##
-                return(contact_person)
+        ## pick one other agent currently at same location ##
+        contact_person = choosing_one(list(self.loc.people_present))
+        ## add this partners ID to own record of interaction-partners ##
+        self.contact_persons.append((str(contact_person.ID), time))
+        contact_person.contact_persons.append((str(self.ID), time))
+        ## set owns and partners times of last interaction to the current timestep ##
+        ## return the interaction-partner ##
+        return(contact_person)
 
     def get_infected(self, time, contact_person):
         """
