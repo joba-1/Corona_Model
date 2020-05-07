@@ -193,7 +193,6 @@ class Human(object):
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
         self.home = loc
-        self.place_of_infection = numpy.nan
         self.infection_time = numpy.nan
         self.diagnosis_time = numpy.nan
         self.hospitalization_time = numpy.nan
@@ -221,6 +220,7 @@ class Human(object):
         self.was_hospitalized = False
         self.was_icued = False
         self.contact_person = numpy.nan
+        self.infection_event = numpy.nan
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -229,6 +229,7 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         self.contact_person = numpy.nan
+        self.infection_event = numpy.uint8(0)
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
             contact_person = self.interact(time)
@@ -237,14 +238,14 @@ class Human(object):
             ##encounter interaction with a random person currently at own location and return person##
             contact_person = self.interact(time)
             ##get potentially infected by picked person ##
-            self.get_infected(time, contact_person)
+            self.infection_event = self.get_infected(time, contact_person)
         elif self.is_infected:
             ##encounter interaction with a random person currently at own location and return person##
             contact_person = self.interact(time)
             if contact_person:  # if an interaction partner has been found ##
                 if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
                     ##potentially infect this person ##
-                    contact_person.get_infected(time, self)
+                    self.infection_event = contact_person.get_infected(time, self)
             self.infection_duration += 1
             if self.diagnosed:
                 self.diagnosis_duration += 1
@@ -284,7 +285,8 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = self.contact_person
+        out['Interaction_partner'] = numpy.uint8(self.contact_person)
+        out['Infection_event'] = numpy.uint8(self.infection_event)
         return(out)
 
     def encode_temporary_flags(self):
@@ -462,7 +464,6 @@ class Human(object):
         self.set_status_from_preliminary()
         self.infection_time = 0
         self.was_infected = True
-        self.place_of_infection = self.loc.ID
         self.is_infected = True
 
     def interact(self, time):
@@ -476,7 +477,7 @@ class Human(object):
         contact_person = choosing_one(list(self.loc.people_present))
         ## add this partners ID to own record of interaction-partners ##
         if contact_person:
-            self.contact_person = numpy.uint8(contact_person.ID)
+            self.contact_person = contact_person.ID
         ## return the interaction-partner ##
         return(contact_person)
 
@@ -502,6 +503,8 @@ class Human(object):
                     self.preliminary_status = 'I'  # set owns preliminary status to infected ##
                     self.was_infected = True  # set own was_infected argument to True##
                     self.is_infected = True  # set own is_infected argument to True##
+                    self.infection_time = time
+                    return(1)
 
     def get_diagnosed(self, probability, time):
         """
