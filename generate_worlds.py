@@ -10,7 +10,7 @@ import sys
 
 def ini_and_save_world(i):
     world = ModeledPopulatedWorld(1000,10, world_from_file=True,
-            geofile_name='datafiles/Buildings_Gangelt_MA_3.csv',
+            geofile_name='datafiles/Buildings_Gangelt_MA_1.csv',
                                      agent_agent_infection=True,
                              automatic_initial_infections=False,
                                   input_schedules='schedules_v1')
