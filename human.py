@@ -290,7 +290,7 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = self.contact_person
+        out['Interaction_partner'] = numpy.uint8(self.contact_person)
         out['Infection_event'] = numpy.uint8(self.infection_event)
         return(out)
 
