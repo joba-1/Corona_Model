@@ -233,16 +233,16 @@ class Human(object):
         self.infection_event = 0
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
-            contact_person = self.interact(time)
+            contact_person = self.interact()
             pass
         elif self.status == 'S':
             ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact(time)
+            contact_person = self.interact()
             ##get potentially infected by picked person ##
             self.infection_event = self.get_infected(time, contact_person)
         elif self.is_infected:
             ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact(time)
+            contact_person = self.interact()
             if contact_person:  # if an interaction partner has been found ##
                 if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
                     ##potentially infect this person ##
@@ -467,7 +467,7 @@ class Human(object):
         self.was_infected = True
         self.is_infected = True
 
-    def interact(self, time):
+    def interact(self):
         """
         Establishes interaction with other agents.
         Picks one other agent among the present.
