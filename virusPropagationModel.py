@@ -662,25 +662,28 @@ class Simulation(object):
         :example:
                 {'home': 5, 'school': 6, ... 'public': 4}
         """
-        infection_events = self.get_infection_event_information()
-        infection_locations = list(infection_events['place_of_infection'])
-        location_types = {str(l.ID): l.location_type for l in self.locations.values()
-                          if str(l.ID) in infection_locations}
+        #infection_events = self.get_infection_event_information()
+        #infection_locations = list(infection_events['place_of_infection'])
+
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event']==1]
+        infection_locations = list(infection_events['loc'].values)
+        location_types = {l.ID: l.location_type for l in self.locations.values()
+                          if l.ID in infection_locations}
         unique_locs = list(set(list(location_types.values())))
         loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
         total_buildings_of_type = {}
         for i in unique_locs:
             total_buildings_of_type[i] = len(
                 [1 for j in self.locations.keys() if self.locations[j].location_type == i])
-        for i in infection_events.index:
-            if not infection_events.loc[i, 'infected_by'] == 'nan':
-                respective_type = location_types[infection_events.loc[i, 'place_of_infection']]
-                if relative_to_building_number:
+        for i_loc in infection_locations:
+            respective_type = location_types[i_loc]
+            if relative_to_building_number:
                     loc_infection_dict[respective_type] += 1 / \
                         total_buildings_of_type[respective_type]
-                else:
+            else:
                     loc_infection_dict[respective_type] += 1
-        return(loc_infection_dict)
+        return(loc_infection_dict)            
+
 
     # DF
     def get_flag_sums_over_time(self, specific_flags=None):
