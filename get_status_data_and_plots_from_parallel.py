@@ -163,9 +163,12 @@ def plot_and_save_durations(simulation_trajectory_list,
         ax.set_title(dur)
         df_d_small.boxplot(ax=ax)
         ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
+        ax.set_xlabel('time, h')
+        ax.set_ylabel('counts')
 
         if save_as_csv:
                 df_d_small.to_csv(output_folder+filename+'_'+dur+'.csv')
+    plt.tight_layout()            
 
     if save_plot:
         plt.savefig(output_folder+'plots/'+filename+'_'+dur+'.png') 
@@ -193,14 +196,13 @@ def plot_flags(flags_l, cummulative=False,
             
             if save_as_csv:
                 df.to_csv(output_folder+filename+'_'+flag+'.csv')
-            #df.reset_index().drop('time')
 
-            #df_sims.mean(axis=1)
             for col in df.columns:
-                ax.plot(df.index,df[col],color=statusAndFlagsColors[flag],alpha=0.2,)
+                ax.plot(df.index,df[col], color=statusAndFlagsColors[flag], alpha=0.2)
             #df.plot(c=cmap(i),alpha=0.2, legend=False, ax=ax)
-            df.mean(axis=1).plot(ax=ax,c=statusAndFlagsColors[flag], label=flag)
+            df.mean(axis=1).plot(ax=ax, c=statusAndFlagsColors[flag], label=flag)
             ax.set_title(filename); ax.set_ylabel('counts'), ax.set_xlabel('time, h')
+            ax.set_yscale('log')
         except:
             print(flag+'  is not in list')
                         

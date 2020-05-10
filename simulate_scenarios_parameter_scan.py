@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
         used_scenario[parameter] = p
         
-        scenario_and_parameter = used_scenario['name'] +'_'+parameter+'_'+'{:.3f}'.format(p)
+        scenario_and_parameter = used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
 
