@@ -223,13 +223,12 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
-        self.contact_person = numpy.nan
+        self.contact_person = numpy.nan  # ID of contact person#
         self.infection_event = 0
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
@@ -247,16 +246,21 @@ class Human(object):
                 if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
                     ##potentially infect this person ##
                     self.infection_event = contact_person.get_infected(time, self)
+            ## New method for the stuff below ##
             self.infection_duration += 1
             if self.diagnosed:
                 self.diagnosis_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
+
+            # What_to_do method #
             probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
                 print('Death- or recover-probability for age ' + str(self.age) +
                       ' and infection-duration '+str(self.infection_duration))
             what_happens = own_choose_function(probabilities)
+            #####################
+            ## infection_progression ##
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
@@ -475,12 +479,14 @@ class Human(object):
         Arguments to provide are: time (int)
         """
         ## pick one other agent currently at same location ##
-        contact_person = choosing_one(list(self.loc.people_present))
-        ## add this partners ID to own record of interaction-partners ##
-        if contact_person:
+        # list_people_present=[]
+        list_people_present = [p for p in list(self.loc.people_present) if p.ID != self.ID]
+        if len(list_people_present) != 0:
+            contact_person = choosing_one(list_people_present)
+            ## add this partners ID to own record of interaction-partners ##
             self.contact_person = contact_person.ID
-        ## return the interaction-partner ##
-        return(contact_person)
+            ## return the interaction-partner ##
+            return(contact_person)
 
     def get_infected(self, time, contact_person):
         """
