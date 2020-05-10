@@ -85,7 +85,7 @@ def plot_distribution_of_location_types(modeled_pop_world_obj):
             locationTypeColors[loc] for loc in locations_types])
 
 
-def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10):
+def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10, save_figure=False):
     age_groups_status_distribution = modeled_pop_world_obj.get_distribution_of_ages_and_infected(
         age_groups_step)
     width_of_bars = 0.50
@@ -95,7 +95,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     fig.set_figheight(7)
     tot_ppl = modeled_pop_world_obj.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
-    per_of_inf = (age_groups_status_distribution['I']/tot_ppl)*100
+    per_of_inf = (age_groups_status_distribution['I'] / tot_ppl)*100
     per_of_sus = (age_groups_status_distribution['S'] / tot_ppl) * 100
     ax.bar(age_groups, per_of_inf, width_of_bars,
            label=statusLabels['I'], color=statusAndFlagsColors['I'])
@@ -104,9 +104,12 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
     ax.set_ylabel('% of population')
     ax.set_xlabel('Age groups')
-    ax.legend()
+    #ax.legend()
     plt.tight_layout()
-    plt.show()
+    
+    if save_figure:
+        fig.savefig('outputs/initial_distribution_of_ages_and_infected.png')
+    plt.show()    
 
 
 """def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):
@@ -318,7 +321,7 @@ def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
             plt.savefig('plots/loc_t_'+str(time)+'.png')
 
 
-def plot_distributions_of_durations(simulation_object, save_figure=False):
+def plot_distributions_of_durations(simulation_object, save_figure=False, log=False):
     """
     plots the distributions of the total duration of the infection,
     the time from infection to hospitalization,

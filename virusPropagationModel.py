@@ -74,7 +74,7 @@ class ModeledPopulatedWorld(object):
             self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):# folder='saved_objects/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -82,9 +82,9 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_worldObj', date_suffix)
+            save_simulation_object(self, filename + '_worldObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -250,12 +250,12 @@ class ModeledPopulatedWorld(object):
         """
         vpm_plt.plot_distribution_of_location_types(self)
 
-    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step, **kwargs)
 
 
 class Simulation(object):
@@ -340,17 +340,29 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        self.simulation_object = copy.deepcopy(object_to_simulate)
-        self.time_steps = time_steps
-        self.people = self.simulation_object.people
-        self.locations = self.simulation_object.locations
+        if isinstance(object_to_simulate, ModeledPopulatedWorld):
+            self.time_steps = time_steps
+            self.people = copy.deepcopy(object_to_simulate.people)
+            self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.simulation_timecourse = pd.DataFrame()
+            self.time = 0
+        elif isinstance(object_to_simulate, Simulation):
+            self.time_steps = time_steps
+            if copy_sim_object:
+                self.people = copy.deepcopy(object_to_simulate.people)
+                self.locations = copy.deepcopy(object_to_simulate.locations)
+            else:
+                self.people = object_to_simulate.people
+                self.locations = object_to_simulate.locations
+            self.simulation_timecourse = object_to_simulate.simulation_timecourse
+            self.time = object_to_simulate.time
         if run_immediately:
             self.simulate()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -358,20 +370,13 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_simulationObj', date_suffix)
+            save_simulation_object(self, filename + '_simulationObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
-    def simulate(self, mem_save=False, tuples=False):
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
+    def simulate(self):
+        self.simulation_timecourse = pd.concat(
+            [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
         self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
