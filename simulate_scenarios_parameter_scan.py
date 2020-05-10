@@ -75,10 +75,10 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", type=int, help="number of world in '/home/basar/corona_simulations/saved_objects/worlds' ")
-    parser.add_argument("-f", "--folder", type=str, help="name of the folder in saved_objects/ ")
+    parser.add_argument("-f", "--folder", type=str, help="defalut '/home/basar/corona_simulations/saved_objects/scenario_output/' ")
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-p", "--parameter", type=str, help="define the parameter to scan: max_time start_2 start_3 infectivity ")
-    parser.add_argument("-r", "--range", nargs='+', type=float, help="define the parameter range (2 inputs): e.g. 1 2 ")
+    parser.add_argument("-pr", "--p_range", nargs='+', type=float, help="define the parameter range (2 inputs): e.g. 1 2 ")
     
     options = parser.parse_args(args)
     return options
@@ -180,8 +180,9 @@ def get_simualtion_settings(options):
     else:
         parameter = None 
 
-    if options.range:  # number of simulations
-        p_range = np.linsoace(options.parameter[0],options.parameter[1],10)
+    if options.p_range: # number of simulations
+
+        p_range = np.linsoace(options.p_range[0],options.p_range[1],10)
     else:
         p_range = np.array([1])         
 
@@ -193,11 +194,11 @@ def get_simualtion_settings(options):
     return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range
 
 
-    def generate_scenario_list(used_scenario, number):
-        used_scenarios = [copy.deepcopy(used_scenario) for i in range(number)]
-        for i, d in enumerate(used_scenarios):
-            d['run'] = i
-        return used_scenarios    
+def generate_scenario_list(used_scenario, number):
+    used_scenarios = [copy.deepcopy(used_scenario) for i in range(number)]
+    for i, d in enumerate(used_scenarios):
+        d['run'] = i
+    return used_scenarios    
 
 
 
