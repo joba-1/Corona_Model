@@ -104,12 +104,12 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     ax.set_title('Distribution of infected among age groups ({} people in total)'.format(tot_ppl))
     ax.set_ylabel('% of population')
     ax.set_xlabel('Age groups')
-    #ax.legend()
+    # ax.legend()
     plt.tight_layout()
-    
+
     if save_figure:
         fig.savefig('outputs/initial_distribution_of_ages_and_infected.png')
-    plt.show()    
+    plt.show()
 
 
 """def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):

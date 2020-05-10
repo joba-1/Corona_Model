@@ -1,4 +1,5 @@
 from numpy.random import choice as choosing  # numpy.random for generating random numbers
+from random import choice as choosing_one
 import numpy
 import dataProcessing as dp
 from random import random as randomval
@@ -182,6 +183,7 @@ class Human(object):
         self.infection_interaction_enabled = enable_infection_interaction
         self.ID = ID
         self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
+        self.preliminary_status = copy.copy(status)
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
         self.original_schedule = {'type': copy.copy(schedule['type']), 'times': copy.copy(
@@ -192,7 +194,10 @@ class Human(object):
         self.type = self.original_schedule['type']
         self.loc = loc  # current location
         self.home = loc
-        self.place_of_infection = numpy.nan
+        loc.enter(self)
+        self.behaviour_as_infected = 1
+        self.behaviour_as_susceptible = 1
+        self.hospital_coeff = 0.01
         self.infection_time = numpy.nan
         self.diagnosis_time = numpy.nan
         self.hospitalization_time = numpy.nan
@@ -200,27 +205,22 @@ class Human(object):
         self.death_time = numpy.nan
         self.icu_time = numpy.nan
         self.rehospitalization_time = numpy.nan
-        self.diagnosed = False
-        self.hospitalized = False
-        self.icu = False
-        self.was_infected = False
         self.infection_duration = 0
         self.diagnosis_duration = 0
         self.hospitalization_duration = 0
         self.icu_duration = 0
-        self.behaviour_as_infected = 1
-        self.behaviour_as_susceptible = 1
-        loc.enter(self)
-        self.personal_risk = self.get_personal_risk()  # todesrisiko
-        self.preliminary_status = 'S'
-        self.got_infected_by = numpy.nan
-        self.infected_in_contact_with = set()
+        self.diagnosed = False
+        self.hospitalized = False
+        self.icu = False
+        self.was_infected = False
         self.is_infected = False
-        self.hospital_coeff = 0.01
-        self.diagnosis_probabiliy = 0
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
+        self.contact_person = numpy.nan
+        self.infection_event = 0
+
+
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
     def update_state(self, time):  # this is not yet according to Eddas model
@@ -228,21 +228,39 @@ class Human(object):
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
+        self.contact_person = numpy.nan  # ID of contact person#
+        self.infection_event = 0
         if self.status == 'R':
+            #encounter interaction with a random person currently at own location#
+            contact_person = self.interact()
             pass
         elif self.status == 'S':
-            self.get_infected(time)
+            ##encounter interaction with a random person currently at own location and return person##
+            contact_person = self.interact()
+            ##get potentially infected by picked person ##
+            self.infection_event = self.get_infected(time, contact_person)
         elif self.is_infected:
+            ##encounter interaction with a random person currently at own location and return person##
+            contact_person = self.interact()
+            if contact_person:  # if an interaction partner has been found ##
+                if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
+                    ##potentially infect this person ##
+                    self.infection_event = contact_person.get_infected(time, self)
+            ## New method for the stuff below ##
             self.infection_duration += 1
             if self.diagnosed:
                 self.diagnosis_duration += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
+
+            # What_to_do method #
             probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
                 print('Death- or recover-probability for age ' + str(self.age) +
                       ' and infection-duration '+str(self.infection_duration))
             what_happens = own_choose_function(probabilities)
+            #####################
+            ## infection_progression ##
             if what_happens == 'die':
                 self.die(1.0, time)
             elif what_happens == 'recover':
@@ -259,7 +277,7 @@ class Human(object):
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
 
-    def get_stati_and_flags(self, time):  # for storing simulation data (flags)
+    def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
         """
         Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
         All stati temporary and cumulative flags are encoded by one integer to save memory.
@@ -272,6 +290,8 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
+        out['Interaction_partner'] = self.contact_person
+        out['Infection_event'] = numpy.uint8(self.infection_event)
         return(out)
 
     def encode_temporary_flags(self):
@@ -342,10 +362,6 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
-                'infected_in_contact_with': ' , '.join(self.infected_in_contact_with),
-                'infected_by': str(self.got_infected_by),
-                'place_of_infection': str(self.place_of_infection),
-                'infection_time': self.infection_time,
                 'recovery_time':  self.recover_time,
                 'death_time':     self.death_time,
                 'diagnosis_time': self.diagnosis_time,
@@ -442,20 +458,6 @@ class Human(object):
             risk = dp._icu_death_risk(self.icu_duration, self.age)
         return risk
 
-    # status transitions humans can undergo
-    """
-    GetExposed
-
-    def GetExposed(self):
-        if self.__status == 'safe':
-            tmpProb = npr.random_sample()
-            if tmpProb < self.__exposureProbability:
-                self.__status = 'exposed'
-                log.debug('status has changed to ' + str(self.__status))
-        else:
-            log.debug('wrong status ' + str(self.__status) + ' to get exposed.')
-    """
-
     def get_initially_infected(self):
         """
         Determines whether an agent gets infected, based on personal risk.
@@ -467,10 +469,26 @@ class Human(object):
         self.set_status_from_preliminary()
         self.infection_time = 0
         self.was_infected = True
-        self.place_of_infection = self.loc.ID
         self.is_infected = True
 
-    def get_infected(self, time):
+    def interact(self):
+        """
+        Establishes interaction with other agents.
+        Picks one other agent among the present.
+        The interaction partner is returned and the interaction-information is recorded in both participants.
+        Arguments to provide are: time (int)
+        """
+        ## pick one other agent currently at same location ##
+        # list_people_present=[]
+        list_people_present = [p for p in list(self.loc.people_present) if p.ID != self.ID]
+        if len(list_people_present) != 0:
+            contact_person = choosing_one(list_people_present)
+            ## add this partners ID to own record of interaction-partners ##
+            self.contact_person = contact_person.ID
+            ## return the interaction-partner ##
+            return(contact_person)
+
+    def get_infected(self, time, contact_person):
         """
         Determines whether an agent gets infected, at the current location and time.
         Changes status-attribute to 'I', writes current location to 'place_of_infection',
@@ -479,26 +497,23 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
-        if self.infection_interaction_enabled:
-            infectious_person = self.loc.infection_interaction()
-            if infectious_person is not None:
-                self.infected_in_contact_with.add(str(infectious_person.ID))
+        out = 0
+        ## check if there is an existing interaction-partner ##
+        if contact_person:
+            ## check if interaction-partner is infected##
+            if contact_person.is_infected:
+                ## add interaction partner to own list of contacts with infected individuals ##
                 if self.loc.location_type == 'hospital':
+                    # modulate infection-probability coefficient if one is in the hospital
                     coeff = self.hospital_coeff
-                if infectious_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                    self.preliminary_status = 'I'
+                ## evaluate whether infection occurs, based on probability ##
+                if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
+                    self.preliminary_status = 'I'  # set owns preliminary status to infected ##
+                    self.was_infected = True  # set own was_infected argument to True##
+                    self.is_infected = True  # set own is_infected argument to True##
                     self.infection_time = time
-                    self.was_infected = True
-                    self.got_infected_by = infectious_person.ID
-                    self.place_of_infection = self.loc.ID
-                    self.is_infected = True
-        else:
-            if self.loc.infection_risk()*self.behaviour_as_susceptible >= randomval():
-                self.preliminary_status = 'I'
-                self.infection_time = time
-                self.place_of_infection = self.loc.ID
-                self.was_infected = True
-                self.is_infected = True
+                    out = 1
+        return(out)
 
     def get_diagnosed(self, probability, time):
         """
