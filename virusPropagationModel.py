@@ -344,6 +344,9 @@ class Simulation(object):
     def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
+        
+        self.location_types = object_to_simulate.location_types
+            
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
@@ -667,7 +670,7 @@ class Simulation(object):
         """
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
-
+        loc_infection_dict_0 = dict(zip(self.location_types,[0.0]*len(self.location_types)))
         infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event']==1]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
@@ -685,7 +688,11 @@ class Simulation(object):
                         total_buildings_of_type[respective_type]
             else:
                     loc_infection_dict[respective_type] += 1
-        return(loc_infection_dict)            
+        #print(loc_infection_dict_0)
+        #print(loc_infection_dict)
+        loc_infection_dict_0.update(loc_infection_dict)
+
+        return loc_infection_dict_0
 
 
     # DF

@@ -3,6 +3,7 @@ import random
 import pandas as pd
 import numpy as np
 import matplotlib.cm as cm
+from collections import OrderedDict as ordered_dict 
 
 statusLabels = {
     'I': 'Infected',
@@ -58,8 +59,8 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
 
 
 def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, relative_to_building_number=True):
-    loc_infection_dict = modeled_pop_world_obj.get_infections_per_location_type(
-        relative_to_building_number=relative_to_building_number)
+    loc_infection_dict = ordered_dict(modeled_pop_world_obj.get_infections_per_location_type(
+        relative_to_building_number=relative_to_building_number))
     x = np.arange(len(list(loc_infection_dict.keys())))
     fig, ax = plt.subplots()
     plt.bar(x, list(loc_infection_dict.values()), color=[
@@ -95,7 +96,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     fig.set_figheight(7)
     tot_ppl = modeled_pop_world_obj.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
-    per_of_inf = (age_groups_status_distribution['I'] / tot_ppl)*100
+    per_of_inf = (age_groups_status_distribution['I'] / tot_ppl) * 100
     per_of_sus = (age_groups_status_distribution['S'] / tot_ppl) * 100
     ax.bar(age_groups, per_of_inf, width_of_bars,
            label=statusLabels['I'], color=statusAndFlagsColors['I'])
