@@ -405,7 +405,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._diagnosis(self.infection_duration)
+        return 2 * dp._diagnosis(self.infection_duration) # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -457,7 +457,7 @@ class Human(object):
             risk = dp._general_death_risk(self.infection_duration, self.age)
         else:
             risk = dp._icu_death_risk(self.icu_duration, self.age)
-        return risk
+        return 2 * risk # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
         """
@@ -498,11 +498,12 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
-        out = 0
+        out = -1
         ## check if there is an existing interaction-partner ##
         if contact_person:
             ## check if interaction-partner is infected##
             if contact_person.is_infected:
+                out = 0
                 ## add interaction partner to own list of contacts with infected individuals ##
                 if self.loc.location_type == 'hospital':
                     # modulate infection-probability coefficient if one is in the hospital

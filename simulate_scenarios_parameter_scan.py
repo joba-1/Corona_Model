@@ -204,7 +204,7 @@ def generate_scenario_list(used_scenario, number):
 
 if __name__ == '__main__':
 
-    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds/'
+    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_schedulesv1/'
     world_list = os.listdir(input_folder)
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
         used_scenario[parameter] = p
         
-        scenario_and_parameter = used_scenario['name'] +'_'+parameter+'_'+'{:.3f}'.format(p)
+        scenario_and_parameter = used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
 
