@@ -498,11 +498,12 @@ class Human(object):
         Arguments to provide are: risk (float), time (int)
         """
         coeff = 1
-        out = 0
+        out = -1
         ## check if there is an existing interaction-partner ##
         if contact_person:
             ## check if interaction-partner is infected##
             if contact_person.is_infected:
+                out = 0
                 ## add interaction partner to own list of contacts with infected individuals ##
                 if self.loc.location_type == 'hospital':
                     # modulate infection-probability coefficient if one is in the hospital
