@@ -217,8 +217,8 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
-        self.contact_person = numpy.nan
-        self.infection_event = 0
+        self.contact_person = -1
+        self.infection_event = -1
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
@@ -228,8 +228,8 @@ class Human(object):
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
-        self.contact_person = numpy.nan  # ID of contact person#
-        self.infection_event = 0
+        self.contact_person = -1  # ID of contact person#
+        self.infection_event = -1
         if self.status == 'R':
             #encounter interaction with a random person currently at own location#
             contact_person = self.interact()
@@ -291,7 +291,7 @@ class Human(object):
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = self.contact_person
-        out['Infection_event'] = numpy.uint8(self.infection_event)
+        out['Infection_event'] = numpy.int8(self.infection_event)
         return(out)
 
     def encode_temporary_flags(self):
@@ -362,6 +362,7 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
+                'infection_time':  self.infection_time,
                 'recovery_time':  self.recover_time,
                 'death_time':     self.death_time,
                 'diagnosis_time': self.diagnosis_time,
