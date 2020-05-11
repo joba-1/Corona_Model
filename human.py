@@ -362,6 +362,7 @@ class Human(object):
         Arguments to provide are: none
         """
         return {'h_ID': self.ID,
+                'infection_time':  self.infection_time,
                 'recovery_time':  self.recover_time,
                 'death_time':     self.death_time,
                 'diagnosis_time': self.diagnosis_time,
