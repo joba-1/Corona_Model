@@ -74,6 +74,7 @@ class ModeledPopulatedWorld(object):
             self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
+
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):# folder='saved_objects/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
@@ -361,6 +362,7 @@ class Simulation(object):
             self.time = object_to_simulate.time
         if run_immediately:
             self.simulate()
+        self.statuses_in_timecourse = ['S', 'I', 'R', 'D']    
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
@@ -377,7 +379,7 @@ class Simulation(object):
     def simulate(self):
         self.simulation_timecourse = pd.concat(
             [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+        #self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
         """
@@ -465,16 +467,16 @@ class Simulation(object):
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
-    def get_statuses_in_timecourse(self):
+    #def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
         :return: list. list of available statuses
         """
-        stati_list = ['S', 'I', 'R', 'D']
-        stati = self.simulation_timecourse.copy()
-        for i in range(len(stati_list)):
-            stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
-        return list(set(stati['status']))
+    #    stati_list = ['S', 'I', 'R', 'D']
+    #    stati = self.simulation_timecourse.copy()
+    #    for i in range(len(stati_list)):
+    #        stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+    #    return ['S', 'I', 'R', 'D']#list(set(stati['status']))
 
     # DF
     def get_status_trajectories(self, specific_statuses=None, specific_people=None):
@@ -484,7 +486,7 @@ class Simulation(object):
         :return: DataFrame. The time courses for the specified statuses
         """
         if specific_statuses is None:
-            statuses = self.get_statuses_in_timecourse()
+            statuses = self.statuses_in_timecourse#self.get_statuses_in_timecourse()
         else:
             assert set(specific_statuses) <= set(self.statuses_in_timecourse), \
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
@@ -521,6 +523,7 @@ class Simulation(object):
                                                         suffixes=('', '_zeros'),
                                                         how='right').fillna(0).sort_index().reset_index()
             status_trajectories[status] = merged_df[['time', status]]
+
         return status_trajectories
 
     # DF

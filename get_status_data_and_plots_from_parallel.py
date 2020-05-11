@@ -73,7 +73,7 @@ def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
     #sim = load_simulation_object(filename)
     #print(filename)
     return {'stat_trajectories': sim.get_status_trajectories(),
-            'medic_trajectories': sim.get_status_trajectories(specific_people='doctors'),
+            'medic_trajectories': sim.get_status_trajectories(specific_people='medical_professional'),
                               'durations': sim.get_durations(),
             'flag_trajectories': sim.get_flag_sums_over_time(),
             'infections_per_location_type':sim.get_infections_per_location_type()}
