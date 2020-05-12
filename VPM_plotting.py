@@ -72,7 +72,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
     plt.xlabel('Location-type')
     plt.ylabel('# Infection events')
     plt.show()
-    return
+    
 
 
 def plot_distribution_of_location_types(modeled_pop_world_obj):
