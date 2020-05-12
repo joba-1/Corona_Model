@@ -61,7 +61,6 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
 def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, relative_to_building_number=True):
     loc_infection_dict = ordered_dict(modeled_pop_world_obj.get_infections_per_location_type(
         relative_to_building_number=relative_to_building_number))
-    print(loc_infection_dict)
     x = np.arange(len(list(loc_infection_dict.keys())))
     plt.bar(x, list(loc_infection_dict.values()), color=[
             locationTypeColors[loc] for loc in loc_infection_dict.keys()])
