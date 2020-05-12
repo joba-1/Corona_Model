@@ -3,6 +3,7 @@ import random
 import pandas as pd
 import numpy as np
 import matplotlib.cm as cm
+from collections import OrderedDict as ordered_dict 
 
 statusLabels = {
     'I': 'Infected',
@@ -41,30 +42,29 @@ locationTypeColors = {
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
-    infections_per_loc_type_per_time = modeled_pop_world_obj.get_infections_per_location_type_over_time(
-    ).replace(to_replace=0, value=np.nan)
-    for loc in infections_per_loc_type_per_time.columns:
-        plt.scatter(list(infections_per_loc_type_per_time.index), list(infections_per_loc_type_per_time[loc]),
-                    label=loc, color=locationTypeColors[loc])
-
-    plt.xlim(left=0, right=max(list(infections_per_loc_type_per_time.index)))
+    df= modeled_pop_world_obj.get_infections_per_location_type_over_time()
+    fig, ax = plt.subplots()
+    for loc_type in df['loc_type'].unique():
+        df_l=df[df['loc_type']==loc_type]
+        sc = ax.scatter(df_l['time'], df_l['number_of_infection_events'], marker = 'o', color=locationTypeColors[loc_type], alpha = 0.3, label=loc_type)
+    plt.legend()
     plt.title('Infection events over time')
     plt.xlabel('Time [hours]')
     plt.ylabel('# Infection events')
     plt.legend()
     plt.show()
+
     if save_figure:
         plt.savefig('outputs/infections_per_time_per_loc_type.png')
 
 
 def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, relative_to_building_number=True):
-    loc_infection_dict = modeled_pop_world_obj.get_infections_per_location_type(
-        relative_to_building_number=relative_to_building_number)
+    loc_infection_dict = ordered_dict(modeled_pop_world_obj.get_infections_per_location_type(
+        relative_to_building_number=relative_to_building_number))
     x = np.arange(len(list(loc_infection_dict.keys())))
-    fig, ax = plt.subplots()
     plt.bar(x, list(loc_infection_dict.values()), color=[
             locationTypeColors[loc] for loc in loc_infection_dict.keys()])
-    plt.xticks(x, set(list(loc_infection_dict.keys())))
+    plt.xticks(x, list(loc_infection_dict.keys()))
     if relative_to_building_number:
         plt.title('Number of infections per location-type (relative to total number of type)')
     else:
@@ -72,6 +72,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
     plt.xlabel('Location-type')
     plt.ylabel('# Infection events')
     plt.show()
+    
 
 
 def plot_distribution_of_location_types(modeled_pop_world_obj):
@@ -95,7 +96,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     fig.set_figheight(7)
     tot_ppl = modeled_pop_world_obj.number_of_people
     age_groups = [str(age_group) for age_group in age_groups_status_distribution.index]
-    per_of_inf = (age_groups_status_distribution['I'] / tot_ppl)*100
+    per_of_inf = (age_groups_status_distribution['I'] / tot_ppl) * 100
     per_of_sus = (age_groups_status_distribution['S'] / tot_ppl) * 100
     ax.bar(age_groups, per_of_inf, width_of_bars,
            label=statusLabels['I'], color=statusAndFlagsColors['I'])
