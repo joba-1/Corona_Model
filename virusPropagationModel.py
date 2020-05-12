@@ -749,6 +749,24 @@ class Simulation(object):
 
         return(df)
 
+    def get_interaction_timecourse(self, diagnosed_contact=False):
+        """
+        : return pivot table
+        """
+        df=self.simulation_timecourse
+
+        if not diagnosed_contact:
+            df_p=df
+        else:    
+            df_diag= df[(df['Temporary_Flags'].isin([2,3,4]))] #timecourse dataframe only for diagnosed (acitve partner)
+            human_diagnosed = df_diag['h_ID'].unique()
+            df_diag_contact=df[(df['h_ID'].isin(human_diagnosed))] #all tracable contacts
+            df_p=df_diag_contact
+        #count events
+        df_pivot = pd.pivot_table(df_p, values='h_ID', index=['time'],columns=['Infection_event'], aggfunc='count')
+        return df_pivot 
+
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
@@ -827,4 +845,7 @@ class Simulation(object):
         vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
 
     def plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False):
-        vpm_plt.plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False)
+        vpm_plt.plot_age_groups_status_timecourse(self, age_groups_step=age_groups_step, save_figure=save_figure)
+
+    def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
+        vpm_plt.plot_interaction_timecourse(self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)    
