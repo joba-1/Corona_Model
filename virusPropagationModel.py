@@ -688,8 +688,6 @@ class Simulation(object):
                         total_buildings_of_type[respective_type]
             else:
                     loc_infection_dict[respective_type] += 1
-        #print(loc_infection_dict_0)
-        #print(loc_infection_dict)
         loc_infection_dict_0.update(loc_infection_dict)
 
         return loc_infection_dict_0
