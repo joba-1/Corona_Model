@@ -10,7 +10,7 @@ import sys
 import csv
 import pickle
 import numpy as np
-
+import random 
 
 scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
@@ -59,18 +59,18 @@ def getOptions(args=sys.argv[1:]):
                         10: close_public_school_reopen_public\n \
                         11: close_public_work\n \
                         12: close_work_school \n \
-                        13: no_mitigation \n \
-                        14: no_mitigation_medics_02 \n \
-                        15: close_all\n \
-                        16: close_all_reopen_all\n \
-                        17: close_all_reopen_work\n \
-                        18: close_all_reopen_school\n \
-                        19: close_all_reopen_public\n \
-                        20: close_public_school\n \
-                        21: close_public_school_reopen_all\n \
-                        22: close_public_school_reopen_school\n \
-                        23: close_public_school_reopen_public\n \
-                        24: close_public_work\n \
+                        13: no_mitigation  IF03\n \
+                        14: no_mitigation_medics_02  IF03\n \
+                        15: close_all IF03\n \
+                        16: close_all_reopen_all IF03\n \
+                        17: close_all_reopen_work IF03\n \
+                        18: close_all_reopen_school IF03\n \
+                        19: close_all_reopen_public IF03\n \
+                        20: close_public_school IF03\n \
+                        21: close_public_school_reopen_all IF03\n \
+                        22: close_public_school_reopen_school IF03\n \
+                        23: close_public_school_reopen_public IF03\n \
+                        24: close_public_work IF03\n \
                         25: close_work_school ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
@@ -79,6 +79,7 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-p", "--parameter", type=str, help="define the parameter to scan: max_time start_2 start_3 infectivity ")
     parser.add_argument("-pr", "--p_range", nargs='+', type=float, help="define the parameter range (2 inputs): e.g. 1 2 ")
+    parser.add_argument("-d", "--disobedience", type=float, help="disobedience parameter (frequency), default 0")
     
     options = parser.parse_args(args)
     return options
@@ -97,7 +98,8 @@ def simulate_scenario(input_dict):
 
     my_dict = {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500,
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
-               'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default', 'output_folder': 'scenario_output', 'world':None}
+               'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default',
+               'output_folder': 'scenario_output', 'world':None, 'disobedience': 0}
 
     my_dict.update(input_dict)
 
@@ -110,6 +112,7 @@ def simulate_scenario(input_dict):
     hospital_coeff = my_dict['hospital_coeff']
     name = my_dict['name']+'_inf_'+str(infectivity)
     modeledWorld = my_dict['world']
+    disobedience = my_dict['disobedience']
 
     #print(type(modeledWorld))
 
@@ -120,11 +123,18 @@ def simulate_scenario(input_dict):
         {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
     simulation1.simulate()
 
-    #simulation2 = Simulation(simulation1, start_3-start_2, run_immediately=False)
-    #del simulation1
+    obedient_people = []
+
     for p in simulation1.people:
-        for loc in closed_locs:
-            p.stay_home_instead_of_going_to(loc)
+        prob=random.random()
+        if not prob < disobedience:
+            obedient_people.append(p.ID)
+
+
+    for p in simulation1.people:
+        if p.ID in obedient_people:
+            for loc in closed_locs:
+                p.stay_home_instead_of_going_to(loc)
     simulation1.time_steps = start_3-start_2
     simulation1.simulate()
 
@@ -133,7 +143,8 @@ def simulate_scenario(input_dict):
     for p in simulation1.people:
         p.reset_schedule()
         for loc in list(set(closed_locs)-set(reopen_locs)):
-            p.stay_home_instead_of_going_to(loc)
+            if p.ID in obedient_people:
+                p.stay_home_instead_of_going_to(loc)
     simulation1.time_steps = max_time-start_3
     simulation1.simulate()
 
@@ -184,14 +195,14 @@ def get_simualtion_settings(options):
 
         p_range = np.linspace(options.p_range[0],options.p_range[1],10)
     else:
-        p_range = np.array([1])         
+        p_range = np.array([1])
 
-    #if options.scenario_type: # take scenario type as argument or take default
-    #    scenario_type = options.scenario_type   
-    #else:
-    #    scenario_type = 0    
-
-    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range
+    if options.disobedience:
+        disobedience = options.disobedience
+    else:
+        disobedience = 0  
+                     
+    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobediance
 
 
 def generate_scenario_list(used_scenario, number):
@@ -209,13 +220,14 @@ if __name__ == '__main__':
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
-    scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range = get_simualtion_settings(options)
+    scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience = get_simualtion_settings(options)
 
     used_scenario = scenarios[scenario_type]
   
     for p in p_range:
 
         used_scenario[parameter] = p
+        used_scenario['disobedience'] = disobedience
         
         scenario_and_parameter = used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter +'/'
