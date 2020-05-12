@@ -392,11 +392,20 @@ class Human(object):
             self.loc = new_loc  # set own location to new location#
             new_loc.enter(self)  # enter new location
 
-    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
+    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[], probability=1):
+        """
+        Make agents stay at home, instead of going to the specified location.
+        Arguments to provide are:
+            location_type (str): Location-type to avoid
+            excluded_human_types (str): Schedule-type of people, the mitigation measure is not valid for.
+            probability (str): Probability that each entry of the specified location type is replaced by home.
+            (default 1)
+        """
         if self.original_schedule['type'] not in excluded_human_types:
             for i in range(len(self.schedule['locs'])):
                 if self.schedule['locs'][i].location_type == location_type:
-                    self.schedule['locs'][i] = self.home
+                    if probability >= randomval():
+                        self.schedule['locs'][i] = self.home
 
     def get_diagnosis_prob(self):  # this needs improvement and is preliminary
         """
@@ -405,7 +414,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.infection_duration) # TODO change in exel sheet - compare with gangelt data
+        return 2 * dp._diagnosis(self.infection_duration)  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -457,7 +466,7 @@ class Human(object):
             risk = dp._general_death_risk(self.infection_duration, self.age)
         else:
             risk = dp._icu_death_risk(self.icu_duration, self.age)
-        return 2 * risk # TODO change in exel sheet - compare with gangelt data
+        return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
         """
