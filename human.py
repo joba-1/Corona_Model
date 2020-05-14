@@ -182,7 +182,7 @@ class Human(object):
         # initialize properties
         self.infection_interaction_enabled = enable_infection_interaction
         self.ID = ID
-        self.status = status  # all humans are initialized as 'safe', except for a number of infected defined by the simulation parameters
+        self.status = status  # all humans are initialized as 'S' (susceptible), except for a number of infected defined by the simulation parameters
         self.preliminary_status = copy.copy(status)
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
