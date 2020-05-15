@@ -477,7 +477,7 @@ class Human(object):
         Arguments to provide are: risk (float)
         """
         self.preliminary_status = 'I'
-        self.set_status_from_preliminary()
+        self.set_stati_from_preliminary()
         self.infection_time = 0
         self.preliminary_was_infected = True
         self.was_infected = True
