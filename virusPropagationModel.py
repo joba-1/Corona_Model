@@ -403,7 +403,7 @@ class Simulation(object):
                 p.update_state(self.time)
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
             for p in self.people:  # don't call if hospitalized
-                p.set_status_from_preliminary()
+                p.set_stati_from_preliminary()
                 p.move(self.time)
         return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
 

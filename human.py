@@ -633,7 +633,7 @@ class Human(object):
         infectivity = dp._infectivity(self.infection_duration)
         return(infectivity*self.behaviour_as_infected)
 
-    def set_status_from_preliminary(self):
+    def set_stati_from_preliminary(self):
         """
         Set status from preliminary status
         Arguments to provide are: none
