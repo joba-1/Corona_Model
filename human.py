@@ -618,7 +618,7 @@ class Human(object):
             self.preliminary_icu = False
             self.preliminary_hospitalized = False
             self.preliminary_diagnosed = False
-            self.is_infected = False
+            self.preliminary_is_infected = False
             if self.loc.special_locations['morgue']:
                 self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
                     len(list(self.specific_schedule['times']))
