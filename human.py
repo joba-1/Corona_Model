@@ -182,7 +182,8 @@ class Human(object):
         # initialize properties
         self.infection_interaction_enabled = enable_infection_interaction
         self.ID = ID
-        self.status = status  # all humans are initialized as 'S' (susceptible), except for a number of infected defined by the simulation parameters
+        # all humans are initialized as 'S' (susceptible), except for a number of infected defined by the simulation parameters
+        self.status = status
         self.preliminary_status = copy.copy(status)
         self.age = age  # if we get an age distribution, we should sample the age from that distribution
         self.schedule = schedule  # dict of times and locations
@@ -217,11 +218,20 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
+        self.preliminary_diagnosed = False
+        self.preliminary_hospitalized = False
+        self.preliminary_icu = False
+        self.preliminary_was_infected = False
+        self.preliminary_is_infected = False
+        self.preliminary_was_diagnosed = False
+        self.preliminary_was_hospitalized = False
+        self.preliminary_was_icued = False
         self.contact_person = -1
         self.infection_event = -1
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
+
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
@@ -405,7 +415,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.infection_duration) # TODO change in exel sheet - compare with gangelt data
+        return 2 * dp._diagnosis(self.infection_duration)  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -457,7 +467,7 @@ class Human(object):
             risk = dp._general_death_risk(self.infection_duration, self.age)
         else:
             risk = dp._icu_death_risk(self.icu_duration, self.age)
-        return 2 * risk # TODO change in exel sheet - compare with gangelt data
+        return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
         """
@@ -469,8 +479,10 @@ class Human(object):
         self.preliminary_status = 'I'
         self.set_status_from_preliminary()
         self.infection_time = 0
+        self.preliminary_was_infected = True
         self.was_infected = True
         self.is_infected = True
+        self.preliminary_is_infected = True
 
     def interact(self):
         """
@@ -511,8 +523,8 @@ class Human(object):
                 ## evaluate whether infection occurs, based on probability ##
                 if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'  # set owns preliminary status to infected ##
-                    self.was_infected = True  # set own was_infected argument to True##
-                    self.is_infected = True  # set own is_infected argument to True##
+                    self.preliminary_was_infected = True  # set own was_infected argument to True##
+                    self.preliminary_is_infected = True  # set own is_infected argument to True##
                     self.infection_time = time
                     out = 1
         return(out)
@@ -526,10 +538,10 @@ class Human(object):
         """
         if not self.diagnosed:
             if probability >= randomval():
-                self.diagnosed = True
+                self.preliminary_diagnosed = True
                 self.diagnosis_time = time
                 self.specific_schedule = self.diagnosed_schedule
-                self.was_diagnosed = True
+                self.preliminary_was_diagnosed = True
 
     def recover(self, recover_prob, time):
         """
@@ -542,10 +554,10 @@ class Human(object):
         if recover_prob >= randomval():
             self.recover_time = time
             self.preliminary_status = 'R'
-            self.icu = False
-            self.hospitalized = False
-            self.diagnosed = False
-            self.is_infected = False
+            self.preliminary_icu = False
+            self.preliminary_hospitalized = False
+            self.preliminary_diagnosed = False
+            self.preliminary_is_infected = False
 
     def get_ICUed(self, probability, time):
         """
@@ -555,10 +567,10 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if probability >= randomval():
-            self.icu = True
-            self.hospitalized = False
+            self.preliminary_icu = True
+            self.preliminary_hospitalized = False
             self.icu_time = time
-            self.was_icued = False
+            self.preliminary_was_icued = False
 
     def get_rehospitalized(self, probability, time):
         """
@@ -569,8 +581,8 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if probability >= randomval():
-            self.hospitalized = True
-            self.icu = False
+            self.preliminary_hospitalized = True
+            self.preliminary_icu = False
             self.rehospitalization_time = time
 
     def get_hospitalized(self, probability, time):
@@ -584,9 +596,9 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         if probability >= randomval():
-            self.hospitalized = True
+            self.preliminary_hospitalized = True
             self.hospitalization_time = time
-            self.was_hospitalized = True
+            self.preliminary_was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
                 self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
@@ -603,9 +615,9 @@ class Human(object):
         if risk >= randomval():
             self.preliminary_status = 'D'
             self.death_time = time
-            self.icu = False
-            self.hospitalized = False
-            self.diagnosed = False
+            self.preliminary_icu = False
+            self.preliminary_hospitalized = False
+            self.preliminary_diagnosed = False
             self.is_infected = False
             if self.loc.special_locations['morgue']:
                 self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
@@ -627,6 +639,14 @@ class Human(object):
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
+        self.diagnosed = self.preliminary_diagnosed
+        self.hospitalized = self.preliminary_hospitalized
+        self.icu = self.preliminary_icu
+        self.was_infected = self.preliminary_was_infected
+        self.is_infected = self.preliminary_is_infected
+        self.was_diagnosed = self.preliminary_was_diagnosed
+        self.was_hospitalized = self.preliminary_was_hospitalized
+        self.was_icued = self.preliminary_was_icued
 
     def reset_schedule(self):
         self.schedule = self.original_schedule
