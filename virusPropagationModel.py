@@ -74,8 +74,8 @@ class ModeledPopulatedWorld(object):
             self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
-
-    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):# folder='saved_objects/'):
+    # folder='saved_objects/'):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -344,9 +344,9 @@ class Simulation(object):
     def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        
+
         self.location_types = object_to_simulate.location_types
-            
+
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
@@ -365,7 +365,7 @@ class Simulation(object):
             self.time = object_to_simulate.time
         if run_immediately:
             self.simulate()
-        self.statuses_in_timecourse = ['S', 'I', 'R', 'D']    
+        self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
@@ -401,10 +401,10 @@ class Simulation(object):
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
-            for p in self.people:  # don't call if hospitalized
-                p.set_status_from_preliminary()
-                p.move(self.time)
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+            for p in self.people:  # don't call if hospitalized
+                p.set_stati_from_preliminary()
+                p.move(self.time)
         return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
 
     def change_agent_attributes(self, input):
@@ -470,7 +470,7 @@ class Simulation(object):
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
-    #def get_statuses_in_timecourse(self):
+    # def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
         :return: list. list of available statuses
@@ -489,7 +489,7 @@ class Simulation(object):
         :return: DataFrame. The time courses for the specified statuses
         """
         if specific_statuses is None:
-            statuses = self.statuses_in_timecourse#self.get_statuses_in_timecourse()
+            statuses = self.statuses_in_timecourse  # self.get_statuses_in_timecourse()
         else:
             assert set(specific_statuses) <= set(self.statuses_in_timecourse), \
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
@@ -670,8 +670,8 @@ class Simulation(object):
         """
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
-        loc_infection_dict_0 = dict(zip(self.location_types,[0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event']==1]
+        loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
@@ -684,16 +684,16 @@ class Simulation(object):
         for i_loc in infection_locations:
             respective_type = location_types[i_loc]
             if relative_to_building_number:
-                    loc_infection_dict[respective_type] += 1 / \
-                        total_buildings_of_type[respective_type]
+                loc_infection_dict[respective_type] += 1 / \
+                    total_buildings_of_type[respective_type]
             else:
-                    loc_infection_dict[respective_type] += 1
+                loc_infection_dict[respective_type] += 1
         loc_infection_dict_0.update(loc_infection_dict)
 
         return loc_infection_dict_0
 
-
     # DF
+
     def get_flag_sums_over_time(self, specific_flags=None):
         """
         :return: DataFrame. The number of true flags over time
@@ -729,23 +729,24 @@ class Simulation(object):
     # DF
 
     def get_infections_per_location_type_over_time(self):
-
         """
         export data frame of cummulative infection events per location
         :return pandas.DataFrame
         """
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event']==1].copy()
-        infection_events.drop(columns=['status','h_ID', 'Temporary_Flags', 'Cumulative_Flags',
-               'Interaction_partner'], axis=1, inplace=True)
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1].copy(
+        )
+        infection_events.drop(columns=['status', 'h_ID', 'Temporary_Flags', 'Cumulative_Flags',
+                                       'Interaction_partner'], axis=1, inplace=True)
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
 
         infection_events.reset_index()
-        infection_events.loc[:,'loc_type'] = [location_types[x] for x in list(infection_events['loc'].values)]
-        df=infection_events.groupby(by=['time','loc_type']).count().reset_index()
-        df.drop('loc',axis=1,inplace=True)
-        df.columns=['time','loc_type','number_of_infection_events']
+        infection_events.loc[:, 'loc_type'] = [location_types[x]
+                                               for x in list(infection_events['loc'].values)]
+        df = infection_events.groupby(by=['time', 'loc_type']).count().reset_index()
+        df.drop('loc', axis=1, inplace=True)
+        df.columns = ['time', 'loc_type', 'number_of_infection_events']
 
         return(df)
 
@@ -753,19 +754,20 @@ class Simulation(object):
         """
         : return pivot table
         """
-        df=self.simulation_timecourse
+        df = self.simulation_timecourse
 
         if not diagnosed_contact:
-            df_p=df
-        else:    
-            df_diag= df[(df['Temporary_Flags'].isin([2,3,4]))] #timecourse dataframe only for diagnosed (acitve partner)
+            df_p = df
+        else:
+            # timecourse dataframe only for diagnosed (acitve partner)
+            df_diag = df[(df['Temporary_Flags'].isin([2, 3, 4]))]
             human_diagnosed = df_diag['h_ID'].unique()
-            df_diag_contact=df[(df['h_ID'].isin(human_diagnosed))] #all tracable contacts
-            df_p=df_diag_contact
-        #count events
-        df_pivot = pd.pivot_table(df_p, values='h_ID', index=['time'],columns=['Infection_event'], aggfunc='count')
-        return df_pivot 
-
+            df_diag_contact = df[(df['h_ID'].isin(human_diagnosed))]  # all tracable contacts
+            df_p = df_diag_contact
+        # count events
+        df_pivot = pd.pivot_table(df_p, values='h_ID', index=['time'], columns=[
+                                  'Infection_event'], aggfunc='count')
+        return df_pivot
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
@@ -845,7 +847,9 @@ class Simulation(object):
         vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
 
     def plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False):
-        vpm_plt.plot_age_groups_status_timecourse(self, age_groups_step=age_groups_step, save_figure=save_figure)
+        vpm_plt.plot_age_groups_status_timecourse(
+            self, age_groups_step=age_groups_step, save_figure=save_figure)
 
     def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
-        vpm_plt.plot_interaction_timecourse(self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)    
+        vpm_plt.plot_interaction_timecourse(
+            self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
