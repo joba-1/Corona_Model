@@ -55,7 +55,7 @@ class World(object):
                 self.locations[l].next_location_of_type('morgue'))
             self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
                 self.locations[l].next_location_of_type('hospital'))
-        self.loc_class_dic = self.assign_location_classifier()    
+        self.loc_class_dic = self.assign_location_classifier()
 
     def initialize_locs_random(self):  # orginal
         locations = {}
@@ -119,7 +119,7 @@ class World(object):
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
         morgue_bool = False
-        #healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
+        # healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
         col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
 
@@ -248,17 +248,6 @@ class Location(object):
     def leave(self, person):
         self.people_present.remove(person)
 
-    def infection_risk(self):  # this needs improvement, it's simple and preliminary
-        infected = sum([p.get_infectivity() for p in self.people_present if p.is_infected])
-        # / float(len(self.people_present))  # get fraction of infected individuals in location
-        risk = function2specify(infected, self.location_factor)
-        return risk
-
-    def infection_interaction(self):  # this needs improvement, it's simple and preliminary
-        interaction_partner = choosing_one(list(self.people_present))
-        if interaction_partner.is_infected:
-            return(interaction_partner)
-
     def next_location_of_type(self, type):
         '''returns sorted list of IDs of the closest hospital in neighbourhood'''
         if self.closest_loc(type):
@@ -271,7 +260,7 @@ class Location(object):
         try:
             ids_of_type_in_neighbourhood = self.ids_of_location_types[loc_type]
         except:
-            #print('location type: {} is not in the neighbourhood'.format(loc_type))
+            # print('location type: {} is not in the neighbourhood'.format(loc_type))
             return None
         distances_loc = {loc_id: self.distance_loc(loc_id)
                          for loc_id in self.ids_of_location_types[loc_type]}

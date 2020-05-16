@@ -74,7 +74,8 @@ class ModeledPopulatedWorld(object):
             self.initialize_infection(amount=self.initial_infections)
         self.location_types = self.get_location_types()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    # folder='saved_objects/'):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -82,9 +83,9 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_worldObj', date_suffix)
+            save_simulation_object(self, filename + '_worldObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -250,12 +251,12 @@ class ModeledPopulatedWorld(object):
         """
         vpm_plt.plot_distribution_of_location_types(self)
 
-    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10):
+    def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
         plots a histogram of the ages of the population and how many of those are infected
         :param age_groups_step: int. Determines the amount of ages in an age group (like 10: 0-10, 10-20 ...)
         """
-        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step)
+        vpm_plt.plot_initial_distribution_of_ages_and_infected(self, age_groups_step, **kwargs)
 
 
 class Simulation(object):
@@ -340,17 +341,33 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
-        self.simulation_object = copy.deepcopy(object_to_simulate)
-        self.time_steps = time_steps
-        self.people = self.simulation_object.people
-        self.locations = self.simulation_object.locations
+
+        self.location_types = object_to_simulate.location_types
+
+        if isinstance(object_to_simulate, ModeledPopulatedWorld):
+            self.time_steps = time_steps
+            self.people = copy.deepcopy(object_to_simulate.people)
+            self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.simulation_timecourse = pd.DataFrame()
+            self.time = 0
+        elif isinstance(object_to_simulate, Simulation):
+            self.time_steps = time_steps
+            if copy_sim_object:
+                self.people = copy.deepcopy(object_to_simulate.people)
+                self.locations = copy.deepcopy(object_to_simulate.locations)
+            else:
+                self.people = object_to_simulate.people
+                self.locations = object_to_simulate.locations
+            self.simulation_timecourse = object_to_simulate.simulation_timecourse
+            self.time = object_to_simulate.time
         if run_immediately:
             self.simulate()
+        self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True):
+    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -358,21 +375,14 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_simulationObj', date_suffix)
+            save_simulation_object(self, filename + '_simulationObj', date_suffix, **kwargs)
         else:
-            save_simulation_object(self, filename, date_suffix)
+            save_simulation_object(self, filename, date_suffix, **kwargs)
 
-    def simulate(self, mem_save=False, tuples=False):
-        if isinstance(self.simulation_object, ModeledPopulatedWorld):
-            self.time = 0
-            self.simulation_timecourse = self.run_simulation()
-        elif isinstance(self.simulation_object, Simulation):
-            self.time = self.simulation_object.time
-            self.simulation_timecourse = pd.concat(
-                [self.simulation_object.simulation_timecourse, self.run_simulation()], ignore_index=True)
-        else:
-            raise ValueError('Unexpected  \'object_to_simulate\' type')
-        self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+    def simulate(self):
+        self.simulation_timecourse = pd.concat(
+            [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
+        #self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
     def run_simulation(self):
         """
@@ -383,7 +393,7 @@ class Simulation(object):
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
             first_simulated_step = 1
         else:
             first_simulated_step = 0
@@ -391,11 +401,11 @@ class Simulation(object):
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
+                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
             for p in self.people:  # don't call if hospitalized
-                p.set_status_from_preliminary()
+                p.set_stati_from_preliminary()
                 p.move(self.time)
-                timecourse.append(tuple(p.get_stati_and_flags(self.time).values()))
-        return pd.DataFrame(timecourse, columns=list(p.get_stati_and_flags(self.time).keys()))
+        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
 
     def change_agent_attributes(self, input):
         """
@@ -460,16 +470,16 @@ class Simulation(object):
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
-    def get_statuses_in_timecourse(self):
+    # def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
         :return: list. list of available statuses
         """
-        stati_list = ['S', 'I', 'R', 'D']
-        stati = self.simulation_timecourse.copy()
-        for i in range(len(stati_list)):
-            stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
-        return list(set(stati['status']))
+    #    stati_list = ['S', 'I', 'R', 'D']
+    #    stati = self.simulation_timecourse.copy()
+    #    for i in range(len(stati_list)):
+    #        stati.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
+    #    return ['S', 'I', 'R', 'D']#list(set(stati['status']))
 
     # DF
     def get_status_trajectories(self, specific_statuses=None, specific_people=None):
@@ -479,7 +489,7 @@ class Simulation(object):
         :return: DataFrame. The time courses for the specified statuses
         """
         if specific_statuses is None:
-            statuses = self.get_statuses_in_timecourse()
+            statuses = self.statuses_in_timecourse  # self.get_statuses_in_timecourse()
         else:
             assert set(specific_statuses) <= set(self.statuses_in_timecourse), \
                 'specified statuses (' + str(set(specific_statuses)) + ') dont match those in  in the population (' + \
@@ -516,6 +526,7 @@ class Simulation(object):
                                                         suffixes=('', '_zeros'),
                                                         how='right').fillna(0).sort_index().reset_index()
             status_trajectories[status] = merged_df[['time', status]]
+
         return status_trajectories
 
     # DF
@@ -657,27 +668,32 @@ class Simulation(object):
         :example:
                 {'home': 5, 'school': 6, ... 'public': 4}
         """
-        infection_events = self.get_infection_event_information()
-        infection_locations = list(infection_events['place_of_infection'])
-        location_types = {str(l.ID): l.location_type for l in self.locations.values()
-                          if str(l.ID) in infection_locations}
+        #infection_events = self.get_infection_event_information()
+        #infection_locations = list(infection_events['place_of_infection'])
+        loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1]
+        infection_locations = list(infection_events['loc'].values)
+        location_types = {l.ID: l.location_type for l in self.locations.values()
+                          if l.ID in infection_locations}
         unique_locs = list(set(list(location_types.values())))
         loc_infection_dict = dict(zip(unique_locs, [0]*len(unique_locs)))
         total_buildings_of_type = {}
         for i in unique_locs:
             total_buildings_of_type[i] = len(
                 [1 for j in self.locations.keys() if self.locations[j].location_type == i])
-        for i in infection_events.index:
-            if not infection_events.loc[i, 'infected_by'] == 'nan':
-                respective_type = location_types[infection_events.loc[i, 'place_of_infection']]
-                if relative_to_building_number:
-                    loc_infection_dict[respective_type] += 1 / \
-                        total_buildings_of_type[respective_type]
-                else:
-                    loc_infection_dict[respective_type] += 1
-        return(loc_infection_dict)
+        for i_loc in infection_locations:
+            respective_type = location_types[i_loc]
+            if relative_to_building_number:
+                loc_infection_dict[respective_type] += 1 / \
+                    total_buildings_of_type[respective_type]
+            else:
+                loc_infection_dict[respective_type] += 1
+        loc_infection_dict_0.update(loc_infection_dict)
+
+        return loc_infection_dict_0
 
     # DF
+
     def get_flag_sums_over_time(self, specific_flags=None):
         """
         :return: DataFrame. The number of true flags over time
@@ -705,30 +721,53 @@ class Simulation(object):
                                 'WasInfected', 'WasDiagnosed', 'WasHospitalized', 'WasICUed', 'time']
         else:
             cols_of_interest = specific_flags + ['time']
-        gdf = parsed_df.groupby('time')
+        sub_df = parsed_df.loc[:, cols_of_interest]
+        gdf = sub_df.groupby('time')
         flag_sums = gdf.sum()
         simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
     # DF
 
     def get_infections_per_location_type_over_time(self):
-        infection_events = self.get_infection_event_information()
-        infection_locations = list(infection_events['place_of_infection'])
-        location_types = {str(l.ID): l.location_type for l in self.locations.values()
-                          if str(l.ID) in infection_locations}
-        unique_locs = list(set(list(location_types.values())))
-        for i in infection_events.index:
-            if not infection_events.loc[i, 'infected_by'] == 'nan':
-                infection_events.loc[i,
-                                     'place_of_infection_loc_type'] = location_types[infection_events.loc[i, 'place_of_infection']]
-        infection_event_times = list(
-            range(max(list(set(list(infection_events['infection_time']))))))
-        out = pd.DataFrame(index=infection_event_times, columns=unique_locs)
-        for t in infection_event_times:
-            x = {loc: len(set(np.where(infection_events['place_of_infection_loc_type'] == loc)[0]).intersection(
-                set(np.where(infection_events['infection_time'] == t)[0]))) for loc in unique_locs}
-            out.loc[t, :] = x
-        return(out)
+        """
+        export data frame of cummulative infection events per location
+        :return pandas.DataFrame
+        """
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1].copy(
+        )
+        infection_events.drop(columns=['status', 'h_ID', 'Temporary_Flags', 'Cumulative_Flags',
+                                       'Interaction_partner'], axis=1, inplace=True)
+        infection_locations = list(infection_events['loc'].values)
+        location_types = {l.ID: l.location_type for l in self.locations.values()
+                          if l.ID in infection_locations}
+
+        infection_events.reset_index()
+        infection_events.loc[:, 'loc_type'] = [location_types[x]
+                                               for x in list(infection_events['loc'].values)]
+        df = infection_events.groupby(by=['time', 'loc_type']).count().reset_index()
+        df.drop('loc', axis=1, inplace=True)
+        df.columns = ['time', 'loc_type', 'number_of_infection_events']
+
+        return(df)
+
+    def get_interaction_timecourse(self, diagnosed_contact=False):
+        """
+        : return pivot table
+        """
+        df = self.simulation_timecourse
+
+        if not diagnosed_contact:
+            df_p = df
+        else:
+            # timecourse dataframe only for diagnosed (acitve partner)
+            df_diag = df[(df['Temporary_Flags'].isin([2, 3, 4]))]
+            human_diagnosed = df_diag['h_ID'].unique()
+            df_diag_contact = df[(df['h_ID'].isin(human_diagnosed))]  # all tracable contacts
+            df_p = df_diag_contact
+        # count events
+        df_pivot = pd.pivot_table(df_p, values='h_ID', index=['time'], columns=[
+                                  'Infection_event'], aggfunc='count')
+        return df_pivot
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
@@ -808,4 +847,9 @@ class Simulation(object):
         vpm_plt.plot_infections_per_location_type_over_time(self, save_figure)
 
     def plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False):
-        vpm_plt.plot_age_groups_status_timecourse(self, age_groups_step=10, save_figure=False)
+        vpm_plt.plot_age_groups_status_timecourse(
+            self, age_groups_step=age_groups_step, save_figure=save_figure)
+
+    def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
+        vpm_plt.plot_interaction_timecourse(
+            self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
