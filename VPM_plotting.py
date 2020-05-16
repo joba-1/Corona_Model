@@ -335,3 +335,16 @@ def plot_distributions_of_durations(simulation_object, save_figure=False, log=Fa
     plt.show()
     if save_figure:
         plt.savefig('outputs/duration_distributions.png')
+
+def plot_interaction_timecourse(simulation_object, save_figure=False, log=False, diagnosed_contact=False):
+    """
+    plot the interaction timecourse for all agents and the interaction of all agents which will be diagnosed at some point
+    """
+
+    fig, ax = plt.subplots()
+    simulation_object.get_interaction_timecourse(diagnosed_contact=diagnosed_contact).plot(ax=ax, logy=log)
+    #simulation_object.get_interaction_timecourse(diagnosed_contact=True).plot(ax=ax, logy=log)
+    ax.legend(['safe contact', 'possible infectious event', 'infection event','safe contact_d', 'possible infectious event_d', 'infection event_d'], loc=(1.1,0))
+    ax.set_title('Interaction Timcourse'), ax.set_ylabel('counts'), ax.set_xlabel('time, h')
+    if save_figure:
+        plt.savefig('outputs/interaction_timecourse.png')        

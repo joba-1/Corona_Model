@@ -209,7 +209,8 @@ def plot_flags(flags_l, cummulative=False,
     legend = plt.legend()        
         
     if save_plot:
-        plt.savefig(output_folder+'plots/'+filename+'_flags.png') 
+        plt.savefig(output_folder+'plots/'+filename+'_flags.png')
+    plt.close()
 
 def plot_and_save_infection_per_location(infection_per_location_list,
                                                  filename='scenario',
@@ -225,7 +226,8 @@ def plot_and_save_infection_per_location(infection_per_location_list,
         inf_per_loc_df.to_csv(output_folder+filename+'_infections_per_location_type.csv')
 
     if save_plot:
-        plt.savefig(output_folder+'plots/'+filename+'_infections_per_location_type.png')                   
+        plt.savefig(output_folder+'plots/'+filename+'_infections_per_location_type.png')    
+    plt.close()               
 
 
 

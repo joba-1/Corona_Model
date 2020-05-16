@@ -79,8 +79,11 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-p", "--parameter", type=str, help="define the parameter to scan: max_time start_2 start_3 infectivity ")
     parser.add_argument("-pr", "--p_range", nargs='+', type=float, help="define the parameter range (2 inputs): e.g. 1 2 ")
+    parser.add_argument("-ps", "--p_steps", type=int, help="define in how many steps the parameter should be scanned (default is 10)")
     parser.add_argument("-d", "--disobedience", type=float, help="disobedience parameter (frequency), default 0")
-    
+    parser.add_argument("-r", "--reinfections", type=int, help="number of reinfections if reinfection time is not 0 (default 1)")
+    parser.add_argument("-rt", "--reinfection_times", nargs='*', type=int, help="times for reinfections (default empty = no reinfections)")
+
     options = parser.parse_args(args)
     return options
 
@@ -99,7 +102,8 @@ def simulate_scenario(input_dict):
     my_dict = {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500,
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
                'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default',
-               'output_folder': 'scenario_output', 'world':None, 'disobedience': 0}
+               'output_folder': 'scenario_output', 'world':None, 'disobedience': 0,
+               'reinfection_times': [], 'reinfections': 1}
 
     my_dict.update(input_dict)
 
@@ -113,10 +117,21 @@ def simulate_scenario(input_dict):
     name = my_dict['name']+'_inf_'+str(infectivity)
     modeledWorld = my_dict['world']
     disobedience = my_dict['disobedience']
+    reinfection_times = my_dict['reinfection_times']
+    reinfections = int(my_dict['reinfections'])
+
+    #print(disobedience, reinfections, reinfection_times)
 
     #print(type(modeledWorld))
+    if len(reinfection_times)>0:
+        times = [start_2, start_3, max_time]
+        times.extend(reinfection_times)
+        times = list(dict.fromkeys(times))  # get rid of duplicates
+        times.sort()
+    else:
+        times = [start_2, start_3, max_time]
 
-    simulation1 = Simulation(modeledWorld, start_2, run_immediately=False)
+    simulation1 = Simulation(modeledWorld, times[0], run_immediately=False)
     simulation1.change_agent_attributes(
         {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
     simulation1.change_agent_attributes(
@@ -130,23 +145,37 @@ def simulate_scenario(input_dict):
         if not prob < disobedience:
             obedient_people.append(p.ID)
 
+    for i,t in enumerate(times):
+        #print(simulation1.time)
+        if simulation1.time+1 == start_2:
+            for p in simulation1.people:
+                if p.ID in obedient_people:
+                    for loc in closed_locs:
+                        p.stay_home_instead_of_going_to(loc)
 
-    for p in simulation1.people:
-        if p.ID in obedient_people:
-            for loc in closed_locs:
-                p.stay_home_instead_of_going_to(loc)
-    simulation1.time_steps = start_3-start_2
-    simulation1.simulate()
+        if simulation1.time+1 == start_3:
+            for p in simulation1.people:
+                p.reset_schedule()
+                for loc in list(set(closed_locs)-set(reopen_locs)):
+                    if p.ID in obedient_people:
+                        p.stay_home_instead_of_going_to(loc)
 
-    #simulation3 = Simulation(simulation2, max_time-start_3, run_immediately=False)
-    #del simulation2
-    for p in simulation1.people:
-        p.reset_schedule()
-        for loc in list(set(closed_locs)-set(reopen_locs)):
-            if p.ID in obedient_people:
-                p.stay_home_instead_of_going_to(loc)
-    simulation1.time_steps = max_time-start_3
-    simulation1.simulate()
+        if simulation1.time+1 in reinfection_times:
+            #print(simulation1.time)
+            susceptibles = [p.ID for p in simulation1.people if p.status=='S']
+            if len(susceptibles)<=reinfections:
+                chosen_ones = susceptibles
+            else:
+                chosen_ones = random.sample(susceptibles, reinfections)
+            #print(chosen_ones)
+            for p in simulation1.people:
+                if p.ID in chosen_ones:
+                    p.get_initially_infected()
+
+        if not simulation1.time+1 == max_time:
+            simulation1.time_steps = times[i+1]-t
+            #print(simulation1.time_steps)
+            simulation1.simulate()
 
     print(my_dict['name']+'_'+str(my_dict['run']))
     #simulation1.save(name+'_'+str(my_dict['run']), # stop saving
@@ -185,24 +214,39 @@ def get_simualtion_settings(options):
         output_folder = options.folder
     else:
         output_folder = '/home/basar/corona_simulations/saved_objects/scenario_output/'
+        #output_folder = 'saved_objects/scenario_output/'
 
     if options.parameter:  # number of simulations
         parameter = options.parameter
     else:
         parameter = None 
 
-    if options.p_range: # number of simulations 
-
-        p_range = np.linspace(options.p_range[0],options.p_range[1],10)
+    if options.p_range: # lower and upper bounds are passed
+        p_bounds = options.p_range  # if given take list of bounds
+        if options.p_steps: # if given take number of steps
+            p_steps = options.p_steps
+        else:
+            p_steps = 10
+        p_range = np.linspace(options.p_range[0],options.p_range[1],p_steps) # define parameter range/values to simulate
     else:
         p_range = np.array([1])
 
     if options.disobedience:
         disobedience = options.disobedience
     else:
-        disobedience = 0  
+        disobedience = 0
+
+    if options.reinfections:
+        reinfections = options.reinfections
+    else:
+        reinfections = 1
+
+    if options.reinfection_times:
+        reinfection_times = options.reinfection_times
+    else:
+        reinfection_times = []
                      
-    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobediance
+    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times
 
 
 def generate_scenario_list(used_scenario, number):
@@ -212,25 +256,28 @@ def generate_scenario_list(used_scenario, number):
     return used_scenarios    
 
 
-
 if __name__ == '__main__':
 
-    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_schedulesv1/'
+    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_schedulesv1_2/'
+    #input_folder =  'saved_objects/test_world_scan/' 
     world_list = os.listdir(input_folder)
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
-    scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience = get_simualtion_settings(options)
+    scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times = get_simualtion_settings(options)
 
     used_scenario = scenarios[scenario_type]
+    used_scenario['reinfections'] = reinfections
+    used_scenario['reinfection_times'] = reinfection_times
+    used_scenario['disobedience'] = disobedience
   
     for p in p_range:
 
         used_scenario[parameter] = p
-        used_scenario['disobedience'] = disobedience
         
         scenario_and_parameter = used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
-        output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter +'/'
+        output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
+        #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
 
         try:
