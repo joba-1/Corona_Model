@@ -3,6 +3,7 @@ from location import *
 from initialize_households import initialize_household
 from VPM_save_and_load import *
 import VPM_plotting as vpm_plt
+import VPM_network_analysis as vpm_neta
 from parse_schedule import parse_schedule
 import random
 import pandas as pd
@@ -769,6 +770,9 @@ class Simulation(object):
                                   'Infection_event'], aggfunc='count')
         return df_pivot
 
+    def get_r_eff_timecourse(self, sliding_window_size,sliding_step_size=1):
+        return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size,sliding_step_size=1)
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course
@@ -788,6 +792,9 @@ class Simulation(object):
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
+
+    def export_r_eff_time_course_as_csv(self, sliding_window_size,sliding_step_size=1,saved_csv_identifier='unnamed_output'):
+        vpm_neta.export_r_eff_timecourse_as_csv(self, sliding_window_size,sliding_step_size=1,saved_csv_identifier=saved_csv_identifier)
 
     def plot_infections_per_location_type(self, relative_to_building_number=True, save_figure=False):
         vpm_plt.plot_infections_per_location_type(
@@ -853,3 +860,8 @@ class Simulation(object):
     def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
+
+    def plot_r_eff(self,sliding_window_size,sliding_step_size=1,save_fig=False):
+        vpm_neta.plot_r_eff_from_csvs_or_sim_object(
+            self,from_sim_obj_sliding_window_size=sliding_window_size,
+            from_sim_obj_sliding_step_size=sliding_step_size,save_fig=save_fig)
