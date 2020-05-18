@@ -71,7 +71,7 @@ def export_r_eff_timecourse_as_csv(time_course_source, sliding_window_size,slidi
     output_df.to_csv('outputs/' + saved_csv_identifier + '-r_eff_timecourse(WSIZE{}_WSTEP{}).csv'.format(sliding_window_size, sliding_step_size))
 
 
-def plot_r_eff_from_csvs_or_sim_object(timecourse_source, from_sim_obj_sliding_window_size=None, from_sim_obj_sliding_step_size=1,timecourses_source_is_list_of_csvs=False,label_list_for_csvs=None,plot_std=True,save_fig=True):
+def plot_r_eff_from_csvs_or_sim_object(timecourse_source, from_sim_obj_sliding_window_size=None, from_sim_obj_sliding_step_size=1,timecourses_source_is_list_of_csvs=False,label_list_for_csvs=None,plot_std=True,save_fig=False):
     if 'Simulation' in str(type(timecourse_source)):  # when the source is a sim. obj.
         assert from_sim_obj_sliding_window_size is not None, "the desired sliding window size has to be specified under from_sim_obj_sliding_window_size"
         times, r_effs, stds_r_eff = get_r_eff_timecourse_from_human_timecourse(timecourse_source, from_sim_obj_sliding_window_size,
