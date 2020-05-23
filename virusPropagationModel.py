@@ -345,10 +345,6 @@ class Simulation(object):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
-        if random_seed is not None:
-            random.seed(random_seed)
-            npr.seed(random_seed)
-
         self.location_types = object_to_simulate.location_types
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
@@ -356,6 +352,7 @@ class Simulation(object):
             self.locations = copy.deepcopy(object_to_simulate.locations)
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
+            self.random_seed = random_seed
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
@@ -366,6 +363,11 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
+
+        if self.random_seed is not None:
+            random.seed(self.random_seed)
+            npr.seed(self.random_seed)
+
         if run_immediately:
             self.simulate()
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
