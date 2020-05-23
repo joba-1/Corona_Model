@@ -364,9 +364,10 @@ class Simulation(object):
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
 
-        if self.random_seed is not None:
-            random.seed(self.random_seed)
-            npr.seed(self.random_seed)
+        if hasattr(self, 'random_seed'):
+            if self.random_seed is not None:
+                random.seed(self.random_seed)
+                npr.seed(self.random_seed)
 
         if run_immediately:
             self.simulate()
