@@ -1,4 +1,4 @@
-from numpy.random import choice as choosing  # numpy.random for generating random numbers
+# from numpy.random import choice as choosing  # numpy.random for generating random numbers
 from random import choice as choosing_one
 import numpy
 import dataProcessing as dp
@@ -238,54 +238,85 @@ class Human(object):
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
+        ## initiate the round-specific interaction partner and occurence of infection event ##
         self.contact_person = -1  # ID of contact person#
-        self.infection_event = -1
+        self.infection_event = -1  # coding infection-event#
         if self.status == 'R':
+            ## define what happens to recovered agents ##
             #encounter interaction with a random person currently at own location#
             contact_person = self.interact()
             pass
         elif self.status == 'S':
+            ## define what happens to susceptible agents ##
             ##encounter interaction with a random person currently at own location and return person##
             contact_person = self.interact()
             ##get potentially infected by picked person ##
             self.infection_event = self.get_infected(time, contact_person)
         elif self.is_infected:
+            ## define what happens to infected agents ##
             ##encounter interaction with a random person currently at own location and return person##
             contact_person = self.interact()
-            if contact_person:  # if an interaction partner has been found ##
-                if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
+            if contact_person:
+                ## if an interaction partner has been found ##
+                if contact_person.preliminary_status == 'S':
+                    ## if this partenr is susceptible ##
                     ##potentially infect this person ##
                     self.infection_event = contact_person.get_infected(time, self)
-            ## New method for the stuff below ##
+            ## increment infection-duration counter ##
             self.infection_duration += 1
             if self.diagnosed:
+                ## if agent is also diagnosed ##
+                ## increment diagnosed-duration counter ##
                 self.diagnosis_duration += 1
+            ## if agent is not diagnosed, potentially get diagnosed ##
             self.get_diagnosed(self.get_diagnosis_prob(), time)
-
-            # What_to_do method #
+            ## define probabilities for death and recovery of the infected agent ##
             probabilities = [self.get_personal_risk(), self.get_recover_prob()]
             if sum(probabilities) > 1:
+                ## if the sum of death- and recovery probability is larger than 1 ##
+                ## normalize probabilities to sum to 1 ##
                 probabilities = [i/sum(probabilities) for i in probabilities]
+                ## also print a message ##
                 print('Death- or recover-probability for age ' + str(self.age) +
                       ' and infection-duration '+str(self.infection_duration))
+            ## choose what to (die, recover or not...) ##
             what_happens = own_choose_function(probabilities)
-            #####################
-            ## infection_progression ##
             if what_happens == 'die':
+                ## if death was chosen to happen ##
+                ## agent dies ##
                 self.die(1.0, time)
             elif what_happens == 'recover':
+                ## if recovery was chosen to happen ##
+                ## agent recovers ##
                 self.recover(1.0, time)
             else:
-                if self.icu:
-                    self.icu_duration += 1
-                    self.get_rehospitalized(self.get_rehospitalization_prob(), time)
-                else:
-                    if self.hospitalized:
-                        self.hospitalization_duration += 1
-                        self.get_ICUed(self.get_icu_prob(), time)
-                    else:
-                        if self.diagnosed:
-                            self.get_hospitalized(self.get_hospitalization_prob(), time)
+                ## if neither death or recovery was chosen to happen: agent stays infected ##
+                self.infection_progression(time)
+
+    def infection_progression(self, time):
+        """
+        Defines how infection proceeds (regarding hospitalization and intensive care).
+        Arguments to provide are: time (int)
+        """
+        if self.icu:
+            ## if agent is subject to intensive-care ##
+            ## increment ICU-duration counter ##
+            self.icu_duration += 1
+            ## potentially go back to normal hospital-bed ##
+            self.get_rehospitalized(self.get_rehospitalization_prob(), time)
+        else:
+            ## if agent is not subject to intensive-care ##
+            if self.hospitalized:
+                ## if agent is subject to normal hospital-care ##
+                ## increment hospitalization-duration counter ##
+                self.hospitalization_duration += 1
+                ## potentially get admitted to intensive-care ##
+                self.get_ICUed(self.get_icu_prob(), time)
+            else:
+                ## if agent is not subject to hospital-care ##
+                if self.diagnosed:
+                    ## if agent is diagnosed, agent potentially gets admitted to hospital ##
+                    self.get_hospitalized(self.get_hospitalization_prob(), time)
 
     def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
         """
@@ -294,13 +325,17 @@ class Human(object):
         Arguments to provide are: none
         """
         out = ordered_dict()
-        out['time'] = time
-        out['h_ID'] = self.ID
-        out['loc'] = self.loc.ID
-        out['status'] = self.encode_stati()
+        out['time'] = time  # write down current time-step#
+        out['h_ID'] = self.ID  # write down agent-ID#
+        out['loc'] = self.loc.ID  # write down ID of current location#
+        out['status'] = self.encode_stati()  # write down agent-status, in encoded fashion#
+        # write down temporary agent-flags, in encoded fashion#
         out['Temporary_Flags'] = self.encode_temporary_flags()
+        # write down cumulative agent-flags, in encoded fashion#
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
+        # write down ID of picked interaction-parner (-1 if no interaction)#
         out['Interaction_partner'] = self.contact_person
+        # write down whether infection event occurs with interaction partner#
         out['Infection_event'] = numpy.int8(self.infection_event)
         return(out)
 
@@ -365,7 +400,7 @@ class Human(object):
         elif self.status == 'D':
             return(numpy.uint8(3))
 
-    def get_infection_info(self):  # for storing simulation data (flags)
+    def get_infection_info(self):
         """
         Returns dictionary with agent-ID ('h_ID') and information
         on the times and place of certain events
@@ -402,72 +437,64 @@ class Human(object):
             self.loc = new_loc  # set own location to new location#
             new_loc.enter(self)  # enter new location
 
-    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[], probability=1):
+    def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
         """
-        Make agents stay at home, instead of going to the specified location.
+        Prohibit agent to visit a given type of location, and stay home instead.
         Arguments to provide are:
-            location_type (str): Location-type to avoid
-            excluded_human_types (str): Schedule-type of people, the mitigation measure is not valid for.
-            probability (str): Probability that each entry of the specified location type is replaced by home.
-            (default 1)
+        location_type (str) - location type not to visit anymore
+        excluded_human_types (list of strings) - list of agent-schedule types, which should be still permitted to visit.
         """
         if self.original_schedule['type'] not in excluded_human_types:
+            ## check whether the agent does not belong to the excluded types ##
             for i in range(len(self.schedule['locs'])):
+                ## go to each entry in the agents schedule ##
                 if self.schedule['locs'][i].location_type == location_type:
-                    if probability >= randomval():
-                        self.schedule['locs'][i] = self.home
+                    ## if the location-type  of the schedule-entry is the specified type ##
+                    ## replace this with the agent's home-location ##
+                    self.schedule['locs'][i] = self.home
 
-    def get_diagnosis_prob(self):  # this needs improvement and is preliminary
+    def get_diagnosis_prob(self):  # !!! this needs improvement and is preliminary
         """
-        Calculates probability to be diagnosed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be diagnosed from data-module.
         Arguments to provide are: none
         """
         return 2 * dp._diagnosis(self.infection_duration)  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be hospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be hospitalized from data-module.
         Arguments to provide are: none
         """
-#        return dp._hospitalisation(self.diagnosis_duration, self.age)
         return dp._hospitalisation(self.diagnosis_duration, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be rehospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be re-hospitalized (from ICU) from data-module.
         Arguments to provide are: none
         """
         return dp._icu_to_hospital(self.icu_duration, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be ICUed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be admitted to intensive-care from data-module.
         Arguments to provide are: none
         """
         return dp._to_icu(self.hospitalization_duration, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to recover.
+        Retreive probability to recover from data-module.
         Arguments to provide are: none
         """
-        # probabitily increases hourly over 20 days (my preliminary random choice)
-        # am besten mit kummulativer gauss-verteilung
         if self.icu:
+            ## if agent is in ICU, recovery is not possible and 0 is returned as probability##
             return(0.0)
         else:
+            ## otherwise use the recovery-probability, speci ##
             prob = dp._recovery(self.infection_duration)
             return prob
 
-    def get_personal_risk(self):  # maybe there is data for that...
+    def get_personal_risk(self):  # !!! maybe there is data for that...
         """
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
@@ -644,7 +671,7 @@ class Human(object):
 
     def set_stati_from_preliminary(self):
         """
-        Set status from preliminary status
+        Set status and flags from preliminary.
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
@@ -658,6 +685,10 @@ class Human(object):
         self.was_icued = self.preliminary_was_icued
 
     def reset_schedule(self):
+        """
+        Resets the agents' schedule to the original one.
+        Arguments to provide are: none
+        """
         self.schedule = self.original_schedule
 
 

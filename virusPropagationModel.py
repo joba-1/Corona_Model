@@ -341,12 +341,15 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
-        self.location_types = object_to_simulate.location_types
+        if random_seed is not None:
+            random.seed(random_seed)
+            npr.seed(random_seed)
 
+        self.location_types = object_to_simulate.location_types
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
