@@ -373,6 +373,11 @@ class Simulation(object):
             self.simulate()
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
 
+    def set_seed(self, random_seed_value):
+        self.random_seed = random_seed_value
+        random.seed(self.random_seed)
+        npr.seed(self.random_seed)
+
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
         wrapper for VPM_save_and_load.save_simulation_object
