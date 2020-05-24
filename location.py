@@ -92,7 +92,7 @@ class World(object):
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church']\
+        loc_class_dic['public'] = ['public', 'chapel', 'church', 'public_building','train_station']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
 
@@ -142,8 +142,9 @@ class World(object):
                                         row['building_area'],)
         # if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
         # if no morgue in dataframe, one is created in low left corner, else model has problems #FIXME Future
+        distance = 0.00
         if not hospital_bool:
-            distance = 0.00
+            
             locations.update({len(self.df_buildings)+1: Location(len(self.df_buildings)+1,
                                                                  (max(self.df_buildings['building_coordinates_x'])+distance,
                                                                   max(self.df_buildings['building_coordinates_y'])+distance),
