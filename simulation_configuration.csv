@@ -1,9 +1,9 @@
 ,Value
-infectivity_df,state_transition_probs/infectivity.csv
-recovery_df,state_transition_probs/recovery.csv
-hospitalisation_df,state_transition_probs/hospitalisation.csv
-icu_death_risk_df,state_transition_probs/icu_to_death.csv
-general_death_risk_df,state_transition_probs/death_risk.csv
-to_icu_df,state_transition_probs/to_icu.csv
-icu_to_hospital_df,state_transition_probs/icu_to_hospital.csv
-diagnosis_df,state_transition_probs/diagnosis.csv
+infectivity_df,datafiles/state_transition_probs/infectivity.csv
+recovery_df,datafiles/state_transition_probs/recovery.csv
+hospitalisation_df,datafiles/state_transition_probs/hospitalisation.csv
+icu_death_risk_df,datafiles/state_transition_probs/icu_to_death.csv
+general_death_risk_df,datafiles/state_transition_probs/death_risk.csv
+to_icu_df,datafiles/state_transition_probs/to_icu.csv
+icu_to_hospital_df,datafiles/state_transition_probs/icu_to_hospital.csv
+diagnosis_df,datafiles/state_transition_probs/diagnosis.csv

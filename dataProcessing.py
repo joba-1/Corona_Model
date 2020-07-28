@@ -4,14 +4,14 @@ from configure_simulation import Simulation_Configuration
 Configurator = Simulation_Configuration()
 
 # read data
-infectivity_df = pd.read_csv(str('datafiles/'+Configurator.infectivity_df))
-recovery_df = pd.read_csv(str('datafiles/'+Configurator.recovery_df))
-hospitalisation_df = pd.read_csv(str('datafiles/'+Configurator.hospitalisation_df))
-icu_death_risk_df = pd.read_csv(str('datafiles/'+Configurator.icu_death_risk_df))
-general_death_risk_df = pd.read_csv(str('datafiles/'+Configurator.general_death_risk_df))
-to_icu_df = pd.read_csv(str('datafiles/'+Configurator.to_icu_df))
-icu_to_hospital_df = pd.read_csv(str('datafiles/'+Configurator.icu_to_hospital_df))
-diagnosis_df = pd.read_csv(str('datafiles/'+Configurator.diagnosis_df))
+infectivity_df = pd.read_csv(Configurator.infectivity_df)
+recovery_df = pd.read_csv(Configurator.recovery_df)
+hospitalisation_df = pd.read_csv(Configurator.hospitalisation_df)
+icu_death_risk_df = pd.read_csv(Configurator.icu_death_risk_df)
+general_death_risk_df = pd.read_csv(Configurator.general_death_risk_df)
+to_icu_df = pd.read_csv(Configurator.to_icu_df)
+icu_to_hospital_df = pd.read_csv(Configurator.icu_to_hospital_df)
+diagnosis_df = pd.read_csv(Configurator.diagnosis_df)
 
 # compute vars for run time
 infectivity_df_max_time = infectivity_df['Time(h)'].max()
