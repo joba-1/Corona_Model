@@ -3,6 +3,7 @@ import pandas
 
 class Simulation_Configuration(object):
     def __init__():
+        print('init config')
         config_file = pandas.read_csv('simulation_configuration.csv', sep=',')
         self.infectivity_df = config_file.loc['infectivity_df', 'Value']
         self.recovery_df = config_file.loc['recovery_df', 'Value']

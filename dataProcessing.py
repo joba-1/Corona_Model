@@ -1,14 +1,17 @@
 import pandas as pd
+from configure_simulation import Simulation_Configuration
+
+Configurator = Simulation_Configuration()
 
 # read data
-infectivity_df = pd.read_csv('datafiles/state_transition_probs/infectivity.csv')
-recovery_df = pd.read_csv('datafiles/state_transition_probs/recovery.csv')
-hospitalisation_df = pd.read_csv('datafiles/state_transition_probs/hospitalisation.csv')
-icu_death_risk_df = pd.read_csv('datafiles/state_transition_probs/icu_to_death.csv')
-general_death_risk_df = pd.read_csv('datafiles/state_transition_probs/death_risk.csv')
-to_icu_df = pd.read_csv('datafiles/state_transition_probs/to_icu.csv')
-icu_to_hospital_df = pd.read_csv('datafiles/state_transition_probs/icu_to_hospital.csv')
-diagnosis_df = pd.read_csv('datafiles/state_transition_probs/diagnosis.csv')
+infectivity_df = pd.read_csv(str('datafiles/'+Configurator.infectivity_df))
+recovery_df = pd.read_csv(str('datafiles/'+Configurator.recovery_df))
+hospitalisation_df = pd.read_csv(str('datafiles/'+Configurator.hospitalisation_df))
+icu_death_risk_df = pd.read_csv(str('datafiles/'+Configurator.icu_death_risk_df))
+general_death_risk_df = pd.read_csv(str('datafiles/'+Configurator.general_death_risk_df))
+to_icu_df = pd.read_csv(str('datafiles/'+Configurator.to_icu_df))
+icu_to_hospital_df = pd.read_csv(str('datafiles/'+Configurator.icu_to_hospital_df))
+diagnosis_df = pd.read_csv(str('datafiles/'+Configurator.diagnosis_df))
 
 # compute vars for run time
 infectivity_df_max_time = infectivity_df['Time(h)'].max()
