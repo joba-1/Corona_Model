@@ -469,13 +469,13 @@ class Human(object):
         """
         if self.diagnosed:
             if self.hospitalized:
-                risk = dp._general_death_risk(self.icu_duration, self.age)
+                risk = dp._general_death_risk(self.infection_duration, self.age)
             elif self.icu:
                 risk = dp._icu_death_risk(self.icu_duration, self.age)
             else:
-                risk = dp._general_death_risk(self.icu_duration, self.age)
+                risk = dp._general_death_risk(self.infection_duration, self.age)
         else:
-            risk = dp._general_death_risk(self.icu_duration, self.age)
+            risk = dp._general_death_risk(self.infection_duration, self.age)
         return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
