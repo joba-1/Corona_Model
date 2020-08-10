@@ -199,17 +199,34 @@ class Human(object):
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
         self.hospital_coeff = 0.01
-        self.infection_time = numpy.nan
-        self.diagnosis_time = numpy.nan
-        self.hospitalization_time = numpy.nan
-        self.recover_time = numpy.nan
-        self.death_time = numpy.nan
-        self.icu_time = numpy.nan
-        self.rehospitalization_time = numpy.nan
-        self.infection_duration = 0
-        self.diagnosis_duration = 0
-        self.hospitalization_duration = 0
-        self.icu_duration = 0
+
+        #self.infection_time = numpy.nan
+        #self.diagnosis_time = numpy.nan
+        #self.hospitalization_time = numpy.nan
+        #self.recover_time = numpy.nan
+        #self.death_time = numpy.nan
+        #self.icu_time = numpy.nan
+        #self.rehospitalization_time = numpy.nan
+
+        self.stati_times = {'infection_time': numpy.nan,
+                            'diagnosis_time': numpy.nan,
+                            'hospitalization_time': numpy.nan,
+                            'recover_time': numpy.nan,
+                            'death_time': numpy.nan,
+                            'icu_time': numpy.nan,
+                            'rehospitalization_time': numpy.nan}
+
+        self.stati_durations = {'infection_duration': 0,
+                                'diagnosis_duration': 0,
+                                'hospitalization_duration': 0,
+                                # 'recovery_duration':0,
+                                'icu_duration': 0}
+
+        #self.infection_duration = 0
+        #self.diagnosis_duration = 0
+        #self.hospitalization_duration = 0
+        #self.icu_duration = 0
+
         self.diagnosed = False
         self.hospitalized = False
         self.icu = False
@@ -231,6 +248,7 @@ class Human(object):
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
+
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
@@ -256,9 +274,9 @@ class Human(object):
                     ##potentially infect this person ##
                     self.infection_event = contact_person.get_infected(time, self)
             ## New method for the stuff below ##
-            self.infection_duration += 1
+            self.stati_durations['infection_duration'] += 1
             if self.diagnosed:
-                self.diagnosis_duration += 1
+                self.stati_durations['diagnosis_duration'] += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
 
             # What_to_do method #
@@ -266,7 +284,7 @@ class Human(object):
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
                 print('Death- or recover-probability for age ' + str(self.age) +
-                      ' and infection-duration '+str(self.infection_duration))
+                      ' and infection-duration '+str(self.stati_durations['infection_duration']))
             what_happens = own_choose_function(probabilities)
             #####################
             ## infection_progression ##
@@ -276,11 +294,11 @@ class Human(object):
                 self.recover(1.0, time)
             else:
                 if self.icu:
-                    self.icu_duration += 1
+                    self.stati_durations['icu_duration'] += 1
                     self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
                     if self.hospitalized:
-                        self.hospitalization_duration += 1
+                        self.stati_durations['hospitalization_duration'] += 1
                         self.get_ICUed(self.get_icu_prob(), time)
                     else:
                         if self.diagnosed:
@@ -370,14 +388,17 @@ class Human(object):
         on the times and place of certain events
         Arguments to provide are: none
         """
-        return {'h_ID': self.ID,
-                'infection_time':  self.infection_time,
-                'recovery_time':  self.recover_time,
-                'death_time':     self.death_time,
-                'diagnosis_time': self.diagnosis_time,
-                'hospitalized_time':    self.hospitalization_time,
-                'hospital_to_ICU_time': self.icu_time,
-                'ICU_to_hospital_time': self.rehospitalization_time}
+        out = {'h_ID': self.ID}
+        out.update(self.stati_times)
+        return(out)
+#        return {'h_ID': self.ID,
+#                'infection_time':  self.infection_time,
+#                'recovery_time':  self.recover_time,
+#                'death_time':     self.death_time,
+#                'diagnosis_time': self.diagnosis_time,
+#                'hospitalized_time':    self.hospitalization_time,
+#                'hospital_to_ICU_time': self.icu_time,
+#                'ICU_to_hospital_time': self.rehospitalization_time}
 
     def move(self, time):  # agent moves relative to global time
         """
@@ -414,7 +435,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.infection_duration)  # TODO change in exel sheet - compare with gangelt data
+        return 2 * dp._diagnosis(self.stati_durations['infection_duration'])  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -423,8 +444,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-#        return dp._hospitalisation(self.diagnosis_duration, self.age)
-        return dp._hospitalisation(self.diagnosis_duration, self.age)
+        return dp._hospitalisation(self.stati_durations['diagnosis_duration'], self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -433,7 +453,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._icu_to_hospital(self.icu_duration, self.age)
+        return dp._icu_to_hospital(self.stati_durations['icu_duration'], self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
@@ -442,7 +462,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._to_icu(self.hospitalization_duration, self.age)
+        return dp._to_icu(self.stati_durations['hospitalization_duration'], self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
@@ -453,13 +473,13 @@ class Human(object):
         # am besten mit kummulativer gauss-verteilung
         if self.diagnosed:
             if self.hospitalized:
-                prob = dp._recovery(self.infection_duration)
+                prob = dp._recovery(self.stati_durations['infection_duration'])
             elif self.icu:
                 prob = 0.0
             else:
-                prob = dp._recovery(self.infection_duration)
+                prob = dp._recovery(self.stati_durations['infection_duration'])
         else:
-            prob = dp._recovery(self.infection_duration)
+            prob = dp._recovery(self.stati_durations['infection_duration'])
         return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
@@ -469,13 +489,13 @@ class Human(object):
         """
         if self.diagnosed:
             if self.hospitalized:
-                risk = dp._general_death_risk(self.infection_duration, self.age)
+                risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
             elif self.icu:
-                risk = dp._icu_death_risk(self.icu_duration, self.age)
+                risk = dp._icu_death_risk(self.stati_durations['icu_duration'], self.age)
             else:
-                risk = dp._general_death_risk(self.infection_duration, self.age)
+                risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
         else:
-            risk = dp._general_death_risk(self.infection_duration, self.age)
+            risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
         return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
@@ -487,7 +507,7 @@ class Human(object):
         """
         self.preliminary_status = 'I'
         self.set_stati_from_preliminary()
-        self.infection_time = 0
+        self.stati_times['infection_time'] = 0
         self.preliminary_was_infected = True
         self.was_infected = True
         self.is_infected = True
@@ -534,7 +554,7 @@ class Human(object):
                     self.preliminary_status = 'I'  # set owns preliminary status to infected ##
                     self.preliminary_was_infected = True  # set own was_infected argument to True##
                     self.preliminary_is_infected = True  # set own is_infected argument to True##
-                    self.infection_time = time
+                    self.stati_times['infection_time'] = time
                     out = 1
         return(out)
 
@@ -639,7 +659,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        infectivity = dp._infectivity(self.infection_duration)
+        infectivity = dp._infectivity(self.stati_durations['infection_duration'])
         return(infectivity*self.behaviour_as_infected)
 
     def set_stati_from_preliminary(self):
