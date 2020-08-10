@@ -200,14 +200,6 @@ class Human(object):
         self.behaviour_as_susceptible = 1
         self.hospital_coeff = 0.01
 
-        #self.infection_time = numpy.nan
-        #self.diagnosis_time = numpy.nan
-        #self.hospitalization_time = numpy.nan
-        #self.recover_time = numpy.nan
-        #self.death_time = numpy.nan
-        #self.icu_time = numpy.nan
-        #self.rehospitalization_time = numpy.nan
-
         self.stati_times = {'infection_time': numpy.nan,
                             'diagnosis_time': numpy.nan,
                             'hospitalization_time': numpy.nan,
@@ -221,11 +213,6 @@ class Human(object):
                                 'hospitalization_duration': 0,
                                 # 'recovery_duration':0,
                                 'icu_duration': 0}
-
-        #self.infection_duration = 0
-        #self.diagnosis_duration = 0
-        #self.hospitalization_duration = 0
-        #self.icu_duration = 0
 
         self.diagnosed = False
         self.hospitalized = False
@@ -391,14 +378,6 @@ class Human(object):
         out = {'h_ID': self.ID}
         out.update(self.stati_times)
         return(out)
-#        return {'h_ID': self.ID,
-#                'infection_time':  self.infection_time,
-#                'recovery_time':  self.recover_time,
-#                'death_time':     self.death_time,
-#                'diagnosis_time': self.diagnosis_time,
-#                'hospitalized_time':    self.hospitalization_time,
-#                'hospital_to_ICU_time': self.icu_time,
-#                'ICU_to_hospital_time': self.rehospitalization_time}
 
     def move(self, time):  # agent moves relative to global time
         """
