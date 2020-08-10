@@ -232,7 +232,6 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
@@ -452,21 +451,31 @@ class Human(object):
         """
         # probabitily increases hourly over 20 days (my preliminary random choice)
         # am besten mit kummulativer gauss-verteilung
-        if self.icu:
-            return(0.0)
+        if self.diagnosed:
+            if self.hospitalized:
+                prob = dp._recovery(self.infection_duration)
+            elif self.icu:
+                prob = 0.0
+            else:
+                prob = dp._recovery(self.infection_duration)
         else:
             prob = dp._recovery(self.infection_duration)
-            return prob
+        return prob
 
     def get_personal_risk(self):  # maybe there is data for that...
         """
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
         """
-        if not self.icu:
-            risk = dp._general_death_risk(self.infection_duration, self.age)
+        if self.diagnosed:
+            if self.hospitalized:
+                risk = dp._general_death_risk(self.icu_duration, self.age)
+            elif self.icu:
+                risk = dp._icu_death_risk(self.icu_duration, self.age)
+            else:
+                risk = dp._general_death_risk(self.icu_duration, self.age)
         else:
-            risk = dp._icu_death_risk(self.icu_duration, self.age)
+            risk = dp._general_death_risk(self.icu_duration, self.age)
         return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
@@ -570,7 +579,7 @@ class Human(object):
             self.preliminary_icu = True
             self.preliminary_hospitalized = False
             self.icu_time = time
-            self.preliminary_was_icued = False
+            self.preliminary_was_icued = True
 
     def get_rehospitalized(self, probability, time):
         """
