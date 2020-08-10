@@ -414,7 +414,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.stati_durations['infection_duration'])  # TODO change in exel sheet - compare with gangelt data
+        return 2 * dp._diagnosis(self.stati_durations)  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -423,7 +423,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._hospitalisation(self.stati_durations['diagnosis_duration'], self.age)
+        return dp._hospitalisation(self.stati_durations, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -432,7 +432,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._icu_to_hospital(self.stati_durations['icu_duration'], self.age)
+        return dp._icu_to_hospital(self.stati_durations, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
@@ -441,7 +441,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return dp._to_icu(self.stati_durations['hospitalization_duration'], self.age)
+        return dp._to_icu(self.stati_durations, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
@@ -452,13 +452,13 @@ class Human(object):
         # am besten mit kummulativer gauss-verteilung
         if self.diagnosed:
             if self.hospitalized:
-                prob = dp._recovery(self.stati_durations['infection_duration'])
+                prob = dp._recovery(self.stati_durations)
             elif self.icu:
                 prob = 0.0
             else:
-                prob = dp._recovery(self.stati_durations['infection_duration'])
+                prob = dp._recovery(self.stati_durations)
         else:
-            prob = dp._recovery(self.stati_durations['infection_duration'])
+            prob = dp._recovery(self.stati_durations)
         return prob
 
     def get_death_prob(self):  # maybe there is data for that...
@@ -468,13 +468,13 @@ class Human(object):
         """
         if self.diagnosed:
             if self.hospitalized:
-                risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
+                risk = dp._general_death_risk(self.stati_durations, self.age)
             elif self.icu:
-                risk = dp._icu_death_risk(self.stati_durations['icu_duration'], self.age)
+                risk = dp._icu_death_risk(self.stati_durations, self.age)
             else:
-                risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
+                risk = dp._general_death_risk(self.stati_durations, self.age)
         else:
-            risk = dp._general_death_risk(self.stati_durations['infection_duration'], self.age)
+            risk = dp._general_death_risk(self.stati_durations, self.age)
         return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
@@ -638,7 +638,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        infectivity = dp._infectivity(self.stati_durations['infection_duration'])
+        infectivity = dp._infectivity(self.stati_durations)
         return(infectivity*self.behaviour_as_infected)
 
     def set_stati_from_preliminary(self):
