@@ -585,7 +585,7 @@ class Simulation(object):
          Returns a pandas DataFrame with the durations of certain states of the agents.
          :return: pandas DataFrame
          """
-        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
             'infection_time', 'diagnosis_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
         out = pd.DataFrame()
         out['infection_to_recovery'] = df['recovery_time'] - df['infection_time']
