@@ -108,7 +108,7 @@ class Human(object):
         Calculates probability to recover.
         Arguments to provide are: time (int)
 
-    get_personal_risk()
+    get_death_prob()
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
 
@@ -280,7 +280,7 @@ class Human(object):
             self.get_diagnosed(self.get_diagnosis_prob(), time)
 
             # What_to_do method #
-            probabilities = [self.get_personal_risk(), self.get_recover_prob()]
+            probabilities = [self.get_death_prob(), self.get_recover_prob()]
             if sum(probabilities) > 1:
                 probabilities = [i/sum(probabilities) for i in probabilities]
                 print('Death- or recover-probability for age ' + str(self.age) +
@@ -482,7 +482,7 @@ class Human(object):
             prob = dp._recovery(self.stati_durations['infection_duration'])
         return prob
 
-    def get_personal_risk(self):  # maybe there is data for that...
+    def get_death_prob(self):  # maybe there is data for that...
         """
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
