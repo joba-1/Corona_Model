@@ -1,9 +1,9 @@
 ,File,Dependency
-infectivity_df,datafiles/state_transition_probs/infectivity.csv,
-recovery_df,datafiles/state_transition_probs/recovery.csv,
-hospitalisation_df,datafiles/state_transition_probs/hospitalisation.csv,
-icu_death_risk_df,datafiles/state_transition_probs/icu_to_death.csv,
-general_death_risk_df,datafiles/state_transition_probs/death_risk.csv,
-to_icu_df,datafiles/state_transition_probs/to_icu.csv,
-icu_to_hospital_df,datafiles/state_transition_probs/icu_to_hospital.csv,
-diagnosis_df,datafiles/state_transition_probs/diagnosis.csv,
+infectivity_df,datafiles/state_transition_probs/infectivity.csv,infection_duration
+recovery_df,datafiles/state_transition_probs/recovery.csv,infection_duration
+hospitalisation_df,datafiles/state_transition_probs/hospitalisation.csv,diagnosis_duration
+icu_death_risk_df,datafiles/state_transition_probs/icu_to_death.csv,icu_duration
+general_death_risk_df,datafiles/state_transition_probs/death_risk.csv,infection_duration
+to_icu_df,datafiles/state_transition_probs/to_icu.csv,hospitalization_duration
+icu_to_hospital_df,datafiles/state_transition_probs/icu_to_hospital.csv,icu_duration
+diagnosis_df,datafiles/state_transition_probs/diagnosis.csv,infection_duration
