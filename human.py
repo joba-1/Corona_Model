@@ -419,7 +419,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.stati_durations)  # TODO change in exel sheet - compare with gangelt data
+        return (dp._diagnosis(self.stati_durations))  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -480,7 +480,7 @@ class Human(object):
                 risk = dp._diagnosed_death_risk(self.stati_durations, self.age)
         else:
             risk = dp._undiagnosed_death_risk(self.stati_durations, self.age)
-        return 2 * risk  # TODO change in exel sheet - compare with gangelt data
+        return(risk)  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
         """
