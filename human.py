@@ -5,6 +5,7 @@ import dataProcessing as dp
 from random import random as randomval
 import copy
 from collections import OrderedDict as ordered_dict
+from configure_simulation import location_coefficients as location_coefficient_dict
 
 
 class Human(object):
@@ -199,7 +200,6 @@ class Human(object):
 
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
-        self.hospital_coeff = 0.01
 
         self.stati_times = {'infection_time': numpy.nan,
                             'diagnosis_time': numpy.nan,
@@ -215,20 +215,22 @@ class Human(object):
                                 # 'recovery_duration':0,
                                 'icu_duration': 0}
 
+        self.is_infected = False
         self.diagnosed = False
         self.hospitalized = False
         self.icu = False
+
         self.was_infected = False
-        self.is_infected = False
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
 
+        self.preliminary_is_infected = False
         self.preliminary_diagnosed = False
         self.preliminary_hospitalized = False
         self.preliminary_icu = False
+
         self.preliminary_was_infected = False
-        self.preliminary_is_infected = False
         self.preliminary_was_diagnosed = False
         self.preliminary_was_hospitalized = False
         self.preliminary_was_icued = False
@@ -238,7 +240,6 @@ class Human(object):
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
-
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
@@ -528,9 +529,8 @@ class Human(object):
             if contact_person.is_infected:
                 out = 0
                 ## add interaction partner to own list of contacts with infected individuals ##
-                if self.loc.location_type == 'hospital':
-                    # modulate infection-probability coefficient if one is in the hospital
-                    coeff = self.hospital_coeff
+                if self.loc.location_type in location_coefficient_dict.keys():
+                    coeff = location_coefficient_dict[self.loc.location_type]
                 ## evaluate whether infection occurs, based on probability ##
                 if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
                     self.preliminary_status = 'I'  # set owns preliminary status to infected ##

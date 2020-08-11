@@ -1,5 +1,8 @@
 import pandas
 
+loc_coeff_df = pandas.read_csv('location_coefficients.csv', sep=',')
+location_coefficients = dict(zip(list(loc_coeff_df['Location']), list(loc_coeff_df['Coeff'])))
+
 
 class Simulation_Configuration(object):
     def __init__(self):
