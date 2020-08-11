@@ -196,6 +196,7 @@ class Human(object):
         self.loc = loc  # current location
         self.home = loc
         loc.enter(self)
+
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
         self.hospital_coeff = 0.01
@@ -222,6 +223,7 @@ class Human(object):
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
+
         self.preliminary_diagnosed = False
         self.preliminary_hospitalized = False
         self.preliminary_icu = False
@@ -230,6 +232,7 @@ class Human(object):
         self.preliminary_was_diagnosed = False
         self.preliminary_was_hospitalized = False
         self.preliminary_was_icued = False
+
         self.contact_person = -1
         self.infection_event = -1
 
@@ -452,13 +455,13 @@ class Human(object):
         # am besten mit kummulativer gauss-verteilung
         if self.diagnosed:
             if self.hospitalized:
-                prob = dp._recovery(self.stati_durations)
+                prob = dp._recovery_from_hospitalized(self.stati_durations)
             elif self.icu:
                 prob = 0.0
             else:
-                prob = dp._recovery(self.stati_durations)
+                prob = dp._recovery_from_diagnosed(self.stati_durations)
         else:
-            prob = dp._recovery(self.stati_durations)
+            prob = dp._recovery_from_undiagnosed(self.stati_durations)
         return prob
 
     def get_death_prob(self):  # maybe there is data for that...
@@ -468,13 +471,13 @@ class Human(object):
         """
         if self.diagnosed:
             if self.hospitalized:
-                risk = dp._general_death_risk(self.stati_durations, self.age)
+                risk = dp._hospital_death_risk(self.stati_durations, self.age)
             elif self.icu:
                 risk = dp._icu_death_risk(self.stati_durations, self.age)
             else:
-                risk = dp._general_death_risk(self.stati_durations, self.age)
+                risk = dp._diagnosed_death_risk(self.stati_durations, self.age)
         else:
-            risk = dp._general_death_risk(self.stati_durations, self.age)
+            risk = dp._undiagnosed_death_risk(self.stati_durations, self.age)
         return 2 * risk  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
