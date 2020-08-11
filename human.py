@@ -281,9 +281,9 @@ class Human(object):
             #####################
             ## infection_progression ##
             if what_happens == 'die':
-                self.die(1.0, time)
+                self.die(time)
             elif what_happens == 'recover':
-                self.recover(1.0, time)
+                self.recover(time)
             else:
                 if self.icu:
                     self.stati_durations['icu_duration'] += 1
