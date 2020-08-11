@@ -241,6 +241,7 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
+
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
@@ -554,7 +555,7 @@ class Human(object):
                 self.specific_schedule = self.diagnosed_schedule
                 self.preliminary_was_diagnosed = True
 
-    def recover(self, recover_prob, time):
+    def recover(self, time):
         """
         Determines whether an agent recovers,
         based on recover-probability.
@@ -562,13 +563,12 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if recover_prob >= randomval():
-            self.recover_time = time
-            self.preliminary_status = 'R'
-            self.preliminary_icu = False
-            self.preliminary_hospitalized = False
-            self.preliminary_diagnosed = False
-            self.preliminary_is_infected = False
+        self.recover_time = time
+        self.preliminary_status = 'R'
+        self.preliminary_icu = False
+        self.preliminary_hospitalized = False
+        self.preliminary_diagnosed = False
+        self.preliminary_is_infected = False
 
     def get_ICUed(self, probability, time):
         """
@@ -615,7 +615,7 @@ class Human(object):
                 self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
                     len(list(self.specific_schedule['times']))
 
-    def die(self, risk, time):
+    def die(self, time):
         """
         Determines whether an agent dies,
         based on personal_risk-probability.
@@ -623,16 +623,15 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if risk >= randomval():
-            self.preliminary_status = 'D'
-            self.death_time = time
-            self.preliminary_icu = False
-            self.preliminary_hospitalized = False
-            self.preliminary_diagnosed = False
-            self.preliminary_is_infected = False
-            if self.loc.special_locations['morgue']:
-                self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
-                    len(list(self.specific_schedule['times']))
+        self.preliminary_status = 'D'
+        self.death_time = time
+        self.preliminary_icu = False
+        self.preliminary_hospitalized = False
+        self.preliminary_diagnosed = False
+        self.preliminary_is_infected = False
+        if self.loc.special_locations['morgue']:
+            self.specific_schedule['locs'] = [
+                self.loc.special_locations['morgue'][0]] * len(list(self.specific_schedule['times']))
 
     def get_infectivity(self):
         """
