@@ -73,7 +73,7 @@ def _recovery_from_undiagnosed(stati_durations):
     else:
         col = 'AgeIndependent'
     if respective_duration > recovery_from_undiagnosed_df_max_time:
-        return float(recovery_from_undiagnosed[col].max())
+        return float(recovery_from_undiagnosed_df[col].max())
     else:
         return float(recovery_from_undiagnosed_df.loc[respective_duration, col])
 
