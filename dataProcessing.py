@@ -89,7 +89,7 @@ def _recovery_from_diagnosed(stati_durations):
     else:
         col = 'AgeIndependent'
     if respective_duration > recovery_from_diagnosed_df_max_time:
-        return float(recovery_from_diagnosed[col].max())
+        return float(recovery_from_diagnosed_df[col].max())
     else:
         return float(recovery_from_diagnosed_df.loc[respective_duration, col])
 
@@ -105,7 +105,7 @@ def _recovery_from_hospitalized(stati_durations):
     else:
         col = 'AgeIndependent'
     if respective_duration > recovery_from_hospitalized_df_max_time:
-        return float(recovery_from_hospitalized[col].max())
+        return float(recovery_from_hospitalized_df[col].max())
     else:
         return float(recovery_from_hospitalized_df.loc[respective_duration, col])
 
