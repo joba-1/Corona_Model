@@ -53,111 +53,160 @@ def _infectivity(stati_durations):
         return 0
     if respective_duration > infectivity_df_max_time:
         return 0
-    return float(infectivity_df.loc[respective_duration, 'Probability_to_infect'])
+    if Configurator.infectivity_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
+    return float(infectivity_df.loc[respective_duration, col])
 
 
 def _recovery_from_undiagnosed(stati_durations):
     respective_duration = stati_durations[Configurator.recovery_from_undiagnosed_dependency]
     if respective_duration == 0:
         return 0
+    if Configurator.recovery_from_undiagnosed_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
     if respective_duration > recovery_from_undiagnosed_df_max_time:
-        return float(recovery_from_undiagnosed['recover probability'].max())
-    return float(recovery_from_undiagnosed_df.loc[respective_duration, 'recover probability'])
+        return float(recovery_from_undiagnosed[col].max())
+    else:
+        return float(recovery_from_undiagnosed_df.loc[respective_duration, col])
 
 
 def _recovery_from_diagnosed(stati_durations):
     respective_duration = stati_durations[Configurator.recovery_from_diagnosed_dependency]
     if respective_duration == 0:
         return 0
+    if Configurator.recovery_from_diagnosed_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
     if respective_duration > recovery_from_diagnosed_df_max_time:
-        return float(recovery_from_diagnosed['recover probability'].max())
-    return float(recovery_from_diagnosed_df.loc[respective_duration, 'recover probability'])
+        return float(recovery_from_diagnosed[col].max())
+    else:
+        return float(recovery_from_diagnosed_df.loc[respective_duration, col])
 
 
 def _recovery_from_hospitalized(stati_durations):
     respective_duration = stati_durations[Configurator.recovery_from_hospitalized_dependency]
     if respective_duration == 0:
         return 0
+    if Configurator.recovery_from_hospitalized_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
     if respective_duration > recovery_from_hospitalized_df_max_time:
-        return float(recovery_from_hospitalized['recover probability'].max())
-    return float(recovery_from_hospitalized_df.loc[respective_duration, 'recover probability'])
+        return float(recovery_from_hospitalized[col].max())
+    else:
+        return float(recovery_from_hospitalized_df.loc[respective_duration, col])
 
 
 def _hospitalisation(stati_durations, age):
     respective_duration = stati_durations[Configurator.hospitalisation_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > hospitalisation_df_max_time:
         return 0
-    return float(hospitalisation_df.loc[respective_duration, str(age)])
+    if Configurator.hospitalisation_age_dependency:
+        if age > 99:
+            age = 99
+        return float(hospitalisation_df.loc[respective_duration, str(age)])
+    else:
+        return float(hospitalisation_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _undiagnosed_death_risk(stati_durations, age):
     respective_duration = stati_durations[Configurator.death_from_undiagnosed_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > death_from_undiagnosed_df_max_time:
         return 0
-    return float(death_from_undiagnosed_df.loc[respective_duration, str(age)])
+    if Configurator.death_from_undiagnosed_age_dependency:
+        if age > 99:
+            age = 99
+        return float(death_from_undiagnosed_df.loc[respective_duration, str(age)])
+    else:
+        return float(death_from_undiagnosed_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _diagnosed_death_risk(stati_durations, age):
     respective_duration = stati_durations[Configurator.death_from_diagnosed_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > death_from_diagnosed_df_max_time:
         return 0
-    return float(death_from_diagnosed_df.loc[respective_duration, str(age)])
+    if Configurator.death_from_diagnosed_age_dependency:
+        if age > 99:
+            age = 99
+        return float(death_from_diagnosed_df.loc[respective_duration, str(age)])
+    else:
+        return float(death_from_diagnosed_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _hospital_death_risk(stati_durations, age):
     respective_duration = stati_durations[Configurator.death_from_hospitalized_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > death_from_hospitalized_df_max_time:
         return 0
-    return float(death_from_hospitalized_df.loc[respective_duration, str(age)])
+    if Configurator.death_from_hospitalized_age_dependency:
+        if age > 99:
+            age = 99
+        return float(death_from_hospitalized_df.loc[respective_duration, str(age)])
+    else:
+        return float(death_from_hospitalized_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _icu_death_risk(stati_durations, age):
     respective_duration = stati_durations[Configurator.death_from_icu_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > death_from_icu_df_max_time:
         return 0
-    return float(death_from_icu_df.loc[respective_duration, str(age)])
+    if Configurator.death_from_icu_age_dependency:
+        if age > 99:
+            age = 99
+        return float(death_from_icu_df.loc[respective_duration, str(age)])
+    else:
+        return float(death_from_icu_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _to_icu(stati_durations, age):
     respective_duration = stati_durations[Configurator.to_icu_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
     if respective_duration > to_icu_df_max_time:
         return 0
-    return float(to_icu_df.loc[respective_duration, str(age)])
+    if Configurator.to_icu_age_dependency:
+        if age > 99:
+            age = 99
+        return float(to_icu_df.loc[respective_duration, str(age)])
+    else:
+        return float(to_icu_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _icu_to_hospital(stati_durations, age):
     respective_duration = stati_durations[Configurator.icu_to_hospital_dependency]
-    if age > 99:
-        age = 99
     if respective_duration == 0:
         return 0
-    if respective_duration > icu_to_hospital_df_max_time:
-        return float(icu_to_hospital_df[str(age)].max())
-    return float(icu_to_hospital_df.loc[respective_duration, str(age)])
+    if Configurator.icu_to_hospital_age_dependency:
+        if age > 99:
+            age = 99
+        if respective_duration > icu_to_hospital_df_max_time:
+            return float(icu_to_hospital_df[str(age)].max())
+        else:
+            return float(icu_to_hospital_df.loc[respective_duration, str(age)])
+    else:
+        return float(icu_to_hospital_df.loc[respective_duration, 'AgeIndependent'])
 
 
 def _diagnosis(stati_durations):
@@ -166,4 +215,25 @@ def _diagnosis(stati_durations):
         return 0
     if respective_duration > diagnosis_df_max_time:
         return 0
-    return float(diagnosis_df.loc[respective_duration, 'probability'])
+    if Configurator.diagnosis_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
+    return float(diagnosis_df.loc[respective_duration, col])
+
+
+def _infectivity(stati_durations):
+    respective_duration = stati_durations[Configurator.infectivity_dependency]
+    if respective_duration == 0:
+        return 0
+    if respective_duration > infectivity_df_max_time:
+        return 0
+    if Configurator.infectivity_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
+    return float(infectivity_df.loc[respective_duration, col])

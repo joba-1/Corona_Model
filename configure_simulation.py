@@ -32,3 +32,18 @@ class Simulation_Configuration(object):
         self.recovery_from_undiagnosed_dependency = config_file.loc['recovery_from_undiagnosed_df', 'Dependency']
         self.recovery_from_diagnosed_dependency = config_file.loc['recovery_from_diagnosed_df', 'Dependency']
         self.recovery_from_hospitalized_dependency = config_file.loc['recovery_from_hospitalized_df', 'Dependency']
+
+        self.infectivity_age_dependency = config_file.loc['infectivity_df', 'Age_dependent']
+        self.hospitalisation_age_dependency = config_file.loc['hospitalisation_df', 'Age_dependent']
+        self.to_icu_age_dependency = config_file.loc['to_icu_df', 'Age_dependent']
+        self.icu_to_hospital_age_dependency = config_file.loc['icu_to_hospital_df', 'Age_dependent']
+        self.diagnosis_age_dependency = config_file.loc['diagnosis_df', 'Age_dependent']
+        self.death_from_undiagnosed_age_dependency = config_file.loc['death_from_undiagnosed_df', 'Age_dependent']
+        self.death_from_diagnosed_age_dependency = config_file.loc['death_from_diagnosed_df', 'Age_dependent']
+        self.death_from_hospitalized_age_dependency = config_file.loc['death_from_hospitalized_df', 'Age_dependent']
+        self.death_from_icu_age_dependency = config_file.loc['death_from_icu_df', 'Age_dependent']
+        self.recovery_from_undiagnosed_age_dependency = config_file.loc[
+            'recovery_from_undiagnosed_df', 'Age_dependent']
+        self.recovery_from_diagnosed_age_dependency = config_file.loc['recovery_from_diagnosed_df', 'Age_dependent']
+        self.recovery_from_hospitalized_age_dependency = config_file.loc[
+            'recovery_from_hospitalized_df', 'Age_dependent']
