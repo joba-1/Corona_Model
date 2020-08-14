@@ -383,6 +383,7 @@ class Human(object):
         """
         out = {'h_ID': self.ID}
         out.update(self.stati_times)
+        print(out)
         return(out)
 
     def move(self, time):  # agent moves relative to global time
