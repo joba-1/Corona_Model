@@ -381,9 +381,14 @@ class Human(object):
         on the times and place of certain events
         Arguments to provide are: none
         """
-        out = {'h_ID': self.ID}
-        out.update(self.stati_times)
-        print(out)
+        out = {'h_ID': self.ID,
+               'infection_time': self.stati_times['infection_time'],
+               'diagnosis_time': self.stati_times['diagnosis_time'],
+               'hospitalization_time': self.stati_times['hospitalization_time'],
+               'recover_time': self.stati_times['recover_time'],
+               'death_time': self.stati_times['death_time'],
+               'icu_time': self.stati_times['icu_time'],
+               'rehospitalization_time': self.stati_times['rehospitalization_time']}
         return(out)
 
     def move(self, time):  # agent moves relative to global time
