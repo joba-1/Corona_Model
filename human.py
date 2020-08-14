@@ -421,7 +421,7 @@ class Human(object):
         Function has to be defined!
         Arguments to provide are: none
         """
-        return (dp._diagnosis(self.stati_durations))  # TODO change in exel sheet - compare with gangelt data
+        return (dp._diagnosis(self.stati_durations, self.age))  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
@@ -459,13 +459,13 @@ class Human(object):
         # am besten mit kummulativer gauss-verteilung
         if self.diagnosed:
             if self.hospitalized:
-                prob = dp._recovery_from_hospitalized(self.stati_durations)
+                prob = dp._recovery_from_hospitalized(self.stati_durations, self.age)
             elif self.icu:
                 prob = 0.0
             else:
-                prob = dp._recovery_from_diagnosed(self.stati_durations)
+                prob = dp._recovery_from_diagnosed(self.stati_durations, self.age)
         else:
-            prob = dp._recovery_from_undiagnosed(self.stati_durations)
+            prob = dp._recovery_from_undiagnosed(self.stati_durations, self.age)
         return prob
 
     def get_death_prob(self):  # maybe there is data for that...
@@ -642,7 +642,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        infectivity = dp._infectivity(self.stati_durations)
+        infectivity = dp._infectivity(self.stati_durations, self.age)
         return(infectivity*self.behaviour_as_infected)
 
     def set_stati_from_preliminary(self):

@@ -47,7 +47,7 @@ death_from_hospitalized_df.set_index('Time-steps', inplace=True)
 death_from_icu_df.set_index('Time-steps', inplace=True)
 
 
-def _infectivity(stati_durations):
+def _infectivity(stati_durations, age):
     respective_duration = stati_durations[Configurator.infectivity_dependency]
     if respective_duration == 0:
         return 0
@@ -62,7 +62,7 @@ def _infectivity(stati_durations):
     return float(infectivity_df.loc[respective_duration, col])
 
 
-def _recovery_from_undiagnosed(stati_durations):
+def _recovery_from_undiagnosed(stati_durations, age):
     respective_duration = stati_durations[Configurator.recovery_from_undiagnosed_dependency]
     if respective_duration == 0:
         return 0
@@ -78,7 +78,7 @@ def _recovery_from_undiagnosed(stati_durations):
         return float(recovery_from_undiagnosed_df.loc[respective_duration, col])
 
 
-def _recovery_from_diagnosed(stati_durations):
+def _recovery_from_diagnosed(stati_durations, age):
     respective_duration = stati_durations[Configurator.recovery_from_diagnosed_dependency]
     if respective_duration == 0:
         return 0
@@ -94,7 +94,7 @@ def _recovery_from_diagnosed(stati_durations):
         return float(recovery_from_diagnosed_df.loc[respective_duration, col])
 
 
-def _recovery_from_hospitalized(stati_durations):
+def _recovery_from_hospitalized(stati_durations, age):
     respective_duration = stati_durations[Configurator.recovery_from_hospitalized_dependency]
     if respective_duration == 0:
         return 0
@@ -216,7 +216,7 @@ def _icu_to_hospital(stati_durations, age):
         return float(icu_to_hospital_df.loc[respective_duration, col])
 
 
-def _diagnosis(stati_durations):
+def _diagnosis(stati_durations, age):
     respective_duration = stati_durations[Configurator.diagnosis_dependency]
     if respective_duration == 0:
         return 0
