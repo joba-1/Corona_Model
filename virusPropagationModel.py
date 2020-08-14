@@ -586,17 +586,17 @@ class Simulation(object):
          :return: pandas DataFrame
          """
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
-            'infection_time', 'diagnosis_time', 'recovery_time', 'death_time', 'hospitalized_time', 'hospital_to_ICU_time'])
+            'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
         out = pd.DataFrame()
-        out['infection_to_recovery'] = df['recovery_time'] - df['infection_time']
+        out['infection_to_recovery'] = df['recover_time'] - df['infection_time']
         out['infection_to_death'] = df['death_time'] - df['infection_time']
-        out['infection_to_hospital'] = df['hospitalized_time'] - df['infection_time']
-        out['hospital_to_recovery'] = df['recovery_time'] - df['hospitalized_time']
-        out['hospital_to_death'] = df['death_time'] - df['hospitalized_time']
-        out['hospital_to_icu'] = df['hospital_to_ICU_time'] - df['hospitalized_time']
+        out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
+        out['hospital_to_recovery'] = df['recover_time'] - df['hospitalization_time']
+        out['hospital_to_death'] = df['death_time'] - df['hospitalization_time']
+        out['hospital_to_icu'] = df['icu_time'] - df['hospitalization_time']
         out['infection_to_diagnosis'] = df['diagnosis_time'] - df['infection_time']
-        out['diagnosis_to_hospital'] = df['hospitalized_time'] - df['diagnosis_time']
-        out['diagnosis_to_recovery'] = df['recovery_time'] - df['diagnosis_time']
+        out['diagnosis_to_hospital'] = df['hospitalization_time'] - df['diagnosis_time']
+        out['diagnosis_to_recovery'] = df['recover_time'] - df['diagnosis_time']
         return out
 
     # DF

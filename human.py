@@ -389,7 +389,6 @@ class Human(object):
                'death_time': self.stati_times['death_time'],
                'icu_time': self.stati_times['icu_time'],
                'rehospitalization_time': self.stati_times['rehospitalization_time']}
-        print(out)
         return(out)
 
     def move(self, time):  # agent moves relative to global time
