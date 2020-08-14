@@ -56,15 +56,14 @@ def get_r_eff_timecourse_from_human_timecourse(time_course_source, sliding_windo
 
     r_effs = np.zeros(len(times))
     stds_r_eff = np.zeros(len(times))
-    number = np.zeros(len(times))
+    
 
     for i,t in enumerate(times):
         time_window_reproduction_nrs = closed_spreaders_with_r.loc[(closed_spreaders_with_r['time'] >= t-sliding_window_size) & (closed_spreaders_with_r['time']<= t),['reproduction_nr']]
         r_effs[i] = time_window_reproduction_nrs.mean()
         stds_r_eff[i] = time_window_reproduction_nrs.std()
-        number[i] = len(time_window_reproduction_nrs)
-
-    return times, r_effs, stds_r_eff, number
+        
+    return times, r_effs, stds_r_eff
 
 
 def export_r_eff_timecourse_as_csv(time_course_source, sliding_window_size,sliding_step_size=1,saved_csv_identifier='unnamed'):

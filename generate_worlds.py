@@ -40,4 +40,4 @@ if __name__ == '__main__':
 
     
     with Pool(50) as pool:
-        pool.map(ini_and_save_world,[i for i in range(1)])
+        pool.map(ini_and_save_world,[i for i in range(100)])
