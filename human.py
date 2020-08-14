@@ -570,7 +570,7 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        self.self.stati_times['recover_time'] = time
+        self.stati_times['recover_time'] = time
         self.preliminary_status = 'R'
         self.preliminary_icu = False
         self.preliminary_hospitalized = False
@@ -587,7 +587,7 @@ class Human(object):
         if probability >= randomval():
             self.preliminary_icu = True
             self.preliminary_hospitalized = False
-            self.self.stati_times['icu_time'] = time
+            self.stati_times['icu_time'] = time
             self.preliminary_was_icued = True
 
     def get_rehospitalized(self, probability, time):
@@ -601,7 +601,7 @@ class Human(object):
         if probability >= randomval():
             self.preliminary_hospitalized = True
             self.preliminary_icu = False
-            self.self.stati_times['rehospitalization_time'] = time
+            self.stati_times['rehospitalization_time'] = time
 
     def get_hospitalized(self, probability, time):
         """
@@ -615,7 +615,7 @@ class Human(object):
         """
         if probability >= randomval():
             self.preliminary_hospitalized = True
-            self.self.stati_times['hospitalization_time'] = time
+            self.stati_times['hospitalization_time'] = time
             self.preliminary_was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
@@ -631,7 +631,7 @@ class Human(object):
         Arguments to provide are: probability (float), time (int)
         """
         self.preliminary_status = 'D'
-        self.self.stati_times['death_time'] = time
+        self.stati_times['death_time'] = time
         self.preliminary_icu = False
         self.preliminary_hospitalized = False
         self.preliminary_diagnosed = False
