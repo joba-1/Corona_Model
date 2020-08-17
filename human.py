@@ -518,11 +518,8 @@ class Human(object):
 
     def interact_with(self, contact_person):
         if contact_person.is_infected:
-            #print('TEST FOR INFECTION 1')
             if self.status == 'S':
-                #print('TEST FOR INFECTION 2')
                 if not self.preliminary_is_infected:
-                    #print('TEST FOR INFECTION 3')
                     infection_event = self.get_infected(contact_person)
                     if infection_event == 1:
                         print('INFECTION')
@@ -556,16 +553,7 @@ class Human(object):
         """
         coeff = 1
         out = -1
-        ## check if there is an existing interaction-partner ##
-        # if self.loc.location_type in location_coefficient_dict.keys():
-        #    coeff = location_coefficient_dict[self.loc.location_type]
-        ## evaluate whether infection occurs, based on probability ##
-        #print('Infectivity:' + str(contact_person.get_infectivity()))
-        #print('Rate:' + str(self.behaviour_as_susceptible))
-        #print('Coeff:' + str(coeff))
         infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
-        if contact_person.current_time >= 50:
-            print(str('Inf_Prob: ' + str(infection_probability)))
         if infection_probability >= randomval():
             self.preliminary_status = 'I'  # set owns preliminary status to infected ##
             self.preliminary_was_infected = True  # set own was_infected argument to True##

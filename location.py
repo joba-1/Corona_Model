@@ -317,8 +317,8 @@ class Location(object):
         ## create list of human ID's, currently present in location#
         h = [p.ID for p in list(self.people_present)]
         n = len(h)
-        #interaction_probability = mu/(n-1)
-        interaction_probability = mu
+        interaction_probability = mu/(n-1)
+        #interaction_probability = mu
         # Create matrix with ones on top of diagonal (rest zeros)
         C = np.triu(np.ones((n, n)))-np.eye(n)
         # generate array of random numbers with dimension n times n
@@ -334,14 +334,10 @@ class Location(object):
 
     def let_agents_interact(self, mu=100):
         human_objects_present = {p.ID: p for p in list(self.people_present)}
-        # print(human_objects_present)
         if len(list(human_objects_present.keys())) > 1:
             pairs = self.determine_interacting_pairs(mu=mu)
-            # print(len(pairs))
+            print(len(pairs))
             for p in pairs:
-                # print(p)
-                #print('TEST_ATTRIBUTE: ' + str(human_objects_present[p[0]].TestAtt))
-                #print('TEST_ATTRIBUTE2: ' + str(human_objects_present[p[0]].TestAtt2))
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
                 human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
                 human_objects_present[p[1]].interact_with(human_objects_present[p[0]])
