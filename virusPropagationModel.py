@@ -402,12 +402,12 @@ class Simulation(object):
             for p in self.people:
                 p.update_state(self.time)
                 p.move(self.time)
-                if p.id == 3:
+                if p.ID == 3:
                     print('People1_h3'+str(id(p)))
             for l in self.locations.values():
                 l.let_agents_interact()
             for p in self.people:  # don't call if hospitalized
-                if p.id == 3:
+                if p.ID == 3:
                     print('People2_h3'+str(id(p)))
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
                 p.set_stati_from_preliminary()
