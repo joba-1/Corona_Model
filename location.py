@@ -332,7 +332,7 @@ class Location(object):
         pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
         return(pairs)
 
-    def let_agents_interact(self, mu=10):
+    def let_agents_interact(self, mu=100):
         human_objects_present = {p.ID: p for p in list(self.people_present)}
         # print(human_objects_present)
         if len(list(human_objects_present.keys())) > 1:
