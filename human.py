@@ -254,10 +254,6 @@ class Human(object):
         self.contact_persons = []  # ID of contact person#
         self.infected_by = -1
         self.current_time = time
-        self.TestAtt = time
-        setattr(self, 'TestAtt2', time)
-        #print('UPDATE_TEST: '+str(self.TestAtt))
-        #print('UPDATE_TEST2: '+str(self.TestAtt2))
         # if self.status == 'R':
         #encounter interaction with a random person currently at own location#
         #contact_person = self.interact()
@@ -268,7 +264,6 @@ class Human(object):
         ##get potentially infected by picked person ##
         #self.infection_event = self.get_infected(time, contact_person)
         if self.is_infected:
-            print('IAM INFECTED'+str(self.ID))
             self.stati_durations['infection_duration'] += 1
             ##encounter interaction with a random person currently at own location and return person##
             #contact_person = self.interact()
