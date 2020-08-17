@@ -316,12 +316,13 @@ class Location(object):
         ## create list of human ID's, currently present in location#
         h = [p.ID for p in list(self.people_present)]
         n = len(h)
+        interaction_probability = mu/(n-1)
         # Create matrix with ones on top of diagonal (rest zeros)
         C = np.triu(np.ones((n, n)))-np.eye(n)
         # generate array of random numbers with dimension n times n
         P = np.random.random((n, n))
         # build logical array, showing where drawn probabilities are smaller than mu
-        I = P < C*mu
+        I = P < C*interaction_probability
         # build list of interacting-ids (as tuples)
         cp1, cp2 = np.where(I)
         pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
