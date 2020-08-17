@@ -350,14 +350,20 @@ class Simulation(object):
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
-            self.locations = copy.deepcopy(object_to_simulate.locations)
+            #self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.locations = {p.loc.ID: p.loc for p in self.people}
+            for p in self.people:
+                self.locations[p.loc.ID].enter(p)
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
                 self.people = copy.deepcopy(object_to_simulate.people)
-                self.locations = copy.deepcopy(object_to_simulate.locations)
+                #self.locations = copy.deepcopy(object_to_simulate.locations)
+                self.locations = {p.loc.ID: p.loc for p in self.people}
+                for p in self.people:
+                    self.locations[p.loc.ID].enter(p)
             else:
                 self.people = object_to_simulate.people
                 self.locations = object_to_simulate.locations
