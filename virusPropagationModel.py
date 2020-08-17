@@ -383,11 +383,11 @@ class Simulation(object):
                     for l in p.schedule['locs']:
                         for sl in l.special_locations.keys():
                             self.locations.update(
-                                {l.special_locations[sl].ID: l.special_locations[sl]})
+                                {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
                     for l in p.diagnosed_schedule['locs']:
                         for sl in l.special_locations.keys():
                             self.locations.update(
-                                {l.special_locations[sl].ID: l.special_locations[sl]})
+                                {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
                     self.locations[p.loc.ID].enter(p)
             else:
                 self.people = object_to_simulate.people
