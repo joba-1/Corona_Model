@@ -333,13 +333,14 @@ class Location(object):
 
     def let_agents_interact(self, mu=10):
         human_objects_present = {p.ID: p for p in list(self.people_present)}
+        print('Loc_h3'+str(id(human_objects_present[3])))
         if len(list(human_objects_present.keys())) > 1:
             pairs = self.determine_interacting_pairs(mu=mu)
             # print(len(pairs))
             for p in pairs:
                 # print(p)
-                print('TEST_ATTRIBUTE: ' + str(human_objects_present[p[0]].TestAtt))
-                print('TEST_ATTRIBUTE2: ' + str(human_objects_present[p[0]].TestAtt2))
+                #print('TEST_ATTRIBUTE: ' + str(human_objects_present[p[0]].TestAtt))
+                #print('TEST_ATTRIBUTE2: ' + str(human_objects_present[p[0]].TestAtt2))
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
                 human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
                 human_objects_present[p[1]].interact_with(human_objects_present[p[0]])

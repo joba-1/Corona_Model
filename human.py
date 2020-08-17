@@ -256,8 +256,8 @@ class Human(object):
         self.current_time = time
         self.TestAtt = time
         setattr(self, 'TestAtt2', time)
-        print('UPDATE_TEST: '+str(self.TestAtt))
-        print('UPDATE_TEST2: '+str(self.TestAtt2))
+        #print('UPDATE_TEST: '+str(self.TestAtt))
+        #print('UPDATE_TEST2: '+str(self.TestAtt2))
         # if self.status == 'R':
         #encounter interaction with a random person currently at own location#
         #contact_person = self.interact()
