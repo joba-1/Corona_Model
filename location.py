@@ -330,7 +330,7 @@ class Location(object):
 
     def let_agents_interact(self, mu=1):
         human_objects_present = {p.ID: p for p in list(self.people_present)}
-        if len(list(human_objects_present.keys())) > 0:
+        if len(list(human_objects_present.keys())) > 1:
             pairs = self.determine_interacting_pairs(mu=1)
             for p in pairs:
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
