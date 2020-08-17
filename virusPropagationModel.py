@@ -399,14 +399,14 @@ class Simulation(object):
             first_simulated_step = 0
         for step in range(first_simulated_step, self.time_steps):
             self.time += 1
-            for p in self.people:  #
+            for p in self.people:
                 p.update_state(self.time)
+                p.move(self.time)
             for l in self.locations.values():
                 l.let_agents_interact()
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
                 p.set_stati_from_preliminary()
-                p.move(self.time)
         return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
 
     def change_agent_attributes(self, input):

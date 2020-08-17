@@ -237,9 +237,14 @@ class Human(object):
 
         self.contact_persons = []
         self.infected_by = -1
+        self.current_time = 0
+
+        self.TestAtt = 'NULL'
+        self.TestAtt2 = 'NULL'
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
+
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
@@ -249,6 +254,10 @@ class Human(object):
         self.contact_persons = []  # ID of contact person#
         self.infected_by = -1
         self.current_time = time
+        self.TestAtt = time
+        setattr(self, 'TestAtt2', time)
+        print('UPDATE_TEST: '+str(self.TestAtt))
+        print('UPDATE_TEST2: '+str(self.TestAtt2))
         # if self.status == 'R':
         #encounter interaction with a random person currently at own location#
         #contact_person = self.interact()
@@ -259,14 +268,15 @@ class Human(object):
         ##get potentially infected by picked person ##
         #self.infection_event = self.get_infected(time, contact_person)
         if self.is_infected:
+            print('IAM INFECTED'+str(self.ID))
+            self.stati_durations['infection_duration'] += 1
             ##encounter interaction with a random person currently at own location and return person##
             #contact_person = self.interact()
             #if contact_person:  # if an interaction partner has been found ##
             #    if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
-                    ##potentially infect this person ##
+            ##potentially infect this person ##
             #        self.infection_event = contact_person.get_infected(time, self)
             ## New method for the stuff below ##
-            self.stati_durations['infection_duration'] += 1
             if self.diagnosed:
                 self.stati_durations['diagnosis_duration'] += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
@@ -296,6 +306,10 @@ class Human(object):
                     else:
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
+            # print(self.stati_durations)
+            #current_loc = self.loc
+            # self.loc.leave(self)  # leave old location
+            # current_loc.enter(self)  # enter new location
 
     def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
         """
@@ -497,19 +511,26 @@ class Human(object):
         Arguments to provide are: risk (float)
         """
         self.preliminary_status = 'I'
+        self.preliminary_is_infected = True
+        self.preliminary_was_infected = True
         self.set_stati_from_preliminary()
         self.stati_times['infection_time'] = 0
-        self.preliminary_was_infected = True
         self.was_infected = True
         self.is_infected = True
-        self.preliminary_is_infected = True
+
+    # def interact_with_someone_else_at_loc(self):
+    #    if self
 
     def interact_with(self, contact_person):
         if contact_person.is_infected:
+            #print('TEST FOR INFECTION 1')
             if self.status == 'S':
+                #print('TEST FOR INFECTION 2')
                 if not self.preliminary_is_infected:
+                    #print('TEST FOR INFECTION 3')
                     infection_event = self.get_infected(contact_person)
-                    if infection_event > 0:
+                    if infection_event == 1:
+                        print('INFECTION')
                         self.infected_by = contact_person.ID
 
     # obsolete
@@ -541,20 +562,21 @@ class Human(object):
         coeff = 1
         out = -1
         ## check if there is an existing interaction-partner ##
-        if contact_person:
-            ## check if interaction-partner is infected##
-            # if contact_person.is_infected:
-                #out = 0
-                ## add interaction partner to own list of contacts with infected individuals ##
-            if self.loc.location_type in location_coefficient_dict.keys():
-                coeff = location_coefficient_dict[self.loc.location_type]
-                ## evaluate whether infection occurs, based on probability ##
-            if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                self.preliminary_status = 'I'  # set owns preliminary status to infected ##
-                self.preliminary_was_infected = True  # set own was_infected argument to True##
-                self.preliminary_is_infected = True  # set own is_infected argument to True##
-                self.stati_times['infection_time'] = self.current_time
-                out = 1
+        # if self.loc.location_type in location_coefficient_dict.keys():
+        #    coeff = location_coefficient_dict[self.loc.location_type]
+        ## evaluate whether infection occurs, based on probability ##
+        #print('Infectivity:' + str(contact_person.get_infectivity()))
+        #print('Rate:' + str(self.behaviour_as_susceptible))
+        #print('Coeff:' + str(coeff))
+        infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
+        if contact_person.current_time >= 50:
+            print(str('Inf_Prob: ' + str(infection_probability)))
+        if infection_probability >= randomval():
+            self.preliminary_status = 'I'  # set owns preliminary status to infected ##
+            self.preliminary_was_infected = True  # set own was_infected argument to True##
+            self.preliminary_is_infected = True  # set own is_infected argument to True##
+            self.stati_times['infection_time'] = self.current_time
+            out = 1
         return(out)
 
     def get_diagnosed(self, probability, time):
@@ -656,6 +678,7 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
+        # print(self.stati_durations)
         infectivity = dp._infectivity(self.stati_durations, self.age)
         return(infectivity*self.behaviour_as_infected)
 

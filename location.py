@@ -235,6 +235,7 @@ class Location(object):
         self.ids_of_location_types = {}  # loc_id : distance
         self.world_ref = None
         self.special_locations = {}
+        # self.interaction_pairs()
 
     def get_location_id(self):
         return self.ID
@@ -323,16 +324,22 @@ class Location(object):
         P = np.random.random((n, n))
         # build logical array, showing where drawn probabilities are smaller than mu
         I = P < C*interaction_probability
+        # print('__________________________')
+        # print(np.sum(I))
         # build list of interacting-ids (as tuples)
         cp1, cp2 = np.where(I)
         pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
         return(pairs)
 
-    def let_agents_interact(self, mu=1):
+    def let_agents_interact(self, mu=10):
         human_objects_present = {p.ID: p for p in list(self.people_present)}
         if len(list(human_objects_present.keys())) > 1:
-            pairs = self.determine_interacting_pairs(mu=1)
+            pairs = self.determine_interacting_pairs(mu=mu)
+            # print(len(pairs))
             for p in pairs:
+                # print(p)
+                print('TEST_ATTRIBUTE: ' + str(human_objects_present[p[0]].TestAtt))
+                print('TEST_ATTRIBUTE2: ' + str(human_objects_present[p[0]].TestAtt2))
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
                 human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
                 human_objects_present[p[1]].interact_with(human_objects_present[p[0]])
