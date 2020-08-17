@@ -401,7 +401,7 @@ class Simulation(object):
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
-            for l in self.locations:
+            for l in self.locations.values():
                 l.let_agents_interact()
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
