@@ -312,6 +312,25 @@ class Location(object):
         # print(location_ID)
         return self.distances[location_ID]
 
+    def determine_interacting_pairs(self, mu=1):
+        ## create list of human ID's, currently present in location#
+        h = [p.ID for p in list(self.people_present)]
+        n = len(h)
+        # Create matrix with ones on top of diagonal (rest zeros)
+        C = np.triu(np.ones((n, n)))-np.eye(n)
+        # generate array of random numbers with dimension n times n
+        P = np.random.random((n, n))
+        # build logical array, showing where drawn probabilities are smaller than mu
+        I = P < C*mu
+        # build list of interacting-ids (as tuples)
+        cp1, cp2 = np.where(I)
+        pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
+        return(pairs)
 
-def function2specify(x1, x2):
-    return(x1*x2)
+    def let_agents_interact(self, mu=1):
+        pairs = self.determine_interacting_pairs(mu=1)
+        human_objects_present = {p.ID: p for p in list(self.people_present)}
+        for p in pairs:
+            human_objects_present[p[0]].contact_persons.append(str(p[1]))
+            human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
+            human_objects_present[p[1]].interact_with(human_objects_present[p[0]])

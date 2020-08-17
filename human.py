@@ -235,36 +235,36 @@ class Human(object):
         self.preliminary_was_hospitalized = False
         self.preliminary_was_icued = False
 
-        self.contact_person = -1
-        self.infection_event = -1
+        self.contact_persons = []
+        self.infected_by = -1
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
-
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
-        self.contact_person = -1  # ID of contact person#
-        self.infection_event = -1
-        if self.status == 'R':
-            #encounter interaction with a random person currently at own location#
-            contact_person = self.interact()
-            pass
-        elif self.status == 'S':
+        self.contact_persons = []  # ID of contact person#
+        self.infected_by = -1
+        self.current_time = time
+        # if self.status == 'R':
+        #encounter interaction with a random person currently at own location#
+        #contact_person = self.interact()
+        #    pass
+        # elif self.status == 'S':
+        ##encounter interaction with a random person currently at own location and return person##
+        #contact_person = self.interact()
+        ##get potentially infected by picked person ##
+        #self.infection_event = self.get_infected(time, contact_person)
+        if self.is_infected:
             ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact()
-            ##get potentially infected by picked person ##
-            self.infection_event = self.get_infected(time, contact_person)
-        elif self.is_infected:
-            ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact()
-            if contact_person:  # if an interaction partner has been found ##
-                if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
+            #contact_person = self.interact()
+            #if contact_person:  # if an interaction partner has been found ##
+            #    if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
                     ##potentially infect this person ##
-                    self.infection_event = contact_person.get_infected(time, self)
+            #        self.infection_event = contact_person.get_infected(time, self)
             ## New method for the stuff below ##
             self.stati_durations['infection_duration'] += 1
             if self.diagnosed:
@@ -310,8 +310,8 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = self.contact_person
-        out['Infection_event'] = numpy.int8(self.infection_event)
+        out['Interaction_partner'] = ' , '.join(self.contact_persons)
+        out['Infection_event'] = int(self.infected_by)
         return(out)
 
     def encode_temporary_flags(self):
@@ -504,6 +504,15 @@ class Human(object):
         self.is_infected = True
         self.preliminary_is_infected = True
 
+    def interact_with(self, contact_person):
+        if contact_person.is_infected:
+            if self.status == 'S':
+                if not self.preliminary_is_infected:
+                    infection_event = self.get_infected(contact_person)
+                    if infection_event > 0:
+                        self.infected_by = contact_person.ID
+
+    # obsolete
     def interact(self):
         """
         Establishes interaction with other agents.
@@ -521,7 +530,7 @@ class Human(object):
             ## return the interaction-partner ##
             return(contact_person)
 
-    def get_infected(self, time, contact_person):
+    def get_infected(self, contact_person):
         """
         Determines whether an agent gets infected, at the current location and time.
         Changes status-attribute to 'I', writes current location to 'place_of_infection',
@@ -534,18 +543,18 @@ class Human(object):
         ## check if there is an existing interaction-partner ##
         if contact_person:
             ## check if interaction-partner is infected##
-            if contact_person.is_infected:
-                out = 0
+            # if contact_person.is_infected:
+                #out = 0
                 ## add interaction partner to own list of contacts with infected individuals ##
-                if self.loc.location_type in location_coefficient_dict.keys():
-                    coeff = location_coefficient_dict[self.loc.location_type]
+            if self.loc.location_type in location_coefficient_dict.keys():
+                coeff = location_coefficient_dict[self.loc.location_type]
                 ## evaluate whether infection occurs, based on probability ##
-                if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                    self.preliminary_status = 'I'  # set owns preliminary status to infected ##
-                    self.preliminary_was_infected = True  # set own was_infected argument to True##
-                    self.preliminary_is_infected = True  # set own is_infected argument to True##
-                    self.stati_times['infection_time'] = time
-                    out = 1
+            if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
+                self.preliminary_status = 'I'  # set owns preliminary status to infected ##
+                self.preliminary_was_infected = True  # set own was_infected argument to True##
+                self.preliminary_is_infected = True  # set own is_infected argument to True##
+                self.stati_times['infection_time'] = self.current_time
+                out = 1
         return(out)
 
     def get_diagnosed(self, probability, time):

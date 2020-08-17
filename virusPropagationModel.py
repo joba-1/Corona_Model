@@ -401,8 +401,10 @@ class Simulation(object):
             self.time += 1
             for p in self.people:  #
                 p.update_state(self.time)
-                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+            for l in self.locations:
+                l.let_agents_interact()
             for p in self.people:  # don't call if hospitalized
+                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
                 p.set_stati_from_preliminary()
                 p.move(self.time)
         return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
