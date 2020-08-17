@@ -513,35 +513,13 @@ class Human(object):
         self.was_infected = True
         self.is_infected = True
 
-    # def interact_with_someone_else_at_loc(self):
-    #    if self
-
     def interact_with(self, contact_person):
         if contact_person.is_infected:
             if self.status == 'S':
                 if not self.preliminary_is_infected:
                     infection_event = self.get_infected(contact_person)
                     if infection_event == 1:
-                        print('INFECTION')
                         self.infected_by = contact_person.ID
-
-    # obsolete
-    def interact(self):
-        """
-        Establishes interaction with other agents.
-        Picks one other agent among the present.
-        The interaction partner is returned and the interaction-information is recorded in both participants.
-        Arguments to provide are: time (int)
-        """
-        ## pick one other agent currently at same location ##
-        # list_people_present=[]
-        list_people_present = [p for p in list(self.loc.people_present) if p.ID != self.ID]
-        if len(list_people_present) != 0:
-            contact_person = choosing_one(list_people_present)
-            ## add this partners ID to own record of interaction-partners ##
-            self.contact_person = contact_person.ID
-            ## return the interaction-partner ##
-            return(contact_person)
 
     def get_infected(self, contact_person):
         """

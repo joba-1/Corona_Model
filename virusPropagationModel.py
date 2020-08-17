@@ -351,9 +351,22 @@ class Simulation(object):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
             #self.locations = copy.deepcopy(object_to_simulate.locations)
-            self.locations = {p.loc.ID: p.loc for p in self.people}
+
+            self.locations = {}
             for p in self.people:
+                self.locations.update({p.loc.ID: p.loc})
+                self.locations.update({l.ID: l for l in list(p.schedule['locs'])})
+                self.locations.update({l.ID: l for l in list(p.diagnosed_schedule['locs'])})
+                for l in p.schedule['locs']:
+                    for sl in l.special_locations.keys():
+                        self.locations.update(
+                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
+                for l in p.diagnosed_schedule['locs']:
+                    for sl in l.special_locations.keys():
+                        self.locations.update(
+                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
                 self.locations[p.loc.ID].enter(p)
+
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
         elif isinstance(object_to_simulate, Simulation):
@@ -361,8 +374,20 @@ class Simulation(object):
             if copy_sim_object:
                 self.people = copy.deepcopy(object_to_simulate.people)
                 #self.locations = copy.deepcopy(object_to_simulate.locations)
-                self.locations = {p.loc.ID: p.loc for p in self.people}
+                #self.locations = {p.loc.ID: p.loc for p in self.people}
+                self.locations = {}
                 for p in self.people:
+                    self.locations.update({p.loc.ID: p.loc})
+                    self.locations.update({l.ID: l for l in list(p.schedule['locs'])})
+                    self.locations.update({l.ID: l for l in list(p.diagnosed_schedule['locs'])})
+                    for l in p.schedule['locs']:
+                        for sl in l.special_locations.keys():
+                            self.locations.update(
+                                {l.special_locations[sl].ID: l.special_locations[sl]})
+                    for l in p.diagnosed_schedule['locs']:
+                        for sl in l.special_locations.keys():
+                            self.locations.update(
+                                {l.special_locations[sl].ID: l.special_locations[sl]})
                     self.locations[p.loc.ID].enter(p)
             else:
                 self.people = object_to_simulate.people

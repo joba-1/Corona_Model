@@ -324,20 +324,17 @@ class Location(object):
         # generate array of random numbers with dimension n times n
         P = np.random.random((n, n))
         # build logical array, showing where drawn probabilities are smaller than mu
-        # I = P < C*interaction_probability
-        I = np.zeros((n, n) < C*interaction_probability
-        # print('__________________________')
-        # print(np.sum(I))
+        I = P < C*interaction_probability
         # build list of interacting-ids (as tuples)
-        cp1, cp2=np.where(I)
-        pairs=list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
+        cp1, cp2 = np.where(I)
+        pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
         return(pairs)
 
-    def let_agents_interact(self, mu=100):
-        human_objects_present={p.ID: p for p in list(self.people_present)}
+    def let_agents_interact(self, mu=1):
+        human_objects_present = {p.ID: p for p in list(self.people_present)}
         if len(list(human_objects_present.keys())) > 1:
-            pairs=self.determine_interacting_pairs(mu=mu)
-            print(len(pairs))
+            pairs = self.determine_interacting_pairs(mu=mu)
+            #print([self.location_type, len(list(self.people_present)), len(pairs)])
             for p in pairs:
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
                 human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
