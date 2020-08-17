@@ -317,7 +317,8 @@ class Location(object):
         ## create list of human ID's, currently present in location#
         h = [p.ID for p in list(self.people_present)]
         n = len(h)
-        interaction_probability = mu/(n-1)
+        #interaction_probability = mu/(n-1)
+        interaction_probability = mu
         # Create matrix with ones on top of diagonal (rest zeros)
         C = np.triu(np.ones((n, n)))-np.eye(n)
         # generate array of random numbers with dimension n times n
