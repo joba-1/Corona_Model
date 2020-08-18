@@ -394,10 +394,12 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
-        if run_immediately:
-            self.simulate()
+
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
+
+        if run_immediately:
+            self.simulate()
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
