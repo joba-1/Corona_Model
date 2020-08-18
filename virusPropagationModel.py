@@ -397,6 +397,7 @@ class Simulation(object):
         if run_immediately:
             self.simulate()
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
+        self.interaction_frequency = 1
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
@@ -433,7 +434,7 @@ class Simulation(object):
             for p in self.people:
                 p.update_state(self.time)
             for l in self.locations.values():
-                l.let_agents_interact()
+                l.let_agents_interact(mu=self.interaction_frequency)
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
                 p.set_stati_from_preliminary()
