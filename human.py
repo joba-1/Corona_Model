@@ -319,7 +319,7 @@ class Human(object):
         out['status'] = self.encode_stati()
         out['Temporary_Flags'] = self.encode_temporary_flags()
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = ' , '.join(self.contact_persons)
+        out['Interaction_partner'] = ','.join(self.contact_persons)
         out['Infection_event'] = int(self.infected_by)
         return(out)
 

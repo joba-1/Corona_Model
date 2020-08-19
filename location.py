@@ -235,7 +235,6 @@ class Location(object):
         self.ids_of_location_types = {}  # loc_id : distance
         self.world_ref = None
         self.special_locations = {}
-        # self.interaction_pairs()
 
     def get_location_id(self):
         return self.ID
@@ -337,5 +336,6 @@ class Location(object):
             #print([self.location_type, len(list(self.people_present)), len(pairs)])
             for p in pairs:
                 human_objects_present[p[0]].contact_persons.append(str(p[1]))
+                human_objects_present[p[1]].contact_persons.append(str(p[0]))
                 human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
                 human_objects_present[p[1]].interact_with(human_objects_present[p[0]])
