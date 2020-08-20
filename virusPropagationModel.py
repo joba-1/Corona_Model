@@ -625,11 +625,13 @@ class Simulation(object):
             'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
         out = pd.DataFrame()
         out['infection_to_recovery'] = df['recover_time'] - df['infection_time']
-        out['infection_to_death'] = df['death_time'] - df['infection_time']
-        out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
+        #out['infection_to_death'] = df['death_time'] - df['infection_time']
+        #out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
         out['hospital_to_recovery'] = df['recover_time'] - df['hospitalization_time']
         out['hospital_to_death'] = df['death_time'] - df['hospitalization_time']
         out['hospital_to_icu'] = df['icu_time'] - df['hospitalization_time']
+        out['icu_to_death'] = df['death_time'] - df['icu_time']
+        out['icu_to_recovery'] = df['recover_time'] - df['icu_time']
         out['infection_to_diagnosis'] = df['diagnosis_time'] - df['infection_time']
         out['diagnosis_to_hospital'] = df['hospitalization_time'] - df['diagnosis_time']
         out['diagnosis_to_recovery'] = df['recover_time'] - df['diagnosis_time']
