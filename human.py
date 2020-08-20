@@ -292,8 +292,6 @@ class Human(object):
             else:
                 if self.icu:
                     self.stati_durations['icu_duration'] += 1
-                    #self.stati_durations['hospitalization_duration'] += 1
-                    self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
                     if self.hospitalized:
                         self.stati_durations['hospitalization_duration'] += 1
