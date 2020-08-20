@@ -475,7 +475,7 @@ class Human(object):
             if self.hospitalized:
                 prob = dp._recovery_from_hospitalized(self.stati_durations, self.age)
             elif self.icu:
-                prob = 0.0
+                prob = dp._recovery_from_icu(self.stati_durations, self.age)
             else:
                 prob = dp._recovery_from_diagnosed(self.stati_durations, self.age)
         else:
