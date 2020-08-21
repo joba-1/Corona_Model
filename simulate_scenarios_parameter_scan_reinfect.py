@@ -91,6 +91,20 @@ def getOptions(args=sys.argv[1:]):
 def infect_world(world, IDs=[1]):
     world.initialize_infection(specific_people_ids=IDs)
 
+def recover_world(world, frac):
+    susceptibles = [p.ID for p in world.people if p.status=='S']
+    ps_to_recover = []
+    for pid in susceptibles:
+        prob=random.random()
+        if prob <= frac:
+            ps_to_recover.append(pid)
+
+    for p in world.people:
+        if p.ID in ps_to_recover:
+            p.preliminary_status = 'R'
+            p.set_stati_from_preliminary()
+            p.recover_time = 0
+            p.was_infected = True
 
 # times: 3 durations for simulations; closed_locs: list of forbidden locations
 def simulate_scenario(input_dict):
@@ -136,6 +150,7 @@ def simulate_scenario(input_dict):
         {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
     simulation1.change_agent_attributes(
         {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
+    simulation1.interaction_frequency=2
     simulation1.simulate()
 
     obedient_people = []
@@ -177,9 +192,10 @@ def simulate_scenario(input_dict):
             #print(simulation1.time_steps)
             simulation1.simulate()
 
-    print(my_dict['name']+'_'+str(my_dict['run']))
-    #simulation1.save(name+'_'+str(my_dict['run']), # stop saving
-    #                 date_suffix=False, folder=my_dict['output_folder'])
+    #print(my_dict['name']+'_'+str(my_dict['run']))
+    print(name+'_'+str(my_dict['run']))
+    #print(my_dict['output_folder'])
+    #simulation1.save(name+'_'+str(my_dict['run']), date_suffix=False, folder=my_dict['output_folder'])
 
     return {'stat_trajectories': simulation1.get_status_trajectories(),
                               'durations': simulation1.get_durations(),
@@ -213,7 +229,7 @@ def get_simualtion_settings(options):
     if options.folder:  # number of simulations
         output_folder = options.folder
     else:
-        output_folder = '/home/basar/corona_simulations/saved_objects/scenario_output/'
+        output_folder = '/home/basar/corona_simulations_save/saved_objects/scenario_output/'
         #output_folder = 'saved_objects/scenario_output/'
 
     if options.parameter:  # number of simulations
@@ -250,6 +266,8 @@ def get_simualtion_settings(options):
 
 
 def generate_scenario_list(used_scenario, number):
+    print('generating scenario list')
+    print(used_scenario)
     used_scenarios = [copy.deepcopy(used_scenario) for i in range(number)]
     for i, d in enumerate(used_scenarios):
         d['run'] = i
@@ -258,9 +276,10 @@ def generate_scenario_list(used_scenario, number):
 
 if __name__ == '__main__':
 
-    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_schedulesv1_2/'
-    #input_folder =  'saved_objects/test_world_scan/' 
+    #input_folder =  '/home/basar/corona_simulations_save/saved_objects/Gangelt_big_uninfected_schedulesv1/'
+    input_folder =  'saved_objects/Big_Gangelt_Revised_Probabilities_Matrix/' 
     world_list = os.listdir(input_folder)
+    print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
@@ -270,15 +289,28 @@ if __name__ == '__main__':
     used_scenario['reinfections'] = reinfections
     used_scenario['reinfection_times'] = reinfection_times
     used_scenario['disobedience'] = disobedience
-  
+
     for p in p_range:
 
-        used_scenario[parameter] = p
+        currentWorld = copy.deepcopy(modeledWorld)
+
+        infect_world(currentWorld, IDs=[i for i in range(5)])
+
+        if parameter=='recover_frac':
+            recover_world(currentWorld, p)
+        else:
+            used_scenario[parameter] = p
+
         
-        scenario_and_parameter = used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+        scenario_and_parameter = 'Revised_Probabilities_Matrix_IFreq_2_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
+
+        used_scenarios = generate_scenario_list(used_scenario, number)
+
+        for sc in used_scenarios:
+            sc['world'] = currentWorld
 
         try:
             os.mkdir(output_folder_plots)
@@ -292,13 +324,9 @@ if __name__ == '__main__':
         except:
             pass
 
-        used_scenarios = generate_scenario_list(used_scenario, number)
 
         start = timeit.default_timer()
 
-        infect_world(modeledWorld, IDs=[i for i in range(5)])
-        for sc in used_scenarios:
-            sc['world'] = modeledWorld
 
         with Pool(cores) as pool:
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
@@ -317,11 +345,15 @@ if __name__ == '__main__':
         stop = timeit.default_timer()
 
         used_scenario['runs'] = len(used_scenarios)
+        used_scenario['input_folder'] = input_folder
+        used_scenario['world_files'] = world_files
 
         with open(output_folder_plots + 'sim_parameters.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for key in used_scenario:
                 writer.writerow([key, used_scenario[key]])
+
+        del(currentWorld)
 
     print(df_dict_list)
     print('time:  ', stop-start)
