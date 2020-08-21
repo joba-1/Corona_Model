@@ -123,6 +123,7 @@ class ModeledPopulatedWorld(object):
                     schedules[bound][0], p=schedules[bound][1]))
                 break
         my_locations = {}
+        my_locations['home'] = home.ID
         for loc in schedule['locs']:
             if not loc in my_locations:
                 if loc == 'home':
@@ -707,7 +708,7 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1]
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] != -1]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}

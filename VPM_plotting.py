@@ -37,7 +37,8 @@ locationTypeColors = {
     'work': locationsCmap1(3),  # deep pink
     'hospital': locationsCmap1(5),  # mustard yellow
     'school': locationsCmap2(17),  # olive green - khaki
-    'morgue': locationsCmap1(7)  # gray
+    'morgue': locationsCmap1(7),  # gray
+    'mixing_loc': locationsCmap1(1)
 }
 
 
