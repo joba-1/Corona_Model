@@ -8,7 +8,7 @@ import sys
 def getOptions(args=sys.argv[1:]):
 	parser = argparse.ArgumentParser(description="Parses command.")
 	parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gangelt (3) Bad Feilnbach")
-	parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
+	parser.add_argument("-ma", "--min_area", type=float, help="default 3  (*1e-8) to reduce locations")
 	#parser.add_argument("-n", "--number", type=int, help="A number.")
 	#parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 	options = parser.parse_args(args)
@@ -105,15 +105,15 @@ red_buildings['neighbourhood'] = neighbourhoods
 locations = exclude_small_buildings(red_buildings,min_area)
 
 #save gdf as geojason objects 
-area.to_file('datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
+area.to_file('datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
+streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
+locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
 df = pd.DataFrame(locations)
-df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.csv')
+df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.csv')
 
-print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.csv')
-print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
-print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
-print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.csv')
+print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
+print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
 
 
