@@ -121,7 +121,8 @@ class World(object):
         morgue_bool = False
         # healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
-        col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        cols = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        col_names = [x for x in cols if x in self.df_buildings.columns]
 
         for i, x in enumerate(self.df_buildings.index):
             row = self.df_buildings.loc[x]
@@ -142,8 +143,8 @@ class World(object):
                                         row['building_area'],)
         # if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
         # if no morgue in dataframe, one is created in low left corner, else model has problems #FIXME Future
-        if not hospital_bool:
-            distance = 0.00
+        distance = 0.00
+        if not hospital_bool: 
             locations.update({len(self.df_buildings)+1: Location(len(self.df_buildings)+1,
                                                                  (max(self.df_buildings['building_coordinates_x'])+distance,
                                                                   max(self.df_buildings['building_coordinates_y'])+distance),

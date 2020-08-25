@@ -7,7 +7,7 @@ import sys
 
 def getOptions(args=sys.argv[1:]):
 	parser = argparse.ArgumentParser(description="Parses command.")
-	parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
+	parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gangelt (3) Bad Feilnbach")
 	parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
 	#parser.add_argument("-n", "--number", type=int, help="A number.")
 	#parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
@@ -16,8 +16,8 @@ def getOptions(args=sys.argv[1:]):
 
 def reduce_GDF(gdf,cols):
 	#cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels','school_type','type','members']
-	
-	return gdf[cols].copy()
+	cols_2 = [x for x in cols if x in gdf.columns]
+	return gdf[cols_2].copy()
 
 
 def getCentromerCoordiantes(buildings):
@@ -59,12 +59,14 @@ else:
 # Specify the name that is used to seach for the data
 place_name_1 = "Heinsberg, Nordrhein-Westfalen, Germany"
 place_name_2 = "Gangelt, Kreis Heinsberg, Nordrhein-Westfalen, Germany"
+place_name_3 = "Bad Feilnbach, Landkreis Rosenheim, Bayern, 83075, Germany"
 
 # definied center of neihbourhoods - freely choosen 
 list_of_n_1 = [Point(6.1,51.06),Point(6.075,51.05),Point(6.145,51.035),Point(6.07,51.10)] 
 list_of_n_2 = [Point(5.99,51.03),Point(6.05,51.01),Point(6.04,50.98),Point(5.99,50.99)]
-
-places = {1: [place_name_1,list_of_n_1], 2: [place_name_2,list_of_n_2]}
+list_of_n_3 = [Point(47.7728352, 12.0062484),Point(47.7973373, 11.9747759),Point( 47.7610224, 12.0510184)]
+ 
+places = {1: [place_name_1,list_of_n_1], 2: [place_name_2,list_of_n_2], 3: [place_name_3,list_of_n_3]}
 
 
 
@@ -103,15 +105,15 @@ red_buildings['neighbourhood'] = neighbourhoods
 locations = exclude_small_buildings(red_buildings,min_area)
 
 #save gdf as geojason objects 
-area.to_file('datafiles/Area_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
+area.to_file('datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
+streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
+locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
 df = pd.DataFrame(locations)
-df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.csv')
+df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.csv')
 
-print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.csv')
-print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
-print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
-print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.csv')
+print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
+print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area)+'.geojson')
 
 
