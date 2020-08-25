@@ -86,13 +86,13 @@ class World(object):
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
+        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm','fire_station','farm_auxiliary','retail']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church']\
+        loc_class_dic['public'] = ['public', 'chapel', 'church','parish_hall','townhall','restaurant','grocery_store', 'cafe','sports_centre']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
 
