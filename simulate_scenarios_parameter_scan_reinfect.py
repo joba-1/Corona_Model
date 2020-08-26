@@ -12,10 +12,10 @@ import pickle
 import numpy as np
 import random 
 
-scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation'},
+scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.5, 'name':'close_all'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.5, 'name':'close_all_reopen_all'},
+             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.6, 'name':'close_all_IF06'},
+             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.6, 'name':'close_all_reopen_all_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.5, 'name':'close_all_reopen_work'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_all_reopen_school'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_all_reopen_public'},
@@ -150,7 +150,7 @@ def simulate_scenario(input_dict):
         {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
     simulation1.change_agent_attributes(
         {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
-    simulation1.interaction_frequency=2
+    simulation1.interaction_frequency=1
     simulation1.simulate()
 
     obedient_people = []
@@ -294,15 +294,17 @@ if __name__ == '__main__':
 
         currentWorld = copy.deepcopy(modeledWorld)
 
-        infect_world(currentWorld, IDs=[i for i in range(5)])
-
-        if parameter=='recover_frac':
-            recover_world(currentWorld, p)
+        if parameter=='initial_infections':
+            infect_world(currentWorld, IDs=[i+1 for i in range(int(p))])
         else:
-            used_scenario[parameter] = p
+            infect_world(currentWorld, IDs=[i+1 for i in range(4)])
+            if parameter=='recover_frac':
+                recover_world(currentWorld, p)
+            else:
+                used_scenario[parameter] = p
 
         
-        scenario_and_parameter = 'Revised_Probabilities_Matrix_IFreq_2_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+        scenario_and_parameter = 'Revised_Probabilities_Matrix_Ifreq_1_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
