@@ -320,7 +320,7 @@ class Human(object):
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = ','.join(self.contact_persons)
         out['Infection_event'] = int(self.infected_by)
-        if keys_list = 'all':
+        if keys_list == 'all':
             return(out)
         else:
             return(ordered_dict((i, out[i]) for i in keys_list))
