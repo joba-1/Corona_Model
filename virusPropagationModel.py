@@ -397,6 +397,7 @@ class Simulation(object):
 
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
+        self.interaction_matrix = True
 
         if run_immediately:
             self.simulate()
@@ -436,7 +437,7 @@ class Simulation(object):
             for p in self.people:
                 p.update_state(self.time)
             for l in self.locations.values():
-                l.let_agents_interact(mu=self.interaction_frequency)
+                l.let_agents_interact(mu=self.interaction_frequency,interaction_matrix=self.interaction_matrix)
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
                 p.set_stati_from_preliminary()
