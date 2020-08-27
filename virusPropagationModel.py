@@ -427,7 +427,8 @@ class Simulation(object):
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(
+                    self.time, keys_list=timecourse_keys).values()))
             first_simulated_step = 1
         else:
             first_simulated_step = 0
