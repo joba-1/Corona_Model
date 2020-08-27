@@ -14,7 +14,7 @@ import random
 
 scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.6, 'name':'close_all_IF06'},
+             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':1000, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.6, 'name':'close_all_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.6, 'name':'close_all_reopen_all_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.5, 'name':'close_all_reopen_work'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.5, 'name':'close_all_reopen_school'},
@@ -199,8 +199,8 @@ def simulate_scenario(input_dict):
 
     return {'stat_trajectories': simulation1.get_status_trajectories(),
                               'durations': simulation1.get_durations(),
-            'flag_trajectories': simulation1.get_flag_sums_over_time(),
-            'infections_per_location_type':simulation1.get_infections_per_location_type()}
+            'flag_trajectories': simulation1.get_flag_sums_over_time()}
+            #'infections_per_location_type':simulation1.get_infections_per_location_type()}
 
 
 def get_simualtion_settings(options):
@@ -243,7 +243,7 @@ def get_simualtion_settings(options):
             p_steps = options.p_steps
         else:
             p_steps = 10
-        p_range = np.linspace(options.p_range[0],options.p_range[1],p_steps) # define parameter range/values to simulate
+        p_range = np.linspace(p_bounds[0],p_bounds[1],int(p_steps)) # define parameter range/values to simulate
     else:
         p_range = np.array([1])
 
@@ -336,13 +336,13 @@ if __name__ == '__main__':
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-        infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        #infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
 
         plot_and_save_statii(status_trajectories_list, filename=scenario_and_parameter, output_folder=output_folder_plots) 
         plot_and_save_durations(simulation_trajectory_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=False, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=True, filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
-        plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario_and_parameter, output_folder=output_folder_plots)
+        #plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario_and_parameter, output_folder=output_folder_plots)
 
         stop = timeit.default_timer()
 
