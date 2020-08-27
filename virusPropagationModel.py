@@ -413,12 +413,12 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix, **kwargs)
 
-    def simulate(self):
-        self.simulation_timecourse = pd.concat(
-            [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
+    def simulate(self, timecourse_keys='all'):
+        self.simulation_timecourse = pd.concat([self.simulation_timecourse, self.run_simulation(
+            timecourse_keys=timecourse_keys)], ignore_index=True)
         #self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
-    def run_simulation(self):
+    def run_simulation(self, timecourse_keys='all'):
         """
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
@@ -438,10 +438,11 @@ class Simulation(object):
             for l in self.locations.values():
                 l.let_agents_interact(mu=self.interaction_frequency)
             for p in self.people:  # don't call if hospitalized
-                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(
+                    self.time, keys_list=timecourse_keys).values()))
                 p.set_stati_from_preliminary()
                 p.move(self.time)
-        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
+        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
 
     def change_agent_attributes(self, input):
         """

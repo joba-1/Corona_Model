@@ -304,7 +304,8 @@ class Human(object):
             # self.loc.leave(self)  # leave old location
             # current_loc.enter(self)  # enter new location
 
-    def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
+    # for storing simulation data (flags)
+    def get_information_for_timecourse(self, time, keys_list='all'):
         """
         Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
         All stati temporary and cumulative flags are encoded by one integer to save memory.
@@ -319,7 +320,10 @@ class Human(object):
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = ','.join(self.contact_persons)
         out['Infection_event'] = int(self.infected_by)
-        return(out)
+        if keys_list = 'all':
+            return(out)
+        else:
+            return(ordered_dict((i, out[i]) for i in keys_list))
 
     def encode_temporary_flags(self):
         """
