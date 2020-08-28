@@ -394,6 +394,7 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
+            self.random_seed = random_seed
 
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
