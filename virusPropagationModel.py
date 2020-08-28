@@ -341,12 +341,11 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
         self.location_types = object_to_simulate.location_types
-
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
@@ -369,6 +368,7 @@ class Simulation(object):
 
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
+            self.random_seed = random_seed
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
@@ -399,8 +399,17 @@ class Simulation(object):
         self.interaction_frequency = 1
         self.interaction_matrix = True
 
+        if self.random_seed is not None:
+            random.seed(self.random_seed)
+            npr.seed(self.random_seed)
+
         if run_immediately:
             self.simulate()
+
+    def set_seed(self, random_seed_value):
+        self.random_seed = random_seed_value
+        random.seed(self.random_seed)
+        npr.seed(self.random_seed)
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
@@ -438,7 +447,8 @@ class Simulation(object):
             for p in self.people:
                 p.update_state(self.time)
             for l in self.locations.values():
-                l.let_agents_interact(mu=self.interaction_frequency,interaction_matrix=self.interaction_matrix)
+                l.let_agents_interact(mu=self.interaction_frequency,
+                                      interaction_matrix=self.interaction_matrix)
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(
                     self.time, keys_list=timecourse_keys).values()))
