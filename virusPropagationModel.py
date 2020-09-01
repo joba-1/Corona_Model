@@ -1034,6 +1034,8 @@ def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_t
         CMgroup.loc['AgeGroup_subject', i] = agePerson
     Out = CMgroup.transpose().groupby(['AgeGroup_subject']).sum()
     perday = Out/n_time_aggregates
+    perday.index = age_groups
+    perday.columns = age_groups
     return(perday)
 
 
@@ -1100,4 +1102,6 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
         CMgroup.loc['AgeGroup_object', i] = agePerson
     Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()
     perday = Out/n_time_aggregates
+    perday.index = age_groups
+    perday.columns = age_groups
     return(perday)
