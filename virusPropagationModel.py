@@ -787,7 +787,7 @@ class Simulation(object):
         people = list(self.people)
         Agents_Ages = {str(p.ID): p.age for p in people}
         Agents_Homes = {str(p.ID): p.home.ID for p in people}
-        Agent_Info = pandas.DataFrame()
+        Agent_Info = pd.DataFrame()
         Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
         Agent_Info['Age'] = list(Agents_Ages.values())
         Agent_Info['Home'] = list(Agents_Homes.values())
@@ -808,7 +808,7 @@ class Simulation(object):
             return(len(list(infected_tc['Household'].unique())))
         else:
             timesteps = list(range(time_span[0], max_ts+1))
-            out = pandas.DataFrame()
+            out = pd.DataFrame()
             out['time'] = timesteps
             out['households'] = [
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
@@ -830,7 +830,7 @@ class Simulation(object):
             time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
         n_infections = {i: time_course[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
-        out = pandas.DataFrame()
+        out = pd.DataFrame()
         out['time'] = list(t_diagnosis.values())
         out['traced_infections'] = list(n_infections.values())
         out['traced_contacts'] = list(n_contacts.values())
@@ -1003,7 +1003,7 @@ def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None,
                 DayFrame.loc[i, 'Infection_event'])] = 1
         infection_matrix += did_infect_array
     # cols=spreaders rows=receivers
-    return(pandas.DataFrame(infection_matrix, index=individuals, columns=individuals))
+    return(pd.DataFrame(infection_matrix, index=individuals, columns=individuals))
 
 
 def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
@@ -1069,7 +1069,7 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
         interaction_matrix[contact_indices, person_indices] += 1
 
     # cols=subject rows=object
-    return(pandas.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
+    return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
 
 
 def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
