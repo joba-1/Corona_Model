@@ -10,6 +10,7 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
+import scipy
 from collections import OrderedDict as ordered_dict
 
 
