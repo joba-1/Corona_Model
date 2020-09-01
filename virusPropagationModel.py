@@ -783,6 +783,77 @@ class Simulation(object):
         return(flag_sums)
     # DF
 
+    def get_agent_info(self):
+        people = list(self.people)
+        Agents_Ages = {str(p.ID): p.age for p in people}
+        Agents_Homes = {str(p.ID): p.home.ID for p in people}
+        Agent_Info = pandas.DataFrame()
+        Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
+        Agent_Info['Age'] = list(Agents_Ages.values())
+        Agent_Info['Home'] = list(Agents_Homes.values())
+        return(Agent_Info)
+
+    def get_number_of_infected_households(self, time_span=[0, None], total=False):
+        if time_span[1] is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = time_span[1]
+        Agent_Info = self.get_agent_info()
+        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
+            self.simulation_timecourse['time'] >= time_span[0])]
+        infected_tc = time_course[time_course['status'] == 1]
+        infected_tc['Household'] = [Agent_Info.loc[Agent_Info['ID'] == i, 'Home'].values[0]
+                                    for i in list(infected_tc['h_ID'])]
+        if total:
+            return(len(list(infected_tc['Household'].unique())))
+        else:
+            timesteps = list(range(time_span[0], max_ts+1))
+            out = pandas.DataFrame()
+            out['time'] = timesteps
+            out['households'] = [
+                len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
+            return(out)
+
+    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
+        if time_span[1] is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = time_span[1]
+        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
+            self.simulation_timecourse['time'] >= time_span[0])]
+        diag_df = time_course.loc[time_course['Temporary_Flags'] >= 2]
+        diagnosed_individuals = list(diag_df['h_ID'].unique())
+        t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
+                       for i in diagnosed_individuals}
+        t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
+        n_contacts = {i: len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
+        n_infections = {i: time_course[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
+        out = pandas.DataFrame()
+        out['time'] = list(t_diagnosis.values())
+        out['traced_infections'] = list(n_infections.values())
+        out['traced_contacts'] = list(n_contacts.values())
+        out2 = out.groupby(['time']).sum()
+        out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
+        return(out2)
+
+    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        Agent_Info = self.get_agent_info()
+        Interaction_matrix = build_interaction_matrix(
+            self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
+        Interaction_HeatmapDF = build_agegroup_aggregated_interaction_matrix(
+            Interaction_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        return(Interaction_HeatmapDF)
+
+    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        Agent_Info = self.get_agent_info()
+        Infection_matrix = build_infection_matrix(
+            self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
+        Infection_HeatmapDF = build_agegroup_aggregated_infection_matrix(
+            Infection_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        return(Infection_HeatmapDF)
+
     def get_infections_per_location_type_over_time(self):
         """
         export data frame of cummulative infection events per location
@@ -908,3 +979,124 @@ class Simulation(object):
     def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
+
+
+def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
+    if highest_timestep is None:
+        max_ts = simulation.simulation_timecourse['time'].max()
+    else:
+        max_ts = highest_timestep
+    Timecourse = simulation.simulation_timecourse[(simulation.simulation_timecourse['time'] >= lowest_timestep) & (
+        simulation.simulation_timecourse['time'] <= max_ts)]
+
+    Infections = Timecourse.loc[Timecourse['Infection_event'] >= 0, :]
+    Days = [int(i/timesteps_per_aggregate) for i in Infections['time']]
+    Infections['aggregated_time'] = Days
+    individuals = list(Timecourse['h_ID'].unique())
+    # out={}
+    infection_matrix = numpy.zeros((len(individuals), len(individuals)))
+    for d in list(Infections['aggregated_time'].unique()):
+        DayFrame = Infections.loc[Infections['aggregated_time'] == d, ]
+        did_infect_array = numpy.zeros((len(individuals), len(individuals)))
+        for i in list(DayFrame.index):
+            did_infect_array[individuals.index(DayFrame.loc[i, 'h_ID']), individuals.index(
+                DayFrame.loc[i, 'Infection_event'])] = 1
+        infection_matrix += did_infect_array
+    # cols=spreaders rows=receivers
+    return(pandas.DataFrame(infection_matrix, index=individuals, columns=individuals))
+
+
+def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
+    for i in age_groups:
+        age_index = age_groups.index(i)
+        if age_groups.index(i) < len(age_groups)-1:
+            lower_bound = i
+            upper_bound = age_groups[age_index+1]
+            agent_ids = Agent_Info.loc[(Agent_Info['Age'] >= lower_bound)
+                                       & (Agent_Info['Age'] < upper_bound), 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+        else:
+            lower_bound = i
+            agent_ids = Agent_Info.loc[Agent_Info['Age'] >= lower_bound, 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+
+    Infection_matrix['AgeGroup_object'] = [-1]*Infection_matrix.shape[0]
+    for i in list(Infection_matrix.index):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == i, 'AgeGroup'].values[0]
+        Infection_matrix.loc[i, 'AgeGroup_object'] = agePerson
+    CMgroup = Infection_matrix.groupby(['AgeGroup_object']).sum()
+    CMgroup.loc['AgeGroup_subject', :] = [-1]*CMgroup.shape[1]
+
+    for i in list(CMgroup.columns):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
+        CMgroup.loc['AgeGroup_subject', i] = agePerson
+    Out = CMgroup.transpose().groupby(['AgeGroup_subject']).sum()
+    perday = Out/n_time_aggregates
+    return(perday)
+
+
+def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
+    if highest_timestep is None:
+        max_ts = simulation.simulation_timecourse['time'].max()
+    else:
+        max_ts = highest_timestep
+    Timecourse = simulation.simulation_timecourse[(simulation.simulation_timecourse['time'] >= lowest_timestep) & (
+        simulation.simulation_timecourse['time'] <= max_ts)]
+
+    # Infections=Timecourse.loc[Timecourse['Infection_event']>=0,:]
+    Interactions = Timecourse.loc[Timecourse['Interaction_partner'] != '', :]
+    Days = [int(i/timesteps_per_aggregate) for i in Interactions['time']]
+    Interactions['aggregated_time'] = Days
+    individuals = [int(i) for i in list(Timecourse['h_ID'].unique())]
+    individual_dict = dict(zip(individuals, list(range(len(individuals)))))
+    # out={}
+    interaction_matrix = scipy.sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
+    for d in list(Interactions['aggregated_time'].unique()):
+        DayFrame = Interactions.loc[Interactions['aggregated_time'] == d, ]
+        #person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])
+        contact_indices = [individual_dict[int(j)] for i in list(
+            DayFrame['Interaction_partner']) for j in i.split(',')]
+        #contact_indices=[individuals.index(int(j)) for i in list(DayFrame.index) for j in DayFrame.loc[i,'Interaction_partner'].split(',')]
+        person_indices = [individual_dict[int(i)] for i in list(DayFrame['h_ID'])]
+        person_indices = []
+        for i in DayFrame.index:
+            appendix_list = [individual_dict[int(DayFrame.loc[i, 'h_ID'])]] * \
+                len(DayFrame.loc[i, 'Interaction_partner'].split(','))
+            person_indices += appendix_list
+        # person_indices=[for j in [[individual_dict[int(DayFrame.loc[i,'h_ID'])]]*len(DayFrame.loc[i,'Interaction_partner'].split(',')) for i in DayFrame.index] for k in j]
+        #person_indices=[individuals.index(DayFrame.loc[i,'h_ID']) for i in list(DayFrame.index)]
+        interaction_matrix[contact_indices, person_indices] += 1
+
+    # cols=subject rows=object
+    return(pandas.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
+
+
+def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
+    for i in age_groups:
+        age_index = age_groups.index(i)
+        if age_groups.index(i) < len(age_groups)-1:
+            lower_bound = i
+            upper_bound = age_groups[age_index+1]
+            agent_ids = Agent_Info.loc[(Agent_Info['Age'] >= lower_bound)
+                                       & (Agent_Info['Age'] < upper_bound), 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+        else:
+            lower_bound = i
+            agent_ids = Agent_Info.loc[Agent_Info['Age'] >= lower_bound, 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+
+    Interaction_matrix['AgeGroup_subject'] = [-1]*Interaction_matrix.shape[0]
+    for i in list(Interaction_matrix.index):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == i, 'AgeGroup'].values[0]
+        Interaction_matrix.loc[i, 'AgeGroup_subject'] = agePerson
+    CMgroup = Interaction_matrix.groupby(['AgeGroup_subject']).mean()
+
+    CMgroup.loc['AgeGroup_object', :] = [-1]*CMgroup.shape[1]
+    for i in list(CMgroup.columns):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
+        CMgroup.loc['AgeGroup_object', i] = agePerson
+    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()
+    perday = Out/n_time_aggregates
+    return(perday)
