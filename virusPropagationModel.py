@@ -860,7 +860,7 @@ class Simulation(object):
         export data frame of cummulative infection events per location
         :return pandas.DataFrame
         """
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1].copy(
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] != -1].copy(
         )
         infection_events.drop(columns=['status', 'h_ID', 'Temporary_Flags', 'Cumulative_Flags',
                                        'Interaction_partner'], axis=1, inplace=True)
