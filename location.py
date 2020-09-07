@@ -314,23 +314,32 @@ class Location(object):
         return self.distances[location_ID]
 
     def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
-        ## create list of human ID's, currently present in location#
-        h = [p.ID for p in list(self.people_present)]
-        n = len(h)
+        ## create dict of human ID's and interaction modifiers, currently present in location#
+        h_dict = {p.ID:p.interaction_modifier for p in list(self.people_present)}
+        n = len(h_dict)
+
+        human_ids = list(h_dict.keys()) 
+        interaction_modifier = list(h_dict.values())
+
         if interaction_matrix:
+            # create vector of interaction modifier
+            v = np.array([interaction_modifier])
+            # set interaction probability threshold
             interaction_probability = mu/(n-1)
-            # interaction_probability = mu
-            # Create matrix with ones on top of diagonal (rest zeros)
-            C = np.triu(np.ones((n, n)))-np.eye(n)
+            # Create triangle matrix from v  on top of diagonal (rest zeros)
+            M = v.transpose().dot(v)
+            C = np.triu(M)-np.eye(n)*v**2
             # generate array of random numbers with dimension n times n
             P = np.random.random((n, n))
             # build logical array, showing where drawn probabilities are smaller than mu
             I = P < C*interaction_probability
             # build list of interacting-ids (as tuples)
             cp1, cp2 = np.where(I)
-            pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
+            pairs = list(zip([human_ids[i]
+                              for i in cp1], [human_ids[i] for i in cp2]))
         else:
-            pairs = [(h_id, choosing_one(list(set(h)-{h_id}))) for h_id in h]  
+            pairs = [
+                (h_id, choosing_one(list(set(human_ids)-{h_id}))) for h_id in human_ids]
         return(pairs)
 
     def let_agents_interact(self, mu=1, interaction_matrix=True):

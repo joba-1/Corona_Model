@@ -200,6 +200,7 @@ class Human(object):
 
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
+        self.interaction_modifier = 1
 
         self.stati_times = {'infection_time': numpy.nan,
                             'diagnosis_time': numpy.nan,
