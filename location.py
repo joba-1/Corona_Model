@@ -313,7 +313,7 @@ class Location(object):
         # print(location_ID)
         return self.distances[location_ID]
 
-   def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
+    def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
         ## create list of human ID's, currently present in location#
         human_list = list(self.people_present)
         h = [p.ID for p in human_list]
