@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random 
 
-scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run':0 ,'max_time': 2500, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':1000, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.6, 'name':'close_all_IF06'},
              {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.6, 'name':'close_all_reopen_all_IF06'},
@@ -30,7 +30,7 @@ scenarios = [{'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_l
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':1500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.3, 'name':'close_all_IF03'},
              {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.3, 'name':'close_all_reopen_all_IF03'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.3, 'name':'close_all_reopen_work_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_all_reopen_school_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_all_reopen_school_IF03'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_all_reopen_public_IF03'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_school_IF03'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.3, 'name':'close_public_school_reopen_all_IF03'},
@@ -161,7 +161,8 @@ def simulate_scenario(input_dict):
     #simulation1.set_seed(3)
     simulation1.interaction_frequency=mu
     #simulation1.interaction_matrix = False
-    simulation1.simulate(timecourse_keys=['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags'])
+    simulation1.simulate(timecourse_keys=['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags', 'loc', 'Infection_event'])
+    #simulation1.simulate()
 
     obedient_people = []
 
@@ -200,17 +201,19 @@ def simulate_scenario(input_dict):
         if not simulation1.time+1 == max_time:
             simulation1.time_steps = times[i+1]-t
             #print(simulation1.time_steps)
-            simulation1.simulate(timecourse_keys=['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags'])
+            simulation1.simulate(timecourse_keys=['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags', 'loc', 'Infection_event'])
+            #simulation1.simulate()
 
     #print(my_dict['name']+'_'+str(my_dict['run']))
     print(name+'_'+str(my_dict['run']))
-    #print(my_dict['output_folder'])
+    print(my_dict['output_folder'])
     #simulation1.save(name+'_'+str(my_dict['run']), date_suffix=False, folder=my_dict['output_folder'])
 
     return {'stat_trajectories': simulation1.get_status_trajectories(),
                               'durations': simulation1.get_durations(),
-            'flag_trajectories': simulation1.get_flag_sums_over_time()}
-            #'infections_per_location_type':simulation1.get_infections_per_location_type()}
+            'flag_trajectories': simulation1.get_flag_sums_over_time(),
+            'infections_per_location_type':simulation1.get_infections_per_location_type(),
+            'number_of_infected_households':simulation1.get_number_of_infected_households(time_span=[0,480])}
 
 
 def get_simualtion_settings(options):
@@ -325,8 +328,13 @@ if __name__ == '__main__':
             else:
                 used_scenario[parameter] = p
 
-        
-        scenario_and_parameter = 'RPM02_Gangelt_big_Ifreq_2_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+        if product!=0:
+            if parameter=='mu':
+                scenario_and_parameter = 'RPM02_Gangelt_big_'+used_scenario['name'] +'_prod_'+str(product)+'_inf_'+str(float(product)/float(p))+'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+            else:
+                scenario_and_parameter = 'RPM02_Gangelt_big_'+used_scenario['name'] +'_prod_'+str(product)+'_inf_'+str(float(product)/float(mu))+'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+        else:
+            scenario_and_parameter = 'RPM02_Gangelt_big_Ifreq_'+str(mu)+'_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
@@ -358,13 +366,15 @@ if __name__ == '__main__':
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-        #infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
 
         plot_and_save_statii(status_trajectories_list, filename=scenario_and_parameter, output_folder=output_folder_plots) 
         plot_and_save_durations(simulation_trajectory_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=False, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=True, filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
-        #plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario_and_parameter, output_folder=output_folder_plots)
+        plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario_and_parameter, output_folder=output_folder_plots)
+        save_number_of_infected_households(number_of_infected_households_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
 
         stop = timeit.default_timer()
 
