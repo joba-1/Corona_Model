@@ -86,13 +86,13 @@ class World(object):
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm','fire_station','farm_auxiliary','retail']\
+        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church','parish_hall','townhall','restaurant','grocery_store', 'cafe','sports_centre']\
+        loc_class_dic['public'] = ['public', 'chapel', 'church', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe', 'sports_centre']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
 
@@ -144,7 +144,7 @@ class World(object):
         # if no hospital in dataframe, one is created in upper right corner, else model has problems #FIXME Future
         # if no morgue in dataframe, one is created in low left corner, else model has problems #FIXME Future
         distance = 0.00
-        if not hospital_bool: 
+        if not hospital_bool:
             locations.update({len(self.df_buildings)+1: Location(len(self.df_buildings)+1,
                                                                  (max(self.df_buildings['building_coordinates_x'])+distance,
                                                                   max(self.df_buildings['building_coordinates_y'])+distance),
@@ -313,15 +313,26 @@ class Location(object):
         # print(location_ID)
         return self.distances[location_ID]
 
-    def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
+
+v = np.array([f])
+M = v.transpose().dot(v)
+C = np.triu(M)-np.eye(len(h))v2
+print(C*mu/(n-1))
+
+   def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
         ## create list of human ID's, currently present in location#
-        h = [p.ID for p in list(self.people_present)]
+        human_list = list(self.people_present)
+        h = [p.ID for p in human_list]
+        f = [1 for p in human_list]
         n = len(h)
         if interaction_matrix:
+            # v = np.array([f])
             interaction_probability = mu/(n-1)
+            # M = v.transpose().dot(v)
             # interaction_probability = mu
             # Create matrix with ones on top of diagonal (rest zeros)
             C = np.triu(np.ones((n, n)))-np.eye(n)
+            # C = np.triu(M)-np.eye(len(h))*v**2
             # generate array of random numbers with dimension n times n
             P = np.random.random((n, n))
             # build logical array, showing where drawn probabilities are smaller than mu
@@ -330,16 +341,18 @@ class Location(object):
             cp1, cp2 = np.where(I)
             pairs = list(zip([h[i] for i in cp1], [h[i] for i in cp2]))
         else:
-            pairs = [(h_id, choosing_one(list(set(h)-{h_id}))) for h_id in h]  
+            pairs = [(h_id, choosing_one(list(set(h)-{h_id}))) for h_id in h]
         return(pairs)
 
     def let_agents_interact(self, mu=1, interaction_matrix=True):
-        human_objects_present = {p.ID: p for p in list(self.people_present)}
-        if len(list(human_objects_present.keys())) > 1:
-            pairs = self.determine_interacting_pairs(mu=mu,interaction_matrix=interaction_matrix)
-            #print([self.location_type, len(list(self.people_present)), len(pairs)])
-            for p in pairs:
-                human_objects_present[p[0]].contact_persons.append(str(p[1]))
-                human_objects_present[p[1]].contact_persons.append(str(p[0]))
-                human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
-                human_objects_present[p[1]].interact_with(human_objects_present[p[0]])
+        if self.location_type != 'morgue':
+            human_objects_present = {p.ID: p for p in list(self.people_present)}
+            if len(list(human_objects_present.keys())) > 1:
+                pairs = self.determine_interacting_pairs(
+                    mu=mu, interaction_matrix=interaction_matrix)
+                # print([self.location_type, len(list(self.people_present)), len(pairs)])
+                for p in pairs:
+                    human_objects_present[p[0]].contact_persons.append(str(p[1]))
+                    human_objects_present[p[1]].contact_persons.append(str(p[0]))
+                    human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
+                    human_objects_present[p[1]].interact_with(human_objects_present[p[0]])
