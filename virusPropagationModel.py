@@ -10,6 +10,7 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
+import scipy
 from collections import OrderedDict as ordered_dict
 
 
@@ -342,12 +343,11 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
         self.location_types = object_to_simulate.location_types
-
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
@@ -370,6 +370,7 @@ class Simulation(object):
 
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
+            self.random_seed = random_seed
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
@@ -395,12 +396,23 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
+            self.random_seed = random_seed
 
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
+        self.interaction_matrix = True
+
+        if self.random_seed is not None:
+            random.seed(self.random_seed)
+            npr.seed(self.random_seed)
 
         if run_immediately:
             self.simulate()
+
+    def set_seed(self, random_seed_value):
+        self.random_seed = random_seed_value
+        random.seed(self.random_seed)
+        npr.seed(self.random_seed)
 
     def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
         """
@@ -414,12 +426,12 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix, **kwargs)
 
-    def simulate(self):
-        self.simulation_timecourse = pd.concat(
-            [self.simulation_timecourse, self.run_simulation()], ignore_index=True)
+    def simulate(self, timecourse_keys='all'):
+        self.simulation_timecourse = pd.concat([self.simulation_timecourse, self.run_simulation(
+            timecourse_keys=timecourse_keys)], ignore_index=True)
         #self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
-    def run_simulation(self):
+    def run_simulation(self, timecourse_keys='all'):
         """
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
@@ -428,7 +440,8 @@ class Simulation(object):
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
-                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(
+                    self.time, keys_list=timecourse_keys).values()))
             first_simulated_step = 1
         else:
             first_simulated_step = 0
@@ -437,12 +450,14 @@ class Simulation(object):
             for p in self.people:
                 p.update_state(self.time)
             for l in self.locations.values():
-                l.let_agents_interact(mu=self.interaction_frequency)
+                l.let_agents_interact(mu=self.interaction_frequency,
+                                      interaction_matrix=self.interaction_matrix)
             for p in self.people:  # don't call if hospitalized
-                timecourse.append(tuple(p.get_information_for_timecourse(self.time).values()))
+                timecourse.append(tuple(p.get_information_for_timecourse(
+                    self.time, keys_list=timecourse_keys).values()))
                 p.set_stati_from_preliminary()
                 p.move(self.time)
-        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time).keys()))
+        return pd.DataFrame(timecourse, columns=list(p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
 
     def change_agent_attributes(self, input):
         """
@@ -625,15 +640,20 @@ class Simulation(object):
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
             'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
         out = pd.DataFrame()
-        out['infection_to_recovery'] = df['recover_time'] - df['infection_time']
-        out['infection_to_death'] = df['death_time'] - df['infection_time']
-        out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
+        #out['infection_to_death'] = df['death_time'] - df['infection_time']
+        #out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
         out['hospital_to_recovery'] = df['recover_time'] - df['hospitalization_time']
         out['hospital_to_death'] = df['death_time'] - df['hospitalization_time']
         out['hospital_to_icu'] = df['icu_time'] - df['hospitalization_time']
+        out['icu_to_death'] = df['death_time'] - df['icu_time']
+        out['icu_to_recovery'] = df['recover_time'] - df['icu_time']
         out['infection_to_diagnosis'] = df['diagnosis_time'] - df['infection_time']
+        out['infection_to_recovery'] = df['recover_time'] - df['infection_time']
+        out['infection_to_death'] = df['death_time'] - df['infection_time']
+        out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
         out['diagnosis_to_hospital'] = df['hospitalization_time'] - df['diagnosis_time']
         out['diagnosis_to_recovery'] = df['recover_time'] - df['diagnosis_time']
+        out['diagnosis_to_death'] = df['death_time'] - df['diagnosis_time']
         return out
 
     # DF
@@ -708,7 +728,7 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] != -1]
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > -1]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
@@ -765,12 +785,83 @@ class Simulation(object):
         return(flag_sums)
     # DF
 
+    def get_agent_info(self):
+        people = list(self.people)
+        Agents_Ages = {str(p.ID): p.age for p in people}
+        Agents_Homes = {str(p.ID): p.home.ID for p in people}
+        Agent_Info = pd.DataFrame()
+        Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
+        Agent_Info['Age'] = list(Agents_Ages.values())
+        Agent_Info['Home'] = list(Agents_Homes.values())
+        return(Agent_Info)
+
+    def get_number_of_infected_households(self, time_span=[0, None], total=False):
+        if time_span[1] is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = time_span[1]
+        Agent_Info = self.get_agent_info()
+        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
+            self.simulation_timecourse['time'] >= time_span[0])]
+        infected_tc = time_course[time_course['status'] == 1]
+        infected_tc['Household'] = [Agent_Info.loc[Agent_Info['ID'] == i, 'Home'].values[0]
+                                    for i in list(infected_tc['h_ID'])]
+        if total:
+            return(len(list(infected_tc['Household'].unique())))
+        else:
+            timesteps = list(range(time_span[0], max_ts+1))
+            out = pd.DataFrame()
+            out['time'] = timesteps
+            out['households'] = [
+                len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
+            return(out)
+
+    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
+        if time_span[1] is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = time_span[1]
+        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
+            self.simulation_timecourse['time'] >= time_span[0])]
+        diag_df = time_course.loc[time_course['Temporary_Flags'] >= 2]
+        diagnosed_individuals = list(diag_df['h_ID'].unique())
+        t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
+                       for i in diagnosed_individuals}
+        t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
+        n_contacts = {i: len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
+        n_infections = {i: time_course[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
+        out = pd.DataFrame()
+        out['time'] = list(t_diagnosis.values())
+        out['traced_infections'] = list(n_infections.values())
+        out['traced_contacts'] = list(n_contacts.values())
+        out2 = out.groupby(['time']).sum()
+        out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
+        return(out2)
+
+    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        Agent_Info = self.get_agent_info()
+        Interaction_matrix = build_interaction_matrix(
+            self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
+        Interaction_HeatmapDF = build_agegroup_aggregated_interaction_matrix(
+            Interaction_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        return(Interaction_HeatmapDF)
+
+    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        Agent_Info = self.get_agent_info()
+        Infection_matrix = build_infection_matrix(
+            self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
+        Infection_HeatmapDF = build_agegroup_aggregated_infection_matrix(
+            Infection_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        return(Infection_HeatmapDF)
+
     def get_infections_per_location_type_over_time(self):
         """
         export data frame of cummulative infection events per location
         :return pandas.DataFrame
         """
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] == 1].copy(
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] != -1].copy(
         )
         infection_events.drop(columns=['status', 'h_ID', 'Temporary_Flags', 'Cumulative_Flags',
                                        'Interaction_partner'], axis=1, inplace=True)
@@ -827,8 +918,9 @@ class Simulation(object):
             'outputs/' + identifier + '-locations_time_course.csv')
 
     def plot_infections_per_location_type(self, relative_to_building_number=True, save_figure=False):
-        vpm_plt.plot_infections_per_location_type(
+        ax, loc_dict_inf = vpm_plt.plot_infections_per_location_type(
             self, save_figure=save_figure, relative_to_building_number=relative_to_building_number)
+        return ax, loc_dict_inf
 
     def plot_status_timecourse(self, specific_statuses=None, specific_people=None, save_figure=False):
         """
@@ -856,19 +948,19 @@ class Simulation(object):
         """
         vpm_plt.plot_location_type_occupancy_timecourse(self, specific_types, save_figure)
 
-    def plot_status_at_location(simulation_object, save_figure=False):
+    def plot_status_at_location(self, save_figure=False):
         """
         plots the occupancy of each status type at the different location types from the time course
 
         """
-        vpm_plt.plot_status_at_location(simulation_object, save_figure=save_figure)
+        vpm_plt.plot_status_at_location(self, save_figure=save_figure)
 
-    def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
+    def map_status_at_loc(self, save_figure=False, time_steps=2):
         """
         map the occupancy of each status type at the different location types from the time course
 
         """
-        vpm_plt.map_status_at_loc(simulation_object, save_figure=save_figure, time_steps=time_steps)
+        vpm_plt.map_status_at_loc(self, save_figure=save_figure, time_steps=time_steps)
 
     def plot_distributions_of_durations(self, save_figure=False):
         """
@@ -890,3 +982,128 @@ class Simulation(object):
     def plot_interaction_timecourse(self, save_figure=False, log=False, diagnosed_contact=False):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
+
+
+def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
+    if highest_timestep is None:
+        max_ts = simulation.simulation_timecourse['time'].max()
+    else:
+        max_ts = highest_timestep
+    Timecourse = simulation.simulation_timecourse[(simulation.simulation_timecourse['time'] >= lowest_timestep) & (
+        simulation.simulation_timecourse['time'] <= max_ts)]
+
+    Infections = Timecourse.loc[Timecourse['Infection_event'] >= 0, :]
+    Days = [int(i/timesteps_per_aggregate) for i in Infections['time']]
+    Infections['aggregated_time'] = Days
+    individuals = list(Timecourse['h_ID'].unique())
+    # out={}
+    infection_matrix = numpy.zeros((len(individuals), len(individuals)))
+    for d in list(Infections['aggregated_time'].unique()):
+        DayFrame = Infections.loc[Infections['aggregated_time'] == d, ]
+        did_infect_array = numpy.zeros((len(individuals), len(individuals)))
+        for i in list(DayFrame.index):
+            did_infect_array[individuals.index(DayFrame.loc[i, 'h_ID']), individuals.index(
+                DayFrame.loc[i, 'Infection_event'])] = 1
+        infection_matrix += did_infect_array
+    # cols=spreaders rows=receivers
+    return(pd.DataFrame(infection_matrix, index=individuals, columns=individuals))
+
+
+def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
+    for i in age_groups:
+        age_index = age_groups.index(i)
+        if age_groups.index(i) < len(age_groups)-1:
+            lower_bound = i
+            upper_bound = age_groups[age_index+1]
+            agent_ids = Agent_Info.loc[(Agent_Info['Age'] >= lower_bound)
+                                       & (Agent_Info['Age'] < upper_bound), 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+        else:
+            lower_bound = i
+            agent_ids = Agent_Info.loc[Agent_Info['Age'] >= lower_bound, 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+
+    Infection_matrix['AgeGroup_object'] = [-1]*Infection_matrix.shape[0]
+    for i in list(Infection_matrix.index):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == i, 'AgeGroup'].values[0]
+        Infection_matrix.loc[i, 'AgeGroup_object'] = agePerson
+    CMgroup = Infection_matrix.groupby(['AgeGroup_object']).sum()
+    CMgroup.loc['AgeGroup_subject', :] = [-1]*CMgroup.shape[1]
+
+    for i in list(CMgroup.columns):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
+        CMgroup.loc['AgeGroup_subject', i] = agePerson
+    Out = CMgroup.transpose().groupby(['AgeGroup_subject']).sum()
+    perday = Out/n_time_aggregates
+    perday.index = age_groups
+    perday.columns = age_groups
+    return(perday)
+
+
+def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
+    if highest_timestep is None:
+        max_ts = simulation.simulation_timecourse['time'].max()
+    else:
+        max_ts = highest_timestep
+    Timecourse = simulation.simulation_timecourse[(simulation.simulation_timecourse['time'] >= lowest_timestep) & (
+        simulation.simulation_timecourse['time'] <= max_ts)]
+
+    # Infections=Timecourse.loc[Timecourse['Infection_event']>=0,:]
+    Interactions = Timecourse.loc[Timecourse['Interaction_partner'] != '', :]
+    Days = [int(i/timesteps_per_aggregate) for i in Interactions['time']]
+    Interactions['aggregated_time'] = Days
+    individuals = [int(i) for i in list(Timecourse['h_ID'].unique())]
+    individual_dict = dict(zip(individuals, list(range(len(individuals)))))
+    # out={}
+    interaction_matrix = scipy.sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
+    for d in list(Interactions['aggregated_time'].unique()):
+        DayFrame = Interactions.loc[Interactions['aggregated_time'] == d, ]
+        #person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])
+        contact_indices = [individual_dict[int(j)] for i in list(
+            DayFrame['Interaction_partner']) for j in i.split(',')]
+        #contact_indices=[individuals.index(int(j)) for i in list(DayFrame.index) for j in DayFrame.loc[i,'Interaction_partner'].split(',')]
+        person_indices = [individual_dict[int(i)] for i in list(DayFrame['h_ID'])]
+        person_indices = []
+        for i in DayFrame.index:
+            appendix_list = [individual_dict[int(DayFrame.loc[i, 'h_ID'])]] * \
+                len(DayFrame.loc[i, 'Interaction_partner'].split(','))
+            person_indices += appendix_list
+        # person_indices=[for j in [[individual_dict[int(DayFrame.loc[i,'h_ID'])]]*len(DayFrame.loc[i,'Interaction_partner'].split(',')) for i in DayFrame.index] for k in j]
+        #person_indices=[individuals.index(DayFrame.loc[i,'h_ID']) for i in list(DayFrame.index)]
+        interaction_matrix[contact_indices, person_indices] += 1
+
+    # cols=subject rows=object
+    return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
+
+
+def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
+    for i in age_groups:
+        age_index = age_groups.index(i)
+        if age_groups.index(i) < len(age_groups)-1:
+            lower_bound = i
+            upper_bound = age_groups[age_index+1]
+            agent_ids = Agent_Info.loc[(Agent_Info['Age'] >= lower_bound)
+                                       & (Agent_Info['Age'] < upper_bound), 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+        else:
+            lower_bound = i
+            agent_ids = Agent_Info.loc[Agent_Info['Age'] >= lower_bound, 'ID']
+            Agent_Info.loc[Agent_Info['ID'].isin(agent_ids), 'AgeGroup'] = int(i)
+
+    Interaction_matrix['AgeGroup_subject'] = [-1]*Interaction_matrix.shape[0]
+    for i in list(Interaction_matrix.index):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == i, 'AgeGroup'].values[0]
+        Interaction_matrix.loc[i, 'AgeGroup_subject'] = agePerson
+    CMgroup = Interaction_matrix.groupby(['AgeGroup_subject']).mean()
+
+    CMgroup.loc['AgeGroup_object', :] = [-1]*CMgroup.shape[1]
+    for i in list(CMgroup.columns):
+        agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
+        CMgroup.loc['AgeGroup_object', i] = agePerson
+    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()
+    perday = Out/n_time_aggregates
+    perday.index = age_groups
+    perday.columns = age_groups
+    return(perday)

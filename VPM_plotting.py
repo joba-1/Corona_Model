@@ -72,7 +72,8 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
         plt.title('Total number of infections per location-type')
     plt.xlabel('Location-type')
     plt.ylabel('# Infection events')
-    plt.show()
+    ax = plt.gca()
+    return ax, loc_infection_dict  
     
 
 

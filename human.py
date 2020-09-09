@@ -1,4 +1,4 @@
-from numpy.random import choice as choosing  # numpy.random for generating random numbers
+# from numpy.random import choice as choosing  # numpy.random for generating random numbers
 from random import choice as choosing_one
 import numpy
 import dataProcessing as dp
@@ -200,6 +200,7 @@ class Human(object):
 
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
+        self.interaction_modifier = 1
 
         self.stati_times = {'infection_time': numpy.nan,
                             'diagnosis_time': numpy.nan,
@@ -245,7 +246,6 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
@@ -279,12 +279,13 @@ class Human(object):
             # What_to_do method #
             probabilities = [self.get_death_prob(), self.get_recover_prob()]
             if sum(probabilities) > 1:
+                ## if the sum of death- and recovery probability is larger than 1 ##
+                ## normalize probabilities to sum to 1 ##
                 probabilities = [i/sum(probabilities) for i in probabilities]
+                ## also print a message ##
                 print('Death- or recover-probability for age ' + str(self.age) +
                       ' and infection-duration '+str(self.stati_durations['infection_duration']))
             what_happens = own_choose_function(probabilities)
-            #####################
-            ## infection_progression ##
             if what_happens == 'die':
                 self.die(time)
             elif what_happens == 'recover':
@@ -292,8 +293,6 @@ class Human(object):
             else:
                 if self.icu:
                     self.stati_durations['icu_duration'] += 1
-                    #self.stati_durations['hospitalization_duration'] += 1
-                    self.get_rehospitalized(self.get_rehospitalization_prob(), time)
                 else:
                     if self.hospitalized:
                         self.stati_durations['hospitalization_duration'] += 1
@@ -306,22 +305,28 @@ class Human(object):
             # self.loc.leave(self)  # leave old location
             # current_loc.enter(self)  # enter new location
 
-    def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
+    # for storing simulation data (flags)
+    def get_information_for_timecourse(self, time, keys_list='all'):
         """
         Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
         All stati temporary and cumulative flags are encoded by one integer to save memory.
         Arguments to provide are: none
         """
         out = ordered_dict()
-        out['time'] = time
-        out['h_ID'] = self.ID
-        out['loc'] = self.loc.ID
-        out['status'] = self.encode_stati()
+        out['time'] = time  # write down current time-step#
+        out['h_ID'] = self.ID  # write down agent-ID#
+        out['loc'] = self.loc.ID  # write down ID of current location#
+        out['status'] = self.encode_stati()  # write down agent-status, in encoded fashion#
+        # write down temporary agent-flags, in encoded fashion#
         out['Temporary_Flags'] = self.encode_temporary_flags()
+        # write down cumulative agent-flags, in encoded fashion#
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = ' , '.join(self.contact_persons)
+        out['Interaction_partner'] = ','.join(self.contact_persons)
         out['Infection_event'] = int(self.infected_by)
-        return(out)
+        if keys_list == 'all':
+            return(out)
+        else:
+            return(ordered_dict((i, out[i]) for i in keys_list))
 
     def encode_temporary_flags(self):
         """
@@ -384,7 +389,7 @@ class Human(object):
         elif self.status == 'D':
             return(numpy.uint8(3))
 
-    def get_infection_info(self):  # for storing simulation data (flags)
+    def get_infection_info(self):
         """
         Returns dictionary with agent-ID ('h_ID') and information
         on the times and place of certain events
@@ -423,50 +428,52 @@ class Human(object):
             new_loc.enter(self)  # enter new location
 
     def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
+        """
+        Prohibit agent to visit a given type of location, and stay home instead.
+        Arguments to provide are:
+        location_type (str) - location type not to visit anymore
+        excluded_human_types (list of strings) - list of agent-schedule types, which should be still permitted to visit.
+        """
         if self.original_schedule['type'] not in excluded_human_types:
+            ## check whether the agent does not belong to the excluded types ##
             for i in range(len(self.schedule['locs'])):
+                ## go to each entry in the agents schedule ##
                 if self.schedule['locs'][i].location_type == location_type:
+                    ## if the location-type  of the schedule-entry is the specified type ##
+                    ## replace this with the agent's home-location ##
                     self.schedule['locs'][i] = self.home
 
-    def get_diagnosis_prob(self):  # this needs improvement and is preliminary
+    def get_diagnosis_prob(self):  # !!! this needs improvement and is preliminary
         """
-        Calculates probability to be diagnosed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be diagnosed from data-module.
         Arguments to provide are: none
         """
         return (dp._diagnosis(self.stati_durations, self.age))  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be hospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be hospitalized from data-module.
         Arguments to provide are: none
         """
         return dp._hospitalisation(self.stati_durations, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be rehospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be re-hospitalized (from ICU) from data-module.
         Arguments to provide are: none
         """
         return dp._icu_to_hospital(self.stati_durations, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be ICUed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be admitted to intensive-care from data-module.
         Arguments to provide are: none
         """
         return dp._to_icu(self.stati_durations, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to recover.
+        Retreive probability to recover from data-module.
         Arguments to provide are: none
         """
         # probabitily increases hourly over 20 days (my preliminary random choice)
@@ -475,7 +482,7 @@ class Human(object):
             if self.hospitalized:
                 prob = dp._recovery_from_hospitalized(self.stati_durations, self.age)
             elif self.icu:
-                prob = 0.0
+                prob = dp._recovery_from_icu(self.stati_durations, self.age)
             else:
                 prob = dp._recovery_from_diagnosed(self.stati_durations, self.age)
         else:
@@ -531,6 +538,8 @@ class Human(object):
         """
         coeff = 1
         out = -1
+        if self.loc.location_type in location_coefficient_dict.keys():
+            coeff = location_coefficient_dict['self.loc.location_type']
         infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
         if infection_probability >= randomval():
             self.preliminary_status = 'I'  # set owns preliminary status to infected ##
@@ -645,7 +654,7 @@ class Human(object):
 
     def set_stati_from_preliminary(self):
         """
-        Set status from preliminary status
+        Set status and flags from preliminary.
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
@@ -659,6 +668,10 @@ class Human(object):
         self.was_icued = self.preliminary_was_icued
 
     def reset_schedule(self):
+        """
+        Resets the agents' schedule to the original one.
+        Arguments to provide are: none
+        """
         self.schedule = self.original_schedule
 
 
