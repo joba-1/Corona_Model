@@ -313,12 +313,6 @@ class Location(object):
         # print(location_ID)
         return self.distances[location_ID]
 
-
-v = np.array([f])
-M = v.transpose().dot(v)
-C = np.triu(M)-np.eye(len(h))v2
-print(C*mu/(n-1))
-
    def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
         ## create list of human ID's, currently present in location#
         human_list = list(self.people_present)
