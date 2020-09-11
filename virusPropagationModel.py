@@ -851,8 +851,10 @@ class Simulation(object):
         #out2 = out.groupby(['time']).sum()
         #out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
         # return(out2)
+
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
+        out['diagnosed_individuals'] = [1]*out.shape[0]
         out['traced_infections'] = n_infections
         out['traced_contacts'] = n_contacts
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
@@ -887,6 +889,7 @@ class Simulation(object):
 
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
+        out['diagnosed_individuals'] = [1]*out.shape[0]
         out['traced_infections'] = n_infections
         out['traced_contacts'] = n_contacts
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
