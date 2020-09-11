@@ -994,6 +994,14 @@ class Simulation(object):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
 
+    def plot_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+        vpm_plt.plot_interaction_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
+                                          timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+
+    def plot_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+        vpm_plt.plot_infection_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
+                                        timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+
 
 def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:

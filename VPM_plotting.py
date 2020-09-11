@@ -3,7 +3,7 @@ import random
 import pandas as pd
 import numpy as np
 import matplotlib.cm as cm
-from collections import OrderedDict as ordered_dict 
+from collections import OrderedDict as ordered_dict
 
 statusLabels = {
     'I': 'Infected',
@@ -42,11 +42,12 @@ locationTypeColors = {
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
-    df= modeled_pop_world_obj.get_infections_per_location_type_over_time()
+    df = modeled_pop_world_obj.get_infections_per_location_type_over_time()
     fig, ax = plt.subplots()
     for loc_type in df['loc_type'].unique():
-        df_l=df[df['loc_type']==loc_type]
-        sc = ax.scatter(df_l['time'], df_l['number_of_infection_events'], marker = 'o', color=locationTypeColors[loc_type], alpha = 0.3, label=loc_type)
+        df_l = df[df['loc_type'] == loc_type]
+        sc = ax.scatter(df_l['time'], df_l['number_of_infection_events'], marker='o',
+                        color=locationTypeColors[loc_type], alpha=0.3, label=loc_type)
     plt.legend()
     plt.title('Infection events over time')
     plt.xlabel('Time [hours]')
@@ -72,8 +73,7 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
     plt.xlabel('Location-type')
     plt.ylabel('# Infection events')
     ax = plt.gca()
-    return ax, loc_infection_dict  
-    
+    return ax, loc_infection_dict
 
 
 def plot_distribution_of_location_types(modeled_pop_world_obj):
@@ -337,15 +337,65 @@ def plot_distributions_of_durations(simulation_object, save_figure=False, log=Fa
     if save_figure:
         plt.savefig('outputs/duration_distributions.png')
 
+
+def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, n_time_aggregates, age_groups, save_figure):
+    Interaction_Patterns = simulation_object.get_age_group_specific_interaction_patterns(
+        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+
+    max_tot = Interaction_Patterns.max().max()
+    min_tot = Interaction_Patterns.min().min()
+    y_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_labels = [int(i) for i in Interaction_Patterns.columns][::2]
+    y_tick_labels = [int(i) for i in Interaction_Patterns.index][::2]
+
+    plt.figure(figsize=(6/1.25, 5/1.25))
+    heatmap = plt.pcolor(Interaction_Patterns, cmap=plt.cm.Blues, vmin=min_tot, vmax=max_tot)
+    plt.yticks(y_tick_positions, y_tick_labels)
+    plt.xticks(x_tick_positions, x_tick_labels)
+    plt.colorbar(heatmap)
+    plt.title('Interactions per age-group')
+    plt.xlabel('Interaction subject (age-groups)')
+    plt.ylabel('Interaction object (age-groups)')
+    plt.show()
+    if save_figure:
+        plt.savefig('outputs/age_group_dependent_interaction_patterns.png')
+
+
+def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, n_time_aggregates, age_groups, save_figure):
+    Interaction_Patterns = simulation_object.get_age_group_specific_infection_patterns(
+        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+    max_tot = Interaction_Patterns.max().max()
+    min_tot = Interaction_Patterns.min().min()
+    y_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_labels = [int(i) for i in Interaction_Patterns.columns][::2]
+    y_tick_labels = [int(i) for i in Interaction_Patterns.index][::2]
+
+    plt.figure(figsize=(6/1.25, 5/1.25))
+    heatmap = plt.pcolor(Interaction_Patterns, cmap=plt.cm.Reds, vmin=min_tot, vmax=max_tot)
+    plt.yticks(y_tick_positions, y_tick_labels)
+    plt.xticks(x_tick_positions, x_tick_labels)
+    plt.colorbar(heatmap)
+    plt.title('Infections per age-group')
+    plt.xlabel('Infection donor (age-groups)')
+    plt.ylabel('Infection acceptor (age-groups)')
+    plt.show()
+    if save_figure:
+        plt.savefig('outputs/age_group_dependent_infection_patterns.png')
+
+
 def plot_interaction_timecourse(simulation_object, save_figure=False, log=False, diagnosed_contact=False):
     """
     plot the interaction timecourse for all agents and the interaction of all agents which will be diagnosed at some point
     """
 
     fig, ax = plt.subplots()
-    simulation_object.get_interaction_timecourse(diagnosed_contact=diagnosed_contact).plot(ax=ax, logy=log)
+    simulation_object.get_interaction_timecourse(
+        diagnosed_contact=diagnosed_contact).plot(ax=ax, logy=log)
     #simulation_object.get_interaction_timecourse(diagnosed_contact=True).plot(ax=ax, logy=log)
-    ax.legend(['safe contact', 'possible infectious event', 'infection event','safe contact_d', 'possible infectious event_d', 'infection event_d'], loc=(1.1,0))
+    ax.legend(['safe contact', 'possible infectious event', 'infection event',
+               'safe contact_d', 'possible infectious event_d', 'infection event_d'], loc=(1.1, 0))
     ax.set_title('Interaction Timcourse'), ax.set_ylabel('counts'), ax.set_xlabel('time, h')
     if save_figure:
-        plt.savefig('outputs/interaction_timecourse.png')        
+        plt.savefig('outputs/interaction_timecourse.png')
