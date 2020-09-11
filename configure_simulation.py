@@ -22,7 +22,7 @@ class Simulation_Configuration(object):
         #self.icu_to_hospital_df = config_file.loc['icu_to_hospital_df', 'File']
         self.diagnosis_df = config_file.loc['diagnosis_df', 'File']
 
-        self.immunity_loss_dependency config_file.loc['immunity_loss_df', 'Dependency']
+        self.immunity_loss_dependency = config_file.loc['immunity_loss_df', 'Dependency']
         self.infectivity_dependency = config_file.loc['infectivity_df', 'Dependency']
         self.hospitalisation_dependency = config_file.loc['hospitalisation_df', 'Dependency']
         self.to_icu_dependency = config_file.loc['to_icu_df', 'Dependency']
