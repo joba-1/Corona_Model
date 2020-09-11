@@ -839,18 +839,59 @@ class Simulation(object):
         t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
                        for i in diagnosed_individuals}
         t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
-        n_contacts = {i: len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
+        n_contacts = [len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals]
+        n_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
 
-        n_infections = {i: time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
+        #out = pd.DataFrame()
+        #out['time'] = list(t_diagnosis.values())
+        #out['traced_infections'] = list(n_infections.values())
+        #out['traced_contacts'] = list(n_contacts.values())
+        #out2 = out.groupby(['time']).sum()
+        #out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
+        # return(out2)
         out = pd.DataFrame()
-        out['time'] = list(t_diagnosis.values())
-        out['traced_infections'] = list(n_infections.values())
-        out['traced_contacts'] = list(n_contacts.values())
-        out2 = out.groupby(['time']).sum()
-        out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
-        return(out2)
+        out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
+        out['traced_infections'] = n_infections
+        out['traced_contacts'] = n_contacts
+        out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
+        out2 = out.groupby(['aggregated_time']).sum()
+        return(out2.drop(columns=['time']))
+
+    def contact_tracing2(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
+        if time_span[1] is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = time_span[1]
+        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
+            self.simulation_timecourse['time'] >= time_span[0])]
+        diag_df = time_course.loc[time_course['Temporary_Flags'] == 2]
+        diagnosed_individuals = list(diag_df['h_ID'].unique())
+        t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
+                       for i in diagnosed_individuals}
+        t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
+
+        n_contacts = []
+        for i in diagnosed_individuals:
+            partners_per_timestep = list(time_course.loc[(time_course['h_ID'] == i) & (
+                time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0])
+            contacts = []
+            for t in partners_per_timestep:
+                if t != '':
+                    contacts += list(t.split(','))
+            n_contacts.append(len(list(set(contacts))))
+
+        n_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
+
+        out = pd.DataFrame()
+        out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
+        out['traced_infections'] = n_infections
+        out['traced_contacts'] = n_contacts
+        out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
+        out2 = out.groupby(['aggregated_time']).sum()
+        return(out2.drop(columns=['time']))
 
     def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
         Agent_Info = self.get_agent_info()
