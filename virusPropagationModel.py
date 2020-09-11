@@ -841,7 +841,8 @@ class Simulation(object):
         t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
         n_contacts = {i: len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
-        n_infections = {i: time_course[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+
+        n_infections = {i: time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
         out = pd.DataFrame()
         out['time'] = list(t_diagnosis.values())
