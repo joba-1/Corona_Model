@@ -784,6 +784,18 @@ class Simulation(object):
         return(flag_sums)
     # DF
 
+    def get_location_info(self):
+        locations = list(self.locations.values())
+        Location_Types = {str(l.ID): l.location_type for l in locations}
+        Location_Areas = {str(l.ID): l.area for l in locations}
+        Location_Neighbourhood = {str(l.ID): l.neighbourhood_ID for l in locations}
+        Location_Info = pd.DataFrame()
+        Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
+        Location_Info['Type'] = list(Location_Types.values())
+        Location_Info['Area'] = list(Location_Areas.values())
+        Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
+        return(Location_Info)
+
     def get_agent_info(self):
         people = list(self.people)
         Agents_Ages = {str(p.ID): p.age for p in people}
