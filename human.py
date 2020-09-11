@@ -290,7 +290,7 @@ class Human(object):
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
         elif self.is_recovered:
             self.stati_durations['recovery_duration'] += 1
-            self.lose_immunity(0, time)
+            self.lose_immunity(self.get_immunity_loss_prob(), time)
 
     # for storing simulation data (flags)
     def get_information_for_timecourse(self, time, keys_list='all'):
