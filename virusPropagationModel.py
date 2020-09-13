@@ -876,13 +876,21 @@ class Simulation(object):
 
         n_contacts = []
         for i in diagnosed_individuals:
-            partners_per_timestep = list(time_course.loc[(time_course['h_ID'] == i) & (
-                time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0])
-            contacts = []
-            for t in partners_per_timestep:
-                if t != '':
-                    contacts += list(t.split(','))
-            n_contacts.append(len(list(set(contacts))))
+            t_diag = t_diagnosis[i]
+            resp_Timesteps = time_course.loc[(time_course['h_ID'] == i) & (
+                time_course['time'] <= t_diagnosis[i]) & (time_course['time'] >= t_tracing_period_start[i])]
+            contacts = list(
+                resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
+            concat_contact_string = ','.join(contacts)
+            n_contacts.append(len(list(set(concat_contact_string.split(',')))))
+
+#            partners_per_timestep = list(time_course.loc[(time_course['h_ID'] == i) & (
+#                time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0])
+#            contacts = []
+#            for t in partners_per_timestep:
+#                if t != '':
+#                    contacts += list(t.split(','))
+#            n_contacts.append(len(list(set(contacts))))
 
         n_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
