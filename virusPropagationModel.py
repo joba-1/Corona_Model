@@ -827,7 +827,7 @@ class Simulation(object):
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
             return(out)
 
-    def contact_tracing2(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True):
+    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True):
         if time_span[1] is None:
             max_ts = self.simulation_timecourse['time'].max()
         else:
@@ -851,10 +851,25 @@ class Simulation(object):
         n_traced_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
 
+        # Secondary infections people infected by traced infectees, after tracing-time
+        if trace_secondary_infections:
+            traced_secondary_infectees = []
+            for i in diagnosed_individuals:
+                traced_primary_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                n_secondary_infectees = 0
+                for j in traced_primary_infectees:
+                    n_secondary_infectees += time_course.loc[(time_course['Infection_event'] == j) & (
+                        time_course['time'] >= t_diagnosis[i])].shape[0]
+                traced_secondary_infectees.append(n_secondary_infectees)
+        else:
+            traced_secondary_infectees = [numpy.nan]*len(diagnosed_individuals)
+
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
         out['diagnosed_individuals'] = [1]*out.shape[0]
         out['traced_infections'] = n_traced_infections
+        out['traced_secondary_infections'] = traced_secondary_infectees
         out['traced_contacts'] = n_contacts
         out['loc_time_overlap'] = n_same_loc_time
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
