@@ -827,41 +827,7 @@ class Simulation(object):
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
             return(out)
 
-    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
-        if time_span[1] is None:
-            max_ts = self.simulation_timecourse['time'].max()
-        else:
-            max_ts = time_span[1]
-        time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
-            self.simulation_timecourse['time'] >= time_span[0])]
-        diag_df = time_course.loc[time_course['Temporary_Flags'] >= 2]
-        diagnosed_individuals = list(diag_df['h_ID'].unique())
-        t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
-                       for i in diagnosed_individuals}
-        t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
-        n_contacts = [len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals]
-        n_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
-
-        #out = pd.DataFrame()
-        #out['time'] = list(t_diagnosis.values())
-        #out['traced_infections'] = list(n_infections.values())
-        #out['traced_contacts'] = list(n_contacts.values())
-        #out2 = out.groupby(['time']).sum()
-        #out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
-        # return(out2)
-
-        out = pd.DataFrame()
-        out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
-        out['diagnosed_individuals'] = [1]*out.shape[0]
-        out['traced_infections'] = n_infections
-        out['traced_contacts'] = n_contacts
-        out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
-        out2 = out.groupby(['aggregated_time']).sum()
-        return(out2.drop(columns=['time']))
-
-    def contact_tracing2(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
+    def contact_tracing2(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True):
         if time_span[1] is None:
             max_ts = self.simulation_timecourse['time'].max()
         else:
@@ -874,32 +840,23 @@ class Simulation(object):
                        for i in diagnosed_individuals}
         t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
 
-        n_contacts = []
-        for i in diagnosed_individuals:
-            t_diag = t_diagnosis[i]
-            resp_Timesteps = time_course.loc[(time_course['h_ID'] == i) & (
-                time_course['time'] <= t_diagnosis[i]) & (time_course['time'] >= t_tracing_period_start[i])]
-            contacts = list(
-                resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
-            concat_contact_string = ','.join(contacts)
-            n_contacts.append(len(list(set(concat_contact_string.split(',')))))
+        if loc_time_overlap_tracing:
+            n_contacts, n_same_loc_time = zip(
+                *[trace_contacts_with_loctime(i, time_course, t_diagnosis, t_tracing_period_start) for i in diagnosed_individuals])
+        else:
+            n_contacts = [trace_contacts(i, time_course, t_diagnosis,
+                                         t_tracing_period_start) for i in diagnosed_individuals]
+            n_same_loc_time = [numpy.nan]*len(n_contacts)
 
-#            partners_per_timestep = list(time_course.loc[(time_course['h_ID'] == i) & (
-#                time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0])
-#            contacts = []
-#            for t in partners_per_timestep:
-#                if t != '':
-#                    contacts += list(t.split(','))
-#            n_contacts.append(len(list(set(contacts))))
-
-        n_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+        n_traced_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
             time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
 
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
         out['diagnosed_individuals'] = [1]*out.shape[0]
-        out['traced_infections'] = n_infections
+        out['traced_infections'] = n_traced_infections
         out['traced_contacts'] = n_contacts
+        out['loc_time_overlap'] = n_same_loc_time
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
         out2 = out.groupby(['aggregated_time']).sum()
         return(out2.drop(columns=['time']))
@@ -1179,3 +1136,31 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     perday.index = age_groups
     perday.columns = age_groups
     return(perday)
+
+
+def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_period_start):
+    t_diag = t_diagnosis[person]
+    resp_Timesteps = time_course.loc[(time_course['h_ID'] == person) & (
+        time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
+    contacts = list(
+        resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
+    contact_number = len(list(set(','.join(contacts).split(','))))
+    time_places = list(zip(list(resp_Timesteps['time']), list(resp_Timesteps['loc'])))
+    # time_place_overlap_ids = [j for i in time_places for j in list(
+    #    set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))]
+    time_place_overlap_ids = []
+    for i in time_places:
+        time_place_overlap_ids += list(
+            set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))
+    number_time_loc_overlap = len(list(set(time_place_overlap_ids)))
+    return((contact_number, number_time_loc_overlap))
+
+
+def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
+    t_diag = t_diagnosis[person]
+    resp_Timesteps = time_course.loc[(time_course['h_ID'] == person) & (
+        time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
+    contacts = list(
+        resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
+    contact_number = len(list(set(','.join(contacts).split(','))))
+    return(contact_number)
