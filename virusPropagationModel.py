@@ -827,7 +827,7 @@ class Simulation(object):
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
             return(out)
 
-    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True):
+    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
         if time_span[1] is None:
             max_ts = self.simulation_timecourse['time'].max()
         else:
@@ -865,11 +865,32 @@ class Simulation(object):
         else:
             traced_secondary_infectees = [numpy.nan]*len(diagnosed_individuals)
 
+        if trace_all_following_infections:
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+            traced_downstream_infectees = []
+            for i in diagnosed_individuals:
+                traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                if len(traced_infectees) == 0:
+                n_downstream = 0
+                while len(traced_infectees) > 0:
+                    new_primary = []
+                    for j in traced_infectees:
+                        traced_infectees_secondary = list(only_infection_TC.loc[(
+                            only_infection_TC['Infection_event'] == j), 'h_ID'])
+                        n_downstream += len(traced_infectees_secondary)
+                        new_primary += traced_infectees_secondary
+                    traced_infectees = new_primary
+                traced_downstream_infectees.append(n_downstream)
+        else:
+            traced_downstream_infectees = [numpy.nan]*len(diagnosed_individuals)
+
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
         out['diagnosed_individuals'] = [1]*out.shape[0]
         out['traced_infections'] = n_traced_infections
         out['traced_secondary_infections'] = traced_secondary_infectees
+        out['traced_all_downstream_infections'] = traced_downstream_infectees
         out['traced_contacts'] = n_contacts
         out['loc_time_overlap'] = n_same_loc_time
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
