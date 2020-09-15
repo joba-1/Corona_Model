@@ -871,7 +871,6 @@ class Simulation(object):
             for i in diagnosed_individuals:
                 traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
                     time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
-                if len(traced_infectees) == 0:
                 n_downstream = 0
                 while len(traced_infectees) > 0:
                     new_primary = []
