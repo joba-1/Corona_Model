@@ -343,6 +343,12 @@ class Simulation(object):
     """
 
     def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
+
+        self.random_seed = random_seed
+        if self.random_seed is not None:
+            random.seed(self.random_seed)
+            npr.seed(self.random_seed)
+
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
@@ -369,7 +375,6 @@ class Simulation(object):
 
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
-            self.random_seed = random_seed
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
@@ -395,15 +400,10 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
-            self.random_seed = random_seed
 
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
         self.interaction_matrix = True
-
-        if self.random_seed is not None:
-            random.seed(self.random_seed)
-            npr.seed(self.random_seed)
 
         if run_immediately:
             self.simulate()
@@ -866,30 +866,74 @@ class Simulation(object):
             traced_secondary_infectees = [numpy.nan]*len(diagnosed_individuals)
 
         if trace_all_following_infections:
+            # finds all infections, along the infection chains originating from diagnosees, which would be prevend by cutting the infection chain
             only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+            original_infection_number = int(only_infection_TC.shape[0])
+            last_infection_number = original_infection_number
             traced_downstream_infectees = []
             for i in diagnosed_individuals:
                 traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
                     time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
-                n_downstream = 0
                 while len(traced_infectees) > 0:
                     new_primary = []
                     for j in traced_infectees:
-                        traced_infectees_secondary = list(only_infection_TC.loc[(
-                            only_infection_TC['Infection_event'] == j), 'h_ID'])
-                        n_downstream += len(traced_infectees_secondary)
+                        only_infection_TC = only_infection_TC.loc[(only_infection_TC['h_ID'] != j) | (
+                            only_infection_TC['time'] <= t_diagnosis[i])]
+                        traced_infectees_secondary = list(
+                            only_infection_TC.loc[only_infection_TC['Infection_event'] == j, 'h_ID'])
                         new_primary += traced_infectees_secondary
                     traced_infectees = new_primary
-                traced_downstream_infectees.append(n_downstream)
+                traced_downstream_infectees.append(
+                    last_infection_number-int(only_infection_TC.shape[0]))
+                last_infection_number = int(only_infection_TC.shape[0])
+
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+            original_infection_number = int(only_infection_TC.shape[0])
+            last_infection_number = original_infection_number
+            traced_downstream_infectees_unpreventable = []
+            for i in diagnosed_individuals:
+                traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                while len(traced_infectees) > 0:
+                    new_primary = []
+                    for j in traced_infectees:
+                        only_infection_TC = only_infection_TC.loc[only_infection_TC['h_ID'] != j]
+                        traced_infectees_secondary = list(
+                            only_infection_TC.loc[only_infection_TC['Infection_event'] == j, 'h_ID'])
+                        new_primary += traced_infectees_secondary
+                    traced_infectees = new_primary
+                traced_downstream_infectees_unpreventable.append(
+                    last_infection_number-int(only_infection_TC.shape[0]))
+                last_infection_number = int(only_infection_TC.shape[0])
         else:
             traced_downstream_infectees = [numpy.nan]*len(diagnosed_individuals)
+            traced_downstream_infectees_unpreventable = [numpy.nan]*len(diagnosed_individuals)
+
+#        if trace_all_following_infections:
+#            only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+#            traced_downstream_infectees = []
+#            for i in diagnosed_individuals:
+#                traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+#                n_downstream = 0
+#                while len(traced_infectees) > 0:
+#                    new_primary = []
+#                    for j in traced_infectees:
+#                        traced_infectees_secondary=[]
+#                        traced_infectees_secondary = list(only_infection_TC.loc[(only_infection_TC['Infection_event'] == j), 'h_ID'])
+#                        n_downstream += len(traced_infectees_secondary)
+#                        new_primary += traced_infectees_secondary
+#                    traced_infectees = new_primary
+#                traced_downstream_infectees.append(n_downstream)
+#        else:
+#            traced_downstream_infectees = [numpy.nan]*len(diagnosed_individuals)
 
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
         out['diagnosed_individuals'] = [1]*out.shape[0]
         out['traced_infections'] = n_traced_infections
         out['traced_secondary_infections'] = traced_secondary_infectees
-        out['traced_all_downstream_infections'] = traced_downstream_infectees
+        out['traced_all_downstream_infections'] = traced_downstream_infectees_unpreventable
+        out['traced_preventable_downstream_infections'] = traced_downstream_infectees
         out['traced_contacts'] = n_contacts
         out['loc_time_overlap'] = n_same_loc_time
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
