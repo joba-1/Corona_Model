@@ -86,13 +86,13 @@ class World(object):
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm']\
+        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church', 'public_building','train_station']\
+        loc_class_dic['public'] = ['public', 'chapel', 'church', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe', 'sports_centre']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
 
@@ -121,7 +121,8 @@ class World(object):
         morgue_bool = False
         # healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
-        col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        cols = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        col_names = [x for x in cols if x in self.df_buildings.columns]
 
         for i, x in enumerate(self.df_buildings.index):
             row = self.df_buildings.loc[x]
@@ -144,7 +145,6 @@ class World(object):
         # if no morgue in dataframe, one is created in low left corner, else model has problems #FIXME Future
         distance = 0.00
         if not hospital_bool:
-            
             locations.update({len(self.df_buildings)+1: Location(len(self.df_buildings)+1,
                                                                  (max(self.df_buildings['building_coordinates_x'])+distance,
                                                                   max(self.df_buildings['building_coordinates_y'])+distance),
@@ -313,6 +313,44 @@ class Location(object):
         # print(location_ID)
         return self.distances[location_ID]
 
+    def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
+        ## create dict of human ID's and interaction modifiers, currently present in location#
+        h_dict = {p.ID:p.interaction_modifier for p in list(self.people_present)}
+        n = len(h_dict)
 
-def function2specify(x1, x2):
-    return(x1*x2)
+        human_ids = list(h_dict.keys()) 
+        interaction_modifier = list(h_dict.values())
+
+        if interaction_matrix:
+            # create vector of interaction modifier
+            v = np.array([interaction_modifier])
+            # set interaction probability threshold
+            interaction_probability = mu/(n-1)
+            # Create triangle matrix from v  on top of diagonal (rest zeros)
+            M = v.transpose().dot(v)
+            C = np.triu(M)-np.eye(n)*v**2
+            # generate array of random numbers with dimension n times n
+            P = np.random.random((n, n))
+            # build logical array, showing where drawn probabilities are smaller than mu
+            I = P < C*interaction_probability
+            # build list of interacting-ids (as tuples)
+            cp1, cp2 = np.where(I)
+            pairs = list(zip([human_ids[i]
+                              for i in cp1], [human_ids[i] for i in cp2]))
+        else:
+            pairs = [
+                (h_id, choosing_one(list(set(human_ids)-{h_id}))) for h_id in human_ids]
+        return(pairs)
+
+    def let_agents_interact(self, mu=1, interaction_matrix=True):
+        if self.location_type != 'morgue':
+            human_objects_present = {p.ID: p for p in list(self.people_present)}
+            if len(list(human_objects_present.keys())) > 1:
+                pairs = self.determine_interacting_pairs(
+                    mu=mu, interaction_matrix=interaction_matrix)
+                # print([self.location_type, len(list(self.people_present)), len(pairs)])
+                for p in pairs:
+                    human_objects_present[p[0]].contact_persons.append(str(p[1]))
+                    human_objects_present[p[1]].contact_persons.append(str(p[0]))
+                    human_objects_present[p[0]].interact_with(human_objects_present[p[1]])
+                    human_objects_present[p[1]].interact_with(human_objects_present[p[0]])

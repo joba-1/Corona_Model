@@ -1,10 +1,11 @@
-from numpy.random import choice as choosing  # numpy.random for generating random numbers
+# from numpy.random import choice as choosing  # numpy.random for generating random numbers
 from random import choice as choosing_one
 import numpy
 import dataProcessing as dp
 from random import random as randomval
 import copy
 from collections import OrderedDict as ordered_dict
+from configure_simulation import location_coefficients as location_coefficient_dict
 
 
 class Human(object):
@@ -108,7 +109,7 @@ class Human(object):
         Calculates probability to recover.
         Arguments to provide are: time (int)
 
-    get_personal_risk()
+    get_death_prob()
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
 
@@ -196,113 +197,136 @@ class Human(object):
         self.loc = loc  # current location
         self.home = loc
         loc.enter(self)
+
         self.behaviour_as_infected = 1
         self.behaviour_as_susceptible = 1
-        self.hospital_coeff = 0.01
-        self.infection_time = numpy.nan
-        self.diagnosis_time = numpy.nan
-        self.hospitalization_time = numpy.nan
-        self.recover_time = numpy.nan
-        self.death_time = numpy.nan
-        self.icu_time = numpy.nan
-        self.rehospitalization_time = numpy.nan
-        self.infection_duration = 0
-        self.diagnosis_duration = 0
-        self.hospitalization_duration = 0
-        self.icu_duration = 0
+        self.interaction_modifier = 1
+
+        self.stati_times = {'infection_time': numpy.nan,
+                            'diagnosis_time': numpy.nan,
+                            'hospitalization_time': numpy.nan,
+                            'recover_time': numpy.nan,
+                            'death_time': numpy.nan,
+                            'icu_time': numpy.nan,
+                            'rehospitalization_time': numpy.nan}
+
+        self.stati_durations = {'infection_duration': 0,
+                                'diagnosis_duration': 0,
+                                'hospitalization_duration': 0,
+                                # 'recovery_duration':0,
+                                'icu_duration': 0}
+
+        self.is_infected = False
         self.diagnosed = False
         self.hospitalized = False
         self.icu = False
+
         self.was_infected = False
-        self.is_infected = False
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
+
+        self.preliminary_is_infected = False
         self.preliminary_diagnosed = False
         self.preliminary_hospitalized = False
         self.preliminary_icu = False
+
         self.preliminary_was_infected = False
-        self.preliminary_is_infected = False
         self.preliminary_was_diagnosed = False
         self.preliminary_was_hospitalized = False
         self.preliminary_was_icued = False
-        self.contact_person = -1
-        self.infection_event = -1
+
+        self.contact_persons = []
+        self.infected_by = -1
+        self.current_time = 0
+
+        self.TestAtt = 'NULL'
+        self.TestAtt2 = 'NULL'
 
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
-
 
     def update_state(self, time):  # this is not yet according to Eddas model
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
         """
-        self.contact_person = -1  # ID of contact person#
-        self.infection_event = -1
-        if self.status == 'R':
-            #encounter interaction with a random person currently at own location#
-            contact_person = self.interact()
-            pass
-        elif self.status == 'S':
+        self.contact_persons = []  # ID of contact person#
+        self.infected_by = -1
+        self.current_time = time
+        # if self.status == 'R':
+        #encounter interaction with a random person currently at own location#
+        #contact_person = self.interact()
+        #    pass
+        # elif self.status == 'S':
+        ##encounter interaction with a random person currently at own location and return person##
+        #contact_person = self.interact()
+        ##get potentially infected by picked person ##
+        #self.infection_event = self.get_infected(time, contact_person)
+        if self.is_infected:
+            self.stati_durations['infection_duration'] += 1
             ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact()
-            ##get potentially infected by picked person ##
-            self.infection_event = self.get_infected(time, contact_person)
-        elif self.is_infected:
-            ##encounter interaction with a random person currently at own location and return person##
-            contact_person = self.interact()
-            if contact_person:  # if an interaction partner has been found ##
-                if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
-                    ##potentially infect this person ##
-                    self.infection_event = contact_person.get_infected(time, self)
+            #contact_person = self.interact()
+            #if contact_person:  # if an interaction partner has been found ##
+            #    if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
+            ##potentially infect this person ##
+            #        self.infection_event = contact_person.get_infected(time, self)
             ## New method for the stuff below ##
-            self.infection_duration += 1
             if self.diagnosed:
-                self.diagnosis_duration += 1
+                self.stati_durations['diagnosis_duration'] += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
 
             # What_to_do method #
-            probabilities = [self.get_personal_risk(), self.get_recover_prob()]
+            probabilities = [self.get_death_prob(), self.get_recover_prob()]
             if sum(probabilities) > 1:
+                ## if the sum of death- and recovery probability is larger than 1 ##
+                ## normalize probabilities to sum to 1 ##
                 probabilities = [i/sum(probabilities) for i in probabilities]
+                ## also print a message ##
                 print('Death- or recover-probability for age ' + str(self.age) +
-                      ' and infection-duration '+str(self.infection_duration))
+                      ' and infection-duration '+str(self.stati_durations['infection_duration']))
             what_happens = own_choose_function(probabilities)
-            #####################
-            ## infection_progression ##
             if what_happens == 'die':
-                self.die(1.0, time)
+                self.die(time)
             elif what_happens == 'recover':
-                self.recover(1.0, time)
+                self.recover(time)
             else:
                 if self.icu:
-                    self.icu_duration += 1
-                    self.get_rehospitalized(self.get_rehospitalization_prob(), time)
+                    self.stati_durations['icu_duration'] += 1
                 else:
                     if self.hospitalized:
-                        self.hospitalization_duration += 1
+                        self.stati_durations['hospitalization_duration'] += 1
                         self.get_ICUed(self.get_icu_prob(), time)
                     else:
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
+            # print(self.stati_durations)
+            #current_loc = self.loc
+            # self.loc.leave(self)  # leave old location
+            # current_loc.enter(self)  # enter new location
 
-    def get_information_for_timecourse(self, time):  # for storing simulation data (flags)
+    # for storing simulation data (flags)
+    def get_information_for_timecourse(self, time, keys_list='all'):
         """
         Returns ordered dictionary with time ('time') agent-ID ('h_ID') and information on stati/location/flags.
         All stati temporary and cumulative flags are encoded by one integer to save memory.
         Arguments to provide are: none
         """
         out = ordered_dict()
-        out['time'] = time
-        out['h_ID'] = self.ID
-        out['loc'] = self.loc.ID
-        out['status'] = self.encode_stati()
+        out['time'] = time  # write down current time-step#
+        out['h_ID'] = self.ID  # write down agent-ID#
+        out['loc'] = self.loc.ID  # write down ID of current location#
+        out['status'] = self.encode_stati()  # write down agent-status, in encoded fashion#
+        # write down temporary agent-flags, in encoded fashion#
         out['Temporary_Flags'] = self.encode_temporary_flags()
+        # write down cumulative agent-flags, in encoded fashion#
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
-        out['Interaction_partner'] = self.contact_person
-        out['Infection_event'] = numpy.int8(self.infection_event)
-        return(out)
+        out['Interaction_partner'] = ','.join(self.contact_persons)
+        out['Infection_event'] = int(self.infected_by)
+        if keys_list == 'all':
+            return(out)
+        else:
+            return(ordered_dict((i, out[i]) for i in keys_list))
 
     def encode_temporary_flags(self):
         """
@@ -365,20 +389,21 @@ class Human(object):
         elif self.status == 'D':
             return(numpy.uint8(3))
 
-    def get_infection_info(self):  # for storing simulation data (flags)
+    def get_infection_info(self):
         """
         Returns dictionary with agent-ID ('h_ID') and information
         on the times and place of certain events
         Arguments to provide are: none
         """
-        return {'h_ID': self.ID,
-                'infection_time':  self.infection_time,
-                'recovery_time':  self.recover_time,
-                'death_time':     self.death_time,
-                'diagnosis_time': self.diagnosis_time,
-                'hospitalized_time':    self.hospitalization_time,
-                'hospital_to_ICU_time': self.icu_time,
-                'ICU_to_hospital_time': self.rehospitalization_time}
+        out = {'h_ID': self.ID,
+               'infection_time': self.stati_times['infection_time'],
+               'diagnosis_time': self.stati_times['diagnosis_time'],
+               'hospitalization_time': self.stati_times['hospitalization_time'],
+               'recover_time': self.stati_times['recover_time'],
+               'death_time': self.stati_times['death_time'],
+               'icu_time': self.stati_times['icu_time'],
+               'rehospitalization_time': self.stati_times['rehospitalization_time']}
+        return(out)
 
     def move(self, time):  # agent moves relative to global time
         """
@@ -403,71 +428,82 @@ class Human(object):
             new_loc.enter(self)  # enter new location
 
     def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
+        """
+        Prohibit agent to visit a given type of location, and stay home instead.
+        Arguments to provide are:
+        location_type (str) - location type not to visit anymore
+        excluded_human_types (list of strings) - list of agent-schedule types, which should be still permitted to visit.
+        """
         if self.original_schedule['type'] not in excluded_human_types:
+            ## check whether the agent does not belong to the excluded types ##
             for i in range(len(self.schedule['locs'])):
+                ## go to each entry in the agents schedule ##
                 if self.schedule['locs'][i].location_type == location_type:
+                    ## if the location-type  of the schedule-entry is the specified type ##
+                    ## replace this with the agent's home-location ##
                     self.schedule['locs'][i] = self.home
 
-    def get_diagnosis_prob(self):  # this needs improvement and is preliminary
+    def get_diagnosis_prob(self):  # !!! this needs improvement and is preliminary
         """
-        Calculates probability to be diagnosed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be diagnosed from data-module.
         Arguments to provide are: none
         """
-        return 2 * dp._diagnosis(self.infection_duration)  # TODO change in exel sheet - compare with gangelt data
+        return (dp._diagnosis(self.stati_durations, self.age))  # TODO change in exel sheet - compare with gangelt data
 
     def get_hospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be hospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be hospitalized from data-module.
         Arguments to provide are: none
         """
-#        return dp._hospitalisation(self.diagnosis_duration, self.age)
-        return dp._hospitalisation(self.diagnosis_duration, self.age)
+        return dp._hospitalisation(self.stati_durations, self.age)
 
     def get_rehospitalization_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be rehospitalized.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be re-hospitalized (from ICU) from data-module.
         Arguments to provide are: none
         """
-        return dp._icu_to_hospital(self.icu_duration, self.age)
+        return dp._icu_to_hospital(self.stati_durations, self.age)
 
     def get_icu_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to be ICUed.
-        For now it returns a default value.
-        Function has to be defined!
+        Retreive probability to be admitted to intensive-care from data-module.
         Arguments to provide are: none
         """
-        return dp._to_icu(self.hospitalization_duration, self.age)
+        return dp._to_icu(self.stati_durations, self.age)
 
     def get_recover_prob(self):  # this needs improvement and is preliminary
         """
-        Calculates probability to recover.
+        Retreive probability to recover from data-module.
         Arguments to provide are: none
         """
         # probabitily increases hourly over 20 days (my preliminary random choice)
         # am besten mit kummulativer gauss-verteilung
-        if self.icu:
-            return(0.0)
+        if self.diagnosed:
+            if self.hospitalized:
+                prob = dp._recovery_from_hospitalized(self.stati_durations, self.age)
+            elif self.icu:
+                prob = dp._recovery_from_icu(self.stati_durations, self.age)
+            else:
+                prob = dp._recovery_from_diagnosed(self.stati_durations, self.age)
         else:
-            prob = dp._recovery(self.infection_duration)
-            return prob
+            prob = dp._recovery_from_undiagnosed(self.stati_durations, self.age)
+        return prob
 
-    def get_personal_risk(self):  # maybe there is data for that...
+    def get_death_prob(self):  # maybe there is data for that...
         """
         Calculates the personal (age-dependent) risk.
         Arguments to provide are: none
         """
-        if not self.icu:
-            risk = dp._general_death_risk(self.infection_duration, self.age)
+        if self.diagnosed:
+            if self.hospitalized:
+                risk = dp._hospital_death_risk(self.stati_durations, self.age)
+            elif self.icu:
+                risk = dp._icu_death_risk(self.stati_durations, self.age)
+            else:
+                risk = dp._diagnosed_death_risk(self.stati_durations, self.age)
         else:
-            risk = dp._icu_death_risk(self.icu_duration, self.age)
-        return 2 * risk  # TODO change in exel sheet - compare with gangelt data
+            risk = dp._undiagnosed_death_risk(self.stati_durations, self.age)
+        return(risk)  # TODO change in exel sheet - compare with gangelt data
 
     def get_initially_infected(self):
         """
@@ -477,31 +513,22 @@ class Human(object):
         Arguments to provide are: risk (float)
         """
         self.preliminary_status = 'I'
-        self.set_stati_from_preliminary()
-        self.infection_time = 0
+        self.preliminary_is_infected = True
         self.preliminary_was_infected = True
+        self.set_stati_from_preliminary()
+        self.stati_times['infection_time'] = 0
         self.was_infected = True
         self.is_infected = True
-        self.preliminary_is_infected = True
 
-    def interact(self):
-        """
-        Establishes interaction with other agents.
-        Picks one other agent among the present.
-        The interaction partner is returned and the interaction-information is recorded in both participants.
-        Arguments to provide are: time (int)
-        """
-        ## pick one other agent currently at same location ##
-        # list_people_present=[]
-        list_people_present = [p for p in list(self.loc.people_present) if p.ID != self.ID]
-        if len(list_people_present) != 0:
-            contact_person = choosing_one(list_people_present)
-            ## add this partners ID to own record of interaction-partners ##
-            self.contact_person = contact_person.ID
-            ## return the interaction-partner ##
-            return(contact_person)
+    def interact_with(self, contact_person):
+        if contact_person.is_infected:
+            if self.status == 'S':
+                if not self.preliminary_is_infected:
+                    infection_event = self.get_infected(contact_person)
+                    if infection_event == 1:
+                        self.infected_by = contact_person.ID
 
-    def get_infected(self, time, contact_person):
+    def get_infected(self, contact_person):
         """
         Determines whether an agent gets infected, at the current location and time.
         Changes status-attribute to 'I', writes current location to 'place_of_infection',
@@ -511,22 +538,15 @@ class Human(object):
         """
         coeff = 1
         out = -1
-        ## check if there is an existing interaction-partner ##
-        if contact_person:
-            ## check if interaction-partner is infected##
-            if contact_person.is_infected:
-                out = 0
-                ## add interaction partner to own list of contacts with infected individuals ##
-                if self.loc.location_type == 'hospital':
-                    # modulate infection-probability coefficient if one is in the hospital
-                    coeff = self.hospital_coeff
-                ## evaluate whether infection occurs, based on probability ##
-                if contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff >= randomval():
-                    self.preliminary_status = 'I'  # set owns preliminary status to infected ##
-                    self.preliminary_was_infected = True  # set own was_infected argument to True##
-                    self.preliminary_is_infected = True  # set own is_infected argument to True##
-                    self.infection_time = time
-                    out = 1
+        if self.loc.location_type in location_coefficient_dict.keys():
+            coeff = location_coefficient_dict['self.loc.location_type']
+        infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
+        if infection_probability >= randomval():
+            self.preliminary_status = 'I'  # set owns preliminary status to infected ##
+            self.preliminary_was_infected = True  # set own was_infected argument to True##
+            self.preliminary_is_infected = True  # set own is_infected argument to True##
+            self.stati_times['infection_time'] = self.current_time
+            out = 1
         return(out)
 
     def get_diagnosed(self, probability, time):
@@ -539,11 +559,11 @@ class Human(object):
         if not self.diagnosed:
             if probability >= randomval():
                 self.preliminary_diagnosed = True
-                self.diagnosis_time = time
+                self.stati_times['diagnosis_time'] = time
                 self.specific_schedule = self.diagnosed_schedule
                 self.preliminary_was_diagnosed = True
 
-    def recover(self, recover_prob, time):
+    def recover(self, time):
         """
         Determines whether an agent recovers,
         based on recover-probability.
@@ -551,13 +571,12 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if recover_prob >= randomval():
-            self.recover_time = time
-            self.preliminary_status = 'R'
-            self.preliminary_icu = False
-            self.preliminary_hospitalized = False
-            self.preliminary_diagnosed = False
-            self.preliminary_is_infected = False
+        self.stati_times['recover_time'] = time
+        self.preliminary_status = 'R'
+        self.preliminary_icu = False
+        self.preliminary_hospitalized = False
+        self.preliminary_diagnosed = False
+        self.preliminary_is_infected = False
 
     def get_ICUed(self, probability, time):
         """
@@ -569,8 +588,8 @@ class Human(object):
         if probability >= randomval():
             self.preliminary_icu = True
             self.preliminary_hospitalized = False
-            self.icu_time = time
-            self.preliminary_was_icued = False
+            self.stati_times['icu_time'] = time
+            self.preliminary_was_icued = True
 
     def get_rehospitalized(self, probability, time):
         """
@@ -583,7 +602,7 @@ class Human(object):
         if probability >= randomval():
             self.preliminary_hospitalized = True
             self.preliminary_icu = False
-            self.rehospitalization_time = time
+            self.stati_times['rehospitalization_time'] = time
 
     def get_hospitalized(self, probability, time):
         """
@@ -597,14 +616,14 @@ class Human(object):
         """
         if probability >= randomval():
             self.preliminary_hospitalized = True
-            self.hospitalization_time = time
+            self.stati_times['hospitalization_time'] = time
             self.preliminary_was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
                 self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
                     len(list(self.specific_schedule['times']))
 
-    def die(self, risk, time):
+    def die(self, time):
         """
         Determines whether an agent dies,
         based on personal_risk-probability.
@@ -612,16 +631,15 @@ class Human(object):
         Sets icu-,hospitalized- and diagnosed-attribute to False.
         Arguments to provide are: probability (float), time (int)
         """
-        if risk >= randomval():
-            self.preliminary_status = 'D'
-            self.death_time = time
-            self.preliminary_icu = False
-            self.preliminary_hospitalized = False
-            self.preliminary_diagnosed = False
-            self.preliminary_is_infected = False
-            if self.loc.special_locations['morgue']:
-                self.specific_schedule['locs'] = [self.loc.special_locations['morgue'][0]] * \
-                    len(list(self.specific_schedule['times']))
+        self.preliminary_status = 'D'
+        self.stati_times['death_time'] = time
+        self.preliminary_icu = False
+        self.preliminary_hospitalized = False
+        self.preliminary_diagnosed = False
+        self.preliminary_is_infected = False
+        if self.loc.special_locations['morgue']:
+            self.specific_schedule['locs'] = [
+                self.loc.special_locations['morgue'][0]] * len(list(self.specific_schedule['times']))
 
     def get_infectivity(self):
         """
@@ -630,12 +648,13 @@ class Human(object):
         For now it is set to the default-value of 1; so nothing changes,
         with respect to the previous version.
         """
-        infectivity = dp._infectivity(self.infection_duration)
+        # print(self.stati_durations)
+        infectivity = dp._infectivity(self.stati_durations, self.age)
         return(infectivity*self.behaviour_as_infected)
 
     def set_stati_from_preliminary(self):
         """
-        Set status from preliminary status
+        Set status and flags from preliminary.
         Arguments to provide are: none
         """
         self.status = self.preliminary_status
@@ -649,6 +668,10 @@ class Human(object):
         self.was_icued = self.preliminary_was_icued
 
     def reset_schedule(self):
+        """
+        Resets the agents' schedule to the original one.
+        Arguments to provide are: none
+        """
         self.schedule = self.original_schedule
 
 

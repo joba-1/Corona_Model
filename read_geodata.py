@@ -9,7 +9,7 @@ import sys
 def getOptions(args=sys.argv[1:]):
 	parser = argparse.ArgumentParser(description="Parses command.")
 	parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
-	parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
+	parser.add_argument("-ma", "--min_area", type=float, help="default 3  (*1e-8) to reduce locations")
 	parser.add_argument("-fa", "--from_adress", type=bool, help=" uses osmnx footprints_from_address with 2000 m")
 	#parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
 	options = parser.parse_args(args)
@@ -17,8 +17,8 @@ def getOptions(args=sys.argv[1:]):
 
 def reduce_GDF(gdf,cols):
 	#cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels','school_type','type','members']
-	
-	return gdf[cols].copy()
+	cols_2 = [x for x in cols if x in gdf.columns]
+	return gdf[cols_2].copy()
 
 
 def getCentromerCoordiantes(buildings):
@@ -64,6 +64,7 @@ place_name_5 = "Stratford-upon-Avon, Warwickshire, West Midlands, England, CV37 
 place_name_6 = "Charlottenlund"
 place_name_7 = "Helsingör, Helsingør Municipality, Hauptstadtregion, 3000, Dänemark"
 place_name_8 = "Bornholms Regionskommune, Hauptstadtregion, Dänemark"
+place_name_9 = "Bad Feilnbach, Landkreis Rosenheim, Bayern, 83075, Germany"
 
 
 # definied center of neihbourhoods - freely choosen 
@@ -75,6 +76,8 @@ list_of_n_5 = [Point(-1.70,52.19)]
 list_of_n_6 = [Point(12.57,55.76)]
 list_of_n_7 = [Point(12.60,56.03)]
 list_of_n_8 = [Point(14.88,55.11)]
+list_of_n_9 = [Point(47.7728352, 12.0062484),Point(47.7973373, 11.9747759),Point( 47.7610224, 12.0510184)]
+
 
 
 places = {1: [place_name_1,list_of_n_1],
@@ -84,7 +87,8 @@ places = {1: [place_name_1,list_of_n_1],
 		  5: [place_name_5,list_of_n_5],
 		  6: [place_name_6,list_of_n_6],
 		  7: [place_name_7,list_of_n_7],
-	      8: [place_name_8,list_of_n_8]}	
+	      8: [place_name_8,list_of_n_8]
+	      9: [place_name_9,list_of_n_9]}	
 
 
 # Fetch OSM street network from the location, only once! takes forever  
@@ -138,18 +142,15 @@ red_buildings['neighbourhood'] = neighbourhoods
 locations = exclude_small_buildings(red_buildings,min_area)
 
 #save gdf as geojason objects 
-try:
-	area.to_file('datafiles/Area_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-	streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-	#locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson', driver='GeoJSON')
-except:
-	print('streets and area is not saved')
+area.to_file('datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
+streets.to_file('datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
+locations.to_file('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson', driver='GeoJSON')
 df = pd.DataFrame(locations)
-df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.csv')
+df.to_csv('datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.csv')
 
-print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.csv')
-#print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
-#print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
-#print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0]+'_MA_'+str(min_area)+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.csv')
+print( 'generate: datafiles/Area_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
+print( 'generate: datafiles/Buildings_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
+print( 'generate: datafiles/Streets_'+places[loc][0].split(',')[0].replace(' ','_')+'_MA_'+str(min_area).replace('.','_')+'.geojson')
 
 
