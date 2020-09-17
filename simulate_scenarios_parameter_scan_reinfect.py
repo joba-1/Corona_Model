@@ -25,19 +25,19 @@ scenarios = [{'run':0 ,'max_time': 2500, 'start_2':200, 'start_3':500, 'closed_l
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.5, 'name':'close_public_school_reopen_public'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
              {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':1500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.3, 'name':'close_all_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':[],                         'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':1500, 'closed_locs':['public','school','work'], 'reopen_locs':[],                          'infectivity':0.3, 'name':'close_all_IF03'},
              {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public','school','work'],  'infectivity':0.3, 'name':'close_all_reopen_all_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.3, 'name':'close_all_reopen_work_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['work'],                    'infectivity':0.3, 'name':'close_all_reopen_work_IF03'},
              {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_all_reopen_school_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_all_reopen_public_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_school_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.3, 'name':'close_public_school_reopen_all_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_public_school_reopen_school_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_public_school_reopen_public_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_work_IF03'},
-             {'run':0 ,'max_time': 2000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_work_school_IF03'}]
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school','work'], 'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_all_reopen_public_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_school_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public','school'],         'infectivity':0.3, 'name':'close_public_school_reopen_all_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['school'],                  'infectivity':0.3, 'name':'close_public_school_reopen_school_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','school'],        'reopen_locs':['public'],                  'infectivity':0.3, 'name':'close_public_school_reopen_public_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['public','work'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_public_work_IF03'},
+             {'run':0 ,'max_time': 3000, 'start_2':200, 'start_3':500, 'closed_locs':['work','school'],          'reopen_locs':[],                          'infectivity':0.3, 'name':'close_work_school_IF03'}]
 
 #world_list = os.listdir('/home/basar/corona_simulations/saved_objects/worlds')
 #world_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')]
@@ -90,8 +90,21 @@ def getOptions(args=sys.argv[1:]):
     return options
 
 
-def infect_world(world, IDs=[1]):
-    world.initialize_infection(specific_people_ids=IDs)
+def get_previous_infections(world, time_steps=1500, infectivity=0.3, mu=2, save_df_inf=False, folder='saved_objects/', world_name='gangelt'):
+    simulation_inf_ini = Simulation(world,time_steps,run_immediately=False)
+    simulation_inf_ini.change_agent_attributes({'all':{'behaviour_as_infected':{'value':infectivity,'type':'replacement'}}})
+    simulation_inf_ini.interaction_frequency = mu
+    simulation_inf_ini.simulate()
+    df_inf = simulation_inf_ini.get_infection_event_information()
+    if save_df_inf:
+        df_inf.to_csv(folder+world_name + 'previous_infections.csv')
+    return df_inf
+
+def infect_world(world, IDs=[1],with_recovered=False):
+    if with_recovered:
+        pass
+    else:    
+        world.initialize_infection(specific_people_ids=IDs)
 
 def recover_world(world, frac):
     susceptibles = [p.ID for p in world.people if p.status=='S']
@@ -217,38 +230,39 @@ def simulate_scenario(input_dict):
 
 
 def get_simualtion_settings(options):
+    input_parameter_dict={}
 
     if options.scenario_type:  # take scenario type as argument or take default
-        scenario_type = options.scenario_type
+        input_parameter_dict['scenario_type'] = options.scenario_type
     else:
-        scenario_type = 0
+        input_parameter_dict['scenario_type'] = 0
 
     if options.cores:  # used cores
-        cores = options.cores
+        input_parameter_dict['cores'] = options.cores
     else:
-        cores = 50
+        input_parameter_dict['cores'] = 50
 
     if options.number:  # number of simulations
-        number = options.number
+        input_parameter_dict['number'] = options.number
     else:
-        number = 100
+        input_parameter_dict['number'] = 100
 
     if options.world:
-        modeledWorld = load_simulation_object(world_files[options.world], folder=input_folder)
+        input_parameter_dict['modeledWorld'] = load_simulation_object(world_files[options.world], folder=input_folder)
     else:
         # '/home/basar/corona_simulations/saved_objects/worlds')
-        modeledWorld = load_simulation_object(world_files[0], folder=input_folder)
+        input_parameter_dict['modeledWorld'] = load_simulation_object(world_files[0], folder=input_folder)
 
     if options.folder:  # number of simulations
-        output_folder = options.folder
+        input_parameter_dict['output_folder'] = options.folder
     else:
-        output_folder = '/home/basar/corona_simulations_save/saved_objects/scenario_output/'
+        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/saved_objects/scenario_output/'
         #output_folder = 'saved_objects/scenario_output/'
 
     if options.parameter:  # number of simulations
-        parameter = options.parameter
+        input_parameter_dict['parameter'] = options.parameter
     else:
-        parameter = None 
+        input_parameter_dict['parameter'] = None 
 
     if options.p_range: # lower and upper bounds are passed
         p_bounds = options.p_range  # if given take list of bounds
@@ -256,36 +270,37 @@ def get_simualtion_settings(options):
             p_steps = options.p_steps
         else:
             p_steps = 10
-        p_range = np.linspace(p_bounds[0],p_bounds[1],int(p_steps)) # define parameter range/values to simulate
+        input_parameter_dict['p_range'] = np.linspace(p_bounds[0],p_bounds[1],int(p_steps)) # define parameter range/values to simulate
     else:
-        p_range = np.array([1])
+        input_parameter_dict['p_range'] = np.array([1])
 
     if options.disobedience:
-        disobedience = options.disobedience
+        input_parameter_dict['disobedience'] = options.disobedience
     else:
-        disobedience = 0
+        input_parameter_dict['disobedience'] = 0
 
     if options.reinfections:
-        reinfections = options.reinfections
+        input_parameter_dict['reinfections'] = options.reinfections
     else:
-        reinfections = 1
+        input_parameter_dict['reinfections'] = 1
 
     if options.reinfection_times:
-        reinfection_times = options.reinfection_times
+        input_parameter_dict['reinfection_times'] = options.reinfection_times
     else:
-        reinfection_times = []
+        input_parameter_dict['reinfection_times'] = []
 
     if options.product:
-        product = options.product
+        input_parameter_dict['product'] = options.product
     else:
-        product = 0
+        input_parameter_dict['product'] = 0
 
     if options.mu:
-        mu = options.mu
+        input_parameter_dict['mu'] = options.mu
     else:
-        mu = 2
+        input_parameter_dict['mu'] = 2
                      
-    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
+    return input_parameter_dict
+    #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
 
 def generate_scenario_list(used_scenario, number):
@@ -306,18 +321,18 @@ if __name__ == '__main__':
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
     options = getOptions(sys.argv[1:])
-    scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu = get_simualtion_settings(options)
+    #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
+    input_parameter_dict = get_simualtion_settings(options)
+    used_scenario = scenarios[input_parameter_dict['scenario_type']]
+    used_scenario['reinfections'] = input_parameter_dict['reinfections']
+    used_scenario['reinfection_times'] = input_parameter_dict['reinfection_times']
+    used_scenario['disobedience'] = input_parameter_dict['disobedience']
+    used_scenario['product'] = input_parameter_dict['product']
+    used_scenario['mu'] = input_parameter_dict['mu']
 
-    used_scenario = scenarios[scenario_type]
-    used_scenario['reinfections'] = reinfections
-    used_scenario['reinfection_times'] = reinfection_times
-    used_scenario['disobedience'] = disobedience
-    used_scenario['product'] = product
-    used_scenario['mu'] = mu
+    for p in input_parameter_dict['p_range']:
 
-    for p in p_range:
-
-        currentWorld = copy.deepcopy(modeledWorld)
+        currentWorld = copy.deepcopy(input_parameter_dict['modeledWorld'])
 
         if parameter=='initial_infections':
             infect_world(currentWorld, IDs=[i+1 for i in range(int(p))])
@@ -326,7 +341,7 @@ if __name__ == '__main__':
             if parameter=='recover_frac':
                 recover_world(currentWorld, p)
             else:
-                used_scenario[parameter] = p
+                used_scenario[input_parameter_dict['parameter']] = p
 
         if product!=0:
             if parameter=='mu':
@@ -337,9 +352,9 @@ if __name__ == '__main__':
             scenario_and_parameter = 'RPM02_Gangelt_big_Ifreq_'+str(mu)+'_'+used_scenario['name'] +'_'+str(parameter)+'_'+'{:.3f}'.format(p)
         output_folder_plots = '/home/basar/corona_simulations_save/outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
-        used_scenario['output_folder'] = output_folder + scenario_and_parameter +'/'
+        used_scenario['output_folder'] = input_parameter_dict['output_folder'] + scenario_and_parameter +'/'
 
-        used_scenarios = generate_scenario_list(used_scenario, number)
+        used_scenarios = generate_scenario_list(used_scenario, input_parameter_dict['number'])
 
         for sc in used_scenarios:
             sc['world'] = currentWorld
@@ -360,7 +375,7 @@ if __name__ == '__main__':
         start = timeit.default_timer()
 
 
-        with Pool(cores) as pool:
+        with Pool(input_parameter_dict['cores']) as pool:
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
 
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
