@@ -1,4 +1,5 @@
 ,File,Dependency,Age_dependent
+immunity_loss_df,datafiles/logicMean_20200828/immunity_loss.csv,recovery_duration,0
 infectivity_df,datafiles/logicMean_20200828/infectivity.csv,infection_duration,0
 diagnosis_df,datafiles/logicMean_20200828/infected_to_diagnosed.csv,infection_duration,1
 hospitalisation_df,datafiles/logicMean_20200828/diagnosed_to_hospital.csv,diagnosis_duration,1

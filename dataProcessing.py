@@ -7,6 +7,7 @@ Configurator = Simulation_Configuration()
 infectivity_df = pd.read_csv(Configurator.infectivity_df)
 hospitalisation_df = pd.read_csv(Configurator.hospitalisation_df)
 to_icu_df = pd.read_csv(Configurator.to_icu_df)
+immunity_loss_df = pd.read_csv(Configurator.immunity_loss_df)
 #icu_to_hospital_df = pd.read_csv(Configurator.icu_to_hospital_df)
 diagnosis_df = pd.read_csv(Configurator.diagnosis_df)
 recovery_from_undiagnosed_df = pd.read_csv(Configurator.recovery_from_undiagnosed_df)
@@ -22,6 +23,7 @@ death_from_icu_df = pd.read_csv(Configurator.death_from_icu_df)
 infectivity_df_max_time = infectivity_df['Time-steps'].max()
 hospitalisation_df_max_time = hospitalisation_df['Time-steps'].max()
 to_icu_df_max_time = to_icu_df['Time-steps'].max()
+immunity_loss_df_max_time = immunity_loss_df['Time-steps'].max()
 #icu_to_hospital_df_max_time = icu_to_hospital_df['Time-steps'].max()
 diagnosis_df_max_time = diagnosis_df['Time-steps'].max()
 recovery_from_undiagnosed_df_max_time = recovery_from_undiagnosed_df['Time-steps'].max()
@@ -35,6 +37,7 @@ death_from_icu_df_max_time = death_from_icu_df['Time-steps'].max()
 
 # set indexes for run time
 infectivity_df.set_index('Time-steps', inplace=True)
+immunity_loss_df.set_index('Time-steps', inplace=True)
 hospitalisation_df.set_index('Time-steps', inplace=True)
 to_icu_df.set_index('Time-steps', inplace=True)
 #icu_to_hospital_df.set_index('Time-steps', inplace=True)
@@ -216,6 +219,22 @@ def _to_icu(stati_durations, age):
     else:
         col = 'AgeIndependent'
     return float(to_icu_df.loc[respective_duration, col])
+
+
+def _immunity_loss(stati_durations, age):
+    respective_duration = stati_durations[Configurator.immunity_loss_dependency]
+    if respective_duration == 0:
+        return 0
+    if Configurator.immunity_loss_age_dependency:
+        if age > 99:
+            age = 99
+        col = str(age)
+    else:
+        col = 'AgeIndependent'
+    if respective_duration > immunity_loss_df_max_time:
+        return float(immunity_loss_df.loc[immunity_loss_df_max_time, col])
+    else:
+        return float(immunity_loss_df.loc[respective_duration, col])
 
 
 def _icu_to_hospital(stati_durations, age):

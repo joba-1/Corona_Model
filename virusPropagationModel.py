@@ -345,6 +345,12 @@ class Simulation(object):
     """
 
     def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
+
+        self.random_seed = random_seed
+        if self.random_seed is not None:
+            random.seed(self.random_seed)
+            npr.seed(self.random_seed)
+
         assert type(object_to_simulate) == ModeledPopulatedWorld or type(object_to_simulate) == Simulation, \
             "\'object_to_simulate\' can only be of class \'ModeledPopulatedWorld\' or \'Simulation\' "
 
@@ -372,7 +378,6 @@ class Simulation(object):
 
             self.simulation_timecourse = pd.DataFrame()
             self.time = 0
-            self.random_seed = random_seed
         elif isinstance(object_to_simulate, Simulation):
             self.time_steps = time_steps
             if copy_sim_object:
@@ -398,15 +403,10 @@ class Simulation(object):
                 self.locations = object_to_simulate.locations
             self.simulation_timecourse = object_to_simulate.simulation_timecourse
             self.time = object_to_simulate.time
-            self.random_seed = random_seed
 
         self.statuses_in_timecourse = ['S', 'I', 'R', 'D']
         self.interaction_frequency = 1
         self.interaction_matrix = True
-
-        if self.random_seed is not None:
-            random.seed(self.random_seed)
-            npr.seed(self.random_seed)
 
         if run_immediately:
             self.simulate()
@@ -758,7 +758,7 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > -1] # we could use get_infection_event_information() here
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > 0] # we could use get_infection_event_information() here
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
@@ -815,6 +815,18 @@ class Simulation(object):
         return(flag_sums)
     # DF
 
+    def get_location_info(self):
+        locations = list(self.locations.values())
+        Location_Types = {str(l.ID): l.location_type for l in locations}
+        Location_Areas = {str(l.ID): l.area for l in locations}
+        Location_Neighbourhood = {str(l.ID): l.neighbourhood_ID for l in locations}
+        Location_Info = pd.DataFrame()
+        Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
+        Location_Info['Type'] = list(Location_Types.values())
+        Location_Info['Area'] = list(Location_Areas.values())
+        Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
+        return(Location_Info)
+
     def get_agent_info(self):
         people = list(self.people)
         Agents_Ages = {str(p.ID): p.age for p in people}
@@ -846,29 +858,119 @@ class Simulation(object):
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
             return(out)
 
-    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24):
+    def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
         if time_span[1] is None:
             max_ts = self.simulation_timecourse['time'].max()
         else:
             max_ts = time_span[1]
         time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
             self.simulation_timecourse['time'] >= time_span[0])]
-        diag_df = time_course.loc[time_course['Temporary_Flags'] >= 2]
+        diag_df = time_course.loc[time_course['Temporary_Flags'] == 2]
         diagnosed_individuals = list(diag_df['h_ID'].unique())
         t_diagnosis = {i: diag_df.loc[diag_df['h_ID'] == i, 'time'].min()
                        for i in diagnosed_individuals}
         t_tracing_period_start = {i: t_diagnosis[i]-tracing_window for i in diagnosed_individuals}
-        n_contacts = {i: len(list(set([k for j in time_course.loc[(time_course['h_ID'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i]), 'Interaction_partner'].values[0].split(',') for k in j if k != '']))) for i in diagnosed_individuals}
-        n_infections = {i: time_course[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
-            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals}
+
+        if loc_time_overlap_tracing:
+            n_contacts, n_same_loc_time = zip(
+                *[trace_contacts_with_loctime(i, time_course, t_diagnosis, t_tracing_period_start) for i in diagnosed_individuals])
+        else:
+            #n_contacts = [trace_contacts(i, time_course, t_diagnosis,t_tracing_period_start) for i in diagnosed_individuals]
+            n_same_loc_time = [numpy.nan]*len(diagnosed_individuals)
+            traced_contacts_time_dict = {}
+            for di in diagnosed_individuals:
+                if t_diagnosis[di] in traced_contacts_time_dict.keys():
+                    traced_contacts_time_dict[t_diagnosis[di]] += trace_contacts(
+                        di, time_course, t_diagnosis, t_tracing_period_start)
+                else:
+                    traced_contacts_time_dict[t_diagnosis[di]] = trace_contacts(
+                        di, time_course, t_diagnosis, t_tracing_period_start)
+
+            day_contact_dict = {}
+            for td in traced_contacts_time_dict.keys():
+                respective_time_aggregate = int(td/timesteps_per_aggregate)
+                if respective_time_aggregate in day_contact_dict.keys():
+                    day_contact_dict[respective_time_aggregate] += traced_contacts_time_dict[td]
+                else:
+                    day_contact_dict[respective_time_aggregate] = traced_contacts_time_dict[td]
+
+            unique_contacts_per_day = {
+                i: len(list(set(day_contact_dict[i]))) for i in day_contact_dict.keys()}
+
+        n_traced_infections = [time_course.loc[(time_course['Infection_event'] == i) & (time_course['time'] >= t_tracing_period_start[i]) & (
+            time_course['time'] <= t_diagnosis[i])].shape[0] for i in diagnosed_individuals]
+
+        # Secondary infections people infected by traced infectees, after tracing-time
+        if trace_secondary_infections:
+            traced_secondary_infectees = []
+            for i in diagnosed_individuals:
+                traced_primary_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                n_secondary_infectees = 0
+                for j in traced_primary_infectees:
+                    n_secondary_infectees += time_course.loc[(time_course['Infection_event'] == j) & (
+                        time_course['time'] >= t_diagnosis[i])].shape[0]
+                traced_secondary_infectees.append(n_secondary_infectees)
+        else:
+            traced_secondary_infectees = [numpy.nan]*len(diagnosed_individuals)
+
+        if trace_all_following_infections:
+            # finds all infections, along the infection chains originating from diagnosees, which would be prevend by cutting the infection chain
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > 0]
+            original_infection_number = int(only_infection_TC.shape[0])
+            last_infection_number = original_infection_number
+            traced_downstream_infectees = []
+            for i in diagnosed_individuals:
+                traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] >= t_tracing_period_start[i]) & (time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                while len(traced_infectees) > 0:
+                    new_primary = []
+                    for j in traced_infectees:
+                        only_infection_TC = only_infection_TC.loc[(only_infection_TC['h_ID'] != j) | (
+                            only_infection_TC['time'] <= t_diagnosis[i])]
+                        traced_infectees_secondary = list(
+                            only_infection_TC.loc[only_infection_TC['Infection_event'] == j, 'h_ID'])
+                        new_primary += traced_infectees_secondary
+                    traced_infectees = new_primary
+                traced_downstream_infectees.append(
+                    last_infection_number-int(only_infection_TC.shape[0]))
+                last_infection_number = int(only_infection_TC.shape[0])
+
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > 0]
+            original_infection_number = int(only_infection_TC.shape[0])
+            last_infection_number = original_infection_number
+            traced_downstream_infectees_unpreventable = []
+            for i in diagnosed_individuals:
+                traced_infectees = list(time_course.loc[(time_course['Infection_event'] == i) & (
+                    time_course['time'] <= t_diagnosis[i]), 'h_ID'])
+                while len(traced_infectees) > 0:
+                    new_primary = []
+                    for j in traced_infectees:
+                        only_infection_TC = only_infection_TC.loc[only_infection_TC['h_ID'] != j]
+                        traced_infectees_secondary = list(
+                            only_infection_TC.loc[only_infection_TC['Infection_event'] == j, 'h_ID'])
+                        new_primary += traced_infectees_secondary
+                    traced_infectees = new_primary
+                traced_downstream_infectees_unpreventable.append(
+                    last_infection_number-int(only_infection_TC.shape[0]))
+                last_infection_number = int(only_infection_TC.shape[0])
+        else:
+            traced_downstream_infectees = [numpy.nan]*len(diagnosed_individuals)
+            traced_downstream_infectees_unpreventable = [numpy.nan]*len(diagnosed_individuals)
+
         out = pd.DataFrame()
-        out['time'] = list(t_diagnosis.values())
-        out['traced_infections'] = list(n_infections.values())
-        out['traced_contacts'] = list(n_contacts.values())
-        out2 = out.groupby(['time']).sum()
-        out2['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out2.index]
-        return(out2)
+        out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
+        out['diagnosed_individuals'] = [1]*out.shape[0]
+        out['traced_infections'] = n_traced_infections
+        out['traced_secondary_infections'] = traced_secondary_infectees
+        out['traced_all_downstream_infections'] = traced_downstream_infectees_unpreventable
+        out['traced_preventable_downstream_infections'] = traced_downstream_infectees
+        #out['traced_contacts'] = n_contacts
+        out['loc_time_overlap'] = n_same_loc_time
+        out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
+        out2 = out.groupby(['aggregated_time']).sum()
+        out2['traced_contacts'] = [unique_contacts_per_day[i] for i in out2.index]
+        return(out2.drop(columns=['time']))
 
     def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
         Agent_Info = self.get_agent_info()
@@ -1019,6 +1121,14 @@ class Simulation(object):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
 
+    def plot_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+        vpm_plt.plot_interaction_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
+                                          timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+
+    def plot_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+        vpm_plt.plot_infection_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
+                                        timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+
 
 def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:
@@ -1149,3 +1259,31 @@ def plot_r_eff(self,sliding_window_size,sliding_step_size=1,save_fig=False):
             self,from_sim_obj_sliding_window_size=sliding_window_size,
             from_sim_obj_sliding_step_size=sliding_step_size,save_fig=save_fig)
 
+
+def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_period_start):
+    t_diag = t_diagnosis[person]
+    resp_Timesteps = time_course.loc[(time_course['h_ID'] == person) & (
+        time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
+    contacts = list(
+        resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
+    #contact_number = list(set(','.join(contacts).split(',')))
+    time_places = list(zip(list(resp_Timesteps['time']), list(resp_Timesteps['loc'])))
+    # time_place_overlap_ids = [j for i in time_places for j in list(
+    #    set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))]
+    time_place_overlap_ids = []
+    for i in time_places:
+        time_place_overlap_ids += list(
+            set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))
+    number_time_loc_overlap = len(list(set(time_place_overlap_ids)))
+    return((list(set(','.join(contacts).split(','))), number_time_loc_overlap))
+
+
+def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
+    t_diag = t_diagnosis[person]
+    resp_Timesteps = time_course.loc[(time_course['h_ID'] == person) & (
+        time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
+    contacts = list(
+        resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
+    return(list(set(','.join(contacts).split(','))))
+    #contact_number = len(list(set(','.join(contacts).split(','))))
+    # return(contact_number)
