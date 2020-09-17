@@ -727,7 +727,7 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > -1]
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > 0]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
@@ -885,7 +885,7 @@ class Simulation(object):
 
         if trace_all_following_infections:
             # finds all infections, along the infection chains originating from diagnosees, which would be prevend by cutting the infection chain
-            only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > 0]
             original_infection_number = int(only_infection_TC.shape[0])
             last_infection_number = original_infection_number
             traced_downstream_infectees = []
@@ -905,7 +905,7 @@ class Simulation(object):
                     last_infection_number-int(only_infection_TC.shape[0]))
                 last_infection_number = int(only_infection_TC.shape[0])
 
-            only_infection_TC = time_course.loc[time_course['Infection_event'] > -1]
+            only_infection_TC = time_course.loc[time_course['Infection_event'] > 0]
             original_infection_number = int(only_infection_TC.shape[0])
             last_infection_number = original_infection_number
             traced_downstream_infectees_unpreventable = []
@@ -1224,7 +1224,7 @@ def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_peri
         time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
     contacts = list(
         resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
-    contact_number = len(list(set(','.join(contacts).split(','))))
+    #contact_number = list(set(','.join(contacts).split(',')))
     time_places = list(zip(list(resp_Timesteps['time']), list(resp_Timesteps['loc'])))
     # time_place_overlap_ids = [j for i in time_places for j in list(
     #    set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))]
@@ -1233,7 +1233,7 @@ def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_peri
         time_place_overlap_ids += list(
             set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))
     number_time_loc_overlap = len(list(set(time_place_overlap_ids)))
-    return((contact_number, number_time_loc_overlap))
+    return((list(set(','.join(contacts).split(','))), number_time_loc_overlap))
 
 
 def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
