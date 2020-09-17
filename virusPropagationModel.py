@@ -203,7 +203,7 @@ class ModeledPopulatedWorld(object):
         else:
             to_infect = [p for p in list(self.people) if p.ID in specific_people_ids]
         for p in to_infect:
-            p.get_initially_infected()
+            p.set_initially_infected()
 
     def get_location_types(self):
         location_types = list(self.world.loc_class_dic.keys())
@@ -245,6 +245,7 @@ class ModeledPopulatedWorld(object):
                                                           right=False)).sum()
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
+
 
     def plot_distribution_of_location_types(self):
         """
@@ -352,6 +353,7 @@ class Simulation(object):
             self.time_steps = time_steps
             self.people = copy.deepcopy(object_to_simulate.people)
             #self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.number_of_people = len(self.people)
 
             self.locations = {}
             for p in self.people:
@@ -522,6 +524,29 @@ class Simulation(object):
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
+    def get_remaining_possible_initial_infections(self, ini_I_list):
+        """
+        Compares list of agent IDs to initally infect with IDs of initially recovered agents.
+        Rewrites a list of possible agents. 
+        :return: list of agent IDs     
+        """
+        recovered_people =[p.ID for p in self.people if p.status=='R']
+        inif_I_list_new = []
+
+        for i in ini_I_list:
+            x = i            
+            while x in recovered_people or x in inif_I_list_new:
+                x+=1
+                if x<self.number_of_people:
+                    pass
+                else:
+                    raise Exception("Not enough, humans to infect")              
+            if x not in inif_I_list_new:        
+                inif_I_list_new.append(x)
+        if inif_I_list_new !=  ini_I_list:       
+            print('list of initial infected changed from ', ini_I_list,' to ', inif_I_list_new)   
+        return inif_I_list_new                 
+
     # def get_statuses_in_timecourse(self):
         """
         gets a list of the statuses in the time course
@@ -656,19 +681,24 @@ class Simulation(object):
         out['diagnosis_to_death'] = df['death_time'] - df['diagnosis_time']
         return out
 
-    # DF
+    # DF ## changed. should be used in other functions ? 
     def get_infection_event_information(self):
         """
         Returns a pandas DataFrame with information on all infection-events:
-        ID of agent, who got infected ('ID'),
-        ID of location, where agent got infected ('place_of_infection'),
-        Time, at which agent got infected ('time_of_infection'),
-        ID of infected agent, who infected  ('got_infected_by'),
-        All infected agents, ever in contact with  ('infected_in_contact_with'),
+        ID of agent, who got infected ('h_ID'),
+        ID of location, where agent got infected ('infection_loc_ID'),
+        Time, at which agent got infected ('time'),
+        ID of infected agent, who infected  ('infected_by_ID'),
         """
-        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
-            'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
-        return (df.sort_values('infection_time').reset_index(drop=True))
+        # df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
+        #    'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
+        #df.sort_values('infection_time').reset_index(drop=True)
+        df = self.simulation_timecourse
+        df_I = df[df['Infection_event']>1].copy()
+        df_I.drop(columns=['Temporary_Flags', 'Cumulative_Flags','Interaction_partner','status'], inplace=True)
+        df_I.set_index('time', inplace=True)
+        df_I.columns = ['h_ID','infection_loc_ID','infected_by_ID']
+        return df_I
 
     # DF
     def get_distribution_of_statuses_per_age(self, group_ages=True, age_groups_step=10):
@@ -728,7 +758,7 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > -1]
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > -1] # we could use get_infection_event_information() here
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}

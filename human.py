@@ -505,12 +505,11 @@ class Human(object):
             risk = dp._undiagnosed_death_risk(self.stati_durations, self.age)
         return(risk)  # TODO change in exel sheet - compare with gangelt data
 
-    def get_initially_infected(self):
+    def set_initially_infected(self):
         """
-        Determines whether an agent gets infected, based on personal risk.
-        Changes status-attribute to 'I', writes current time to
-        infection_time-attribute and sets was_infected-attribute to True.
-        Arguments to provide are: risk (float)
+        Set status of agent initially to 'I'. The statii  'preliminary_is_infected', 'preliminary_was_infected'
+        'was_infected' and 'is_infected' are set accordingly to True. Agents considered to be infected by patient
+        zero, who is not an agent of the world.
         """
         self.preliminary_status = 'I'
         self.preliminary_is_infected = True
@@ -519,6 +518,22 @@ class Human(object):
         self.stati_times['infection_time'] = 0
         self.was_infected = True
         self.is_infected = True
+        self.infected_by = 0 #  infected from patient zero (not in agent list)
+
+    def set_initially_recovered(self):
+        """
+        Set status of agent initially to 'R'. The statii  'preliminary_was_infected', 'was_infected'
+        and 'preliminary_is_infected', 'is_infected' are set accordingly to True and False. Agents considered to 
+        be infected by no one.
+        """
+        self.preliminary_status = 'R'
+        self.preliminary_is_infected = False
+        self.preliminary_was_infected = True
+        self.set_stati_from_preliminary()
+        self.stati_times['recover_time'] = 0
+        self.was_infected = True
+        self.is_infected = False
+        self.infected_by = -1 #      
 
     def interact_with(self, contact_person):
         if contact_person.is_infected:
