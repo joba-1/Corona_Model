@@ -315,10 +315,10 @@ class Location(object):
 
     def determine_interacting_pairs(self, mu=1, interaction_matrix=True):
         ## create dict of human ID's and interaction modifiers, currently present in location#
-        h_dict = {p.ID:p.interaction_modifier for p in list(self.people_present)}
+        h_dict = {p.ID: p.interaction_modifier for p in list(self.people_present)}
         n = len(h_dict)
 
-        human_ids = list(h_dict.keys()) 
+        human_ids = list(h_dict.keys())
         interaction_modifier = list(h_dict.values())
 
         if interaction_matrix:
@@ -348,7 +348,6 @@ class Location(object):
             if len(list(human_objects_present.keys())) > 1:
                 pairs = self.determine_interacting_pairs(
                     mu=mu, interaction_matrix=interaction_matrix)
-                # print([self.location_type, len(list(self.people_present)), len(pairs)])
                 for p in pairs:
                     human_objects_present[p[0]].contact_persons.append(str(p[1]))
                     human_objects_present[p[1]].contact_persons.append(str(p[0]))

@@ -206,6 +206,7 @@ class Human(object):
                             'diagnosis_time': numpy.nan,
                             'hospitalization_time': numpy.nan,
                             'recover_time': numpy.nan,
+                            'immunity_loss_time': numpy.nan,
                             'death_time': numpy.nan,
                             'icu_time': numpy.nan,
                             'rehospitalization_time': numpy.nan}
@@ -213,40 +214,43 @@ class Human(object):
         self.stati_durations = {'infection_duration': 0,
                                 'diagnosis_duration': 0,
                                 'hospitalization_duration': 0,
-                                # 'recovery_duration':0,
+                                'recovery_duration': 0,
                                 'icu_duration': 0}
 
         self.is_infected = False
+        self.is_recovered = False
         self.diagnosed = False
         self.hospitalized = False
         self.icu = False
 
+        self.was_recovered = False
         self.was_infected = False
         self.was_diagnosed = False
         self.was_hospitalized = False
         self.was_icued = False
 
+        self.preliminary_is_recovered = False
         self.preliminary_is_infected = False
         self.preliminary_diagnosed = False
         self.preliminary_hospitalized = False
         self.preliminary_icu = False
 
+        self.preliminary_was_recovered = False
         self.preliminary_was_infected = False
         self.preliminary_was_diagnosed = False
         self.preliminary_was_hospitalized = False
         self.preliminary_was_icued = False
 
+        self.lost_immunity = False
+
         self.contact_persons = []
         self.infected_by = -1
         self.current_time = 0
 
-        self.TestAtt = 'NULL'
-        self.TestAtt2 = 'NULL'
-
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
-    def update_state(self, time):  # this is not yet according to Eddas model
+    def update_state(self, time):
         """
         Updates agent-status and -flags.
         Arguments to provide are: time (int)
@@ -254,24 +258,8 @@ class Human(object):
         self.contact_persons = []  # ID of contact person#
         self.infected_by = -1
         self.current_time = time
-        # if self.status == 'R':
-        #encounter interaction with a random person currently at own location#
-        #contact_person = self.interact()
-        #    pass
-        # elif self.status == 'S':
-        ##encounter interaction with a random person currently at own location and return person##
-        #contact_person = self.interact()
-        ##get potentially infected by picked person ##
-        #self.infection_event = self.get_infected(time, contact_person)
         if self.is_infected:
             self.stati_durations['infection_duration'] += 1
-            ##encounter interaction with a random person currently at own location and return person##
-            #contact_person = self.interact()
-            #if contact_person:  # if an interaction partner has been found ##
-            #    if contact_person.preliminary_status == 'S':  # if this partenr is susceptible ##
-            ##potentially infect this person ##
-            #        self.infection_event = contact_person.get_infected(time, self)
-            ## New method for the stuff below ##
             if self.diagnosed:
                 self.stati_durations['diagnosis_duration'] += 1
             self.get_diagnosed(self.get_diagnosis_prob(), time)
@@ -300,10 +288,9 @@ class Human(object):
                     else:
                         if self.diagnosed:
                             self.get_hospitalized(self.get_hospitalization_prob(), time)
-            # print(self.stati_durations)
-            #current_loc = self.loc
-            # self.loc.leave(self)  # leave old location
-            # current_loc.enter(self)  # enter new location
+        elif self.is_recovered:
+            self.stati_durations['recovery_duration'] += 1
+            self.lose_immunity(self.get_immunity_loss_prob(), time)
 
     # for storing simulation data (flags)
     def get_information_for_timecourse(self, time, keys_list='all'):
@@ -520,6 +507,11 @@ class Human(object):
         self.was_infected = True
         self.is_infected = True
 
+    def get_immunity_loss_prob(self):  # this needs improvement and is preliminary
+        """
+        """
+        return dp._immunity_loss(self.stati_durations, self.age)
+
     def interact_with(self, contact_person):
         if contact_person.is_infected:
             if self.status == 'S':
@@ -577,6 +569,17 @@ class Human(object):
         self.preliminary_hospitalized = False
         self.preliminary_diagnosed = False
         self.preliminary_is_infected = False
+        self.preliminary_is_recovered = True
+        self.preliminary_was_recovered = True
+
+    def lose_immunity(self, probability, time):
+        """
+        """
+        if probability >= randomval():
+            self.stati_times['immunity_loss_time'] = time
+            self.preliminary_status = 'S'
+            self.preliminary_is_recovered = False
+            self.lost_immunity = True
 
     def get_ICUed(self, probability, time):
         """
@@ -666,6 +669,8 @@ class Human(object):
         self.was_diagnosed = self.preliminary_was_diagnosed
         self.was_hospitalized = self.preliminary_was_hospitalized
         self.was_icued = self.preliminary_was_icued
+        self.is_recovered = self.preliminary_is_recovered
+        self.was_recovered = self.preliminary_was_recovered
 
     def reset_schedule(self):
         """
