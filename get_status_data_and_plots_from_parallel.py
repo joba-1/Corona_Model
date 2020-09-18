@@ -186,7 +186,7 @@ def plot_flags(flags_l, cummulative=False,
     else:
         flags = ['Hospitalized', 'ICUed','IsInfected', 'Diagnosed']
         
-    for i,flag in enumerate(flags):
+    for flag in flags:
 
         try:
             df = pd.concat([flags_l[i][flag] for i in range(len(flags_l))], axis=1)#, join='outer', join_axes=None, ignore_index=False,

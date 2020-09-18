@@ -514,11 +514,11 @@ class Human(object):
         be infected by no one.
         """
         self.preliminary_status = 'R'
-        self.preliminary_is_infected = False
+        self.preliminary_is_recovered = True
         self.preliminary_was_infected = True
         self.set_stati_from_preliminary()
         self.stati_times['recover_time'] = 0
-        self.was_infected = True
+        self.was_recovered = True
         self.is_infected = False
         self.infected_by = -1 #      
 

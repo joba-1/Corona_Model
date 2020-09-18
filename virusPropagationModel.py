@@ -246,6 +246,30 @@ class ModeledPopulatedWorld(object):
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
+    def get_remaining_possible_initial_infections(self, ini_I_list):
+        """
+        Compares list of agent IDs to initally infect with IDs of initially recovered agents.
+        Rewrites a list of possible agents. 
+        :return: list of agent IDs     
+        """
+        recovered_people = [p.ID for p in self.people if p.status == 'R']
+        print(len(recovered_people))
+        inif_I_list_new = []
+
+        for i in ini_I_list:
+            x = i
+            while x in recovered_people or x in inif_I_list_new:
+                x += 1
+                if x < self.number_of_people:
+                    pass
+                else:
+                    raise Exception("Not enough, humans to infect")
+            if x not in inif_I_list_new:
+                inif_I_list_new.append(x)
+        if inif_I_list_new != ini_I_list:
+            print('list of initial infected changed from ',
+                  ini_I_list, ' to ', inif_I_list_new)
+        return inif_I_list_new
 
     def plot_distribution_of_location_types(self):
         """
@@ -524,28 +548,7 @@ class Simulation(object):
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
-    def get_remaining_possible_initial_infections(self, ini_I_list):
-        """
-        Compares list of agent IDs to initally infect with IDs of initially recovered agents.
-        Rewrites a list of possible agents. 
-        :return: list of agent IDs     
-        """
-        recovered_people =[p.ID for p in self.people if p.status=='R']
-        inif_I_list_new = []
-
-        for i in ini_I_list:
-            x = i            
-            while x in recovered_people or x in inif_I_list_new:
-                x+=1
-                if x<self.number_of_people:
-                    pass
-                else:
-                    raise Exception("Not enough, humans to infect")              
-            if x not in inif_I_list_new:        
-                inif_I_list_new.append(x)
-        if inif_I_list_new !=  ini_I_list:       
-            print('list of initial infected changed from ', ini_I_list,' to ', inif_I_list_new)   
-        return inif_I_list_new                 
+                
 
     # def get_statuses_in_timecourse(self):
         """
@@ -845,7 +848,7 @@ class Simulation(object):
         Agent_Info = self.get_agent_info()
         time_course = self.simulation_timecourse[(self.simulation_timecourse['time'] <= max_ts) & (
             self.simulation_timecourse['time'] >= time_span[0])]
-        infected_tc = time_course[time_course['status'] == 1]
+        infected_tc = time_course[time_course['status'] == 1].copy()
         infected_tc['Household'] = [Agent_Info.loc[Agent_Info['ID'] == i, 'Home'].values[0]
                                     for i in list(infected_tc['h_ID'])]
         if total:
