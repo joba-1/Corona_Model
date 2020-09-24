@@ -249,8 +249,8 @@ class ModeledPopulatedWorld(object):
     def get_remaining_possible_initial_infections(self, ini_I_list):
         """
         Compares list of agent IDs to initally infect with IDs of initially recovered agents.
-        Rewrites a list of possible agents. 
-        :return: list of agent IDs     
+        Rewrites a list of possible agents.
+        :return: list of agent IDs
         """
         recovered_people = [p.ID for p in self.people if p.status == 'R']
         print(len(recovered_people))
@@ -463,7 +463,7 @@ class Simulation(object):
         :return: DataFrame which contains the time course of the simulation
         """
         #population_size = len(self.people)
-        #print(population_size)
+        # print(population_size)
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
@@ -548,8 +548,6 @@ class Simulation(object):
                                 'multiplicative_factor'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
-
-                
 
     # def get_statuses_in_timecourse(self):
         """
@@ -685,7 +683,7 @@ class Simulation(object):
         out['diagnosis_to_death'] = df['death_time'] - df['diagnosis_time']
         return out
 
-    # DF ## changed. should be used in other functions ? 
+    # DF ## changed. should be used in other functions ?
     def get_infection_event_information(self):
         """
         Returns a pandas DataFrame with information on all infection-events:
@@ -696,13 +694,14 @@ class Simulation(object):
         """
         # df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.infection_time)], columns=[
         #    'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
-        #df.sort_values('infection_time').reset_index(drop=True)
+        # df.sort_values('infection_time').reset_index(drop=True)
         df = self.simulation_timecourse
-        df_I = df[df['Infection_event']>1].copy()
-        cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags','Interaction_partner','status'] if x in list(df_I.columns) ]
+        df_I = df[df['Infection_event'] > 1].copy()
+        cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags',
+                                    'Interaction_partner', 'status'] if x in list(df_I.columns)]
         df_I.drop(columns=cols_to_drop, inplace=True)
         df_I.set_index('time', inplace=True)
-        df_I.columns = ['h_ID','infection_loc_ID','infected_by_ID']
+        df_I.columns = ['h_ID', 'infection_loc_ID', 'infected_by_ID']
         return df_I
 
     # DF
@@ -763,7 +762,8 @@ class Simulation(object):
         #infection_events = self.get_infection_event_information()
         #infection_locations = list(infection_events['place_of_infection'])
         loc_infection_dict_0 = dict(zip(self.location_types, [0.0]*len(self.location_types)))
-        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > 0] # we could use get_infection_event_information() here
+        # we could use get_infection_event_information() here
+        infection_events = self.simulation_timecourse[self.simulation_timecourse['Infection_event'] > 0]
         infection_locations = list(infection_events['loc'].values)
         location_types = {l.ID: l.location_type for l in self.locations.values()
                           if l.ID in infection_locations}
@@ -977,7 +977,12 @@ class Simulation(object):
         out2['traced_contacts'] = [unique_contacts_per_day[i] for i in out2.index]
         return(out2.drop(columns=['time']))
 
-    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=120, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        if highest_timestep is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = highest_timestep
+        n_time_aggregates = (max_ts-lowest_timestep)/timesteps_per_aggregate
         Agent_Info = self.get_agent_info()
         Interaction_matrix = build_interaction_matrix(
             self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
@@ -985,7 +990,12 @@ class Simulation(object):
             Interaction_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
         return(Interaction_HeatmapDF)
 
-    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=120, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+        if highest_timestep is None:
+            max_ts = self.simulation_timecourse['time'].max()
+        else:
+            max_ts = highest_timestep
+        n_time_aggregates = (max_ts-lowest_timestep)/timesteps_per_aggregate
         Agent_Info = self.get_agent_info()
         Infection_matrix = build_infection_matrix(
             self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
@@ -1034,8 +1044,8 @@ class Simulation(object):
                                   'Infection_event'], aggfunc='count')
         return df_pivot
 
-    def get_r_eff_timecourse(self, sliding_window_size,sliding_step_size=1):
-        return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size,sliding_step_size=1)
+    def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
+        return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
@@ -1057,8 +1067,9 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    def export_r_eff_time_course_as_csv(self, sliding_window_size,sliding_step_size=1,saved_csv_identifier='unnamed_output'):
-        vpm_neta.export_r_eff_timecourse_as_csv(self, sliding_window_size,sliding_step_size=1,saved_csv_identifier=saved_csv_identifier)
+    def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
+        vpm_neta.export_r_eff_timecourse_as_csv(
+            self, sliding_window_size, sliding_step_size=1, saved_csv_identifier=saved_csv_identifier)
 
     def plot_infections_per_location_type(self, relative_to_building_number=True, save_figure=False):
         ax, loc_dict_inf = vpm_plt.plot_infections_per_location_type(
@@ -1126,13 +1137,13 @@ class Simulation(object):
         vpm_plt.plot_interaction_timecourse(
             self, save_figure=save_figure, log=log, diagnosed_contact=diagnosed_contact)
 
-    def plot_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+    def plot_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
         vpm_plt.plot_interaction_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
-                                          timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+                                          timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups, save_figure=save_figure)
 
-    def plot_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
+    def plot_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], save_figure=False):
         vpm_plt.plot_infection_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
-                                        timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups, save_figure=save_figure)
+                                        timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups, save_figure=save_figure)
 
 
 def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
@@ -1153,8 +1164,10 @@ def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None,
         DayFrame = Infections.loc[Infections['aggregated_time'] == d, ]
         did_infect_array = numpy.zeros((len(individuals), len(individuals)))
         for i in list(DayFrame.index):
-            did_infect_array[individuals.index(DayFrame.loc[i, 'h_ID']), individuals.index(
-                DayFrame.loc[i, 'Infection_event'])] = 1
+            if DayFrame.loc[i, 'h_ID'] in individuals:
+                if DayFrame.loc[i, 'Infection_event'] in individuals:
+                    did_infect_array[individuals.index(DayFrame.loc[i, 'h_ID']), individuals.index(
+                        DayFrame.loc[i, 'Infection_event'])] = 1
         infection_matrix += did_infect_array
     # cols=spreaders rows=receivers
     return(pd.DataFrame(infection_matrix, index=individuals, columns=individuals))
@@ -1259,10 +1272,11 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     perday.columns = age_groups
     return(perday)
 
-def plot_r_eff(self,sliding_window_size,sliding_step_size=1,save_fig=False):
-        vpm_neta.plot_r_eff_from_csvs_or_sim_object(
-            self,from_sim_obj_sliding_window_size=sliding_window_size,
-            from_sim_obj_sliding_step_size=sliding_step_size,save_fig=save_fig)
+
+def plot_r_eff(self, sliding_window_size, sliding_step_size=1, save_fig=False):
+    vpm_neta.plot_r_eff_from_csvs_or_sim_object(
+        self, from_sim_obj_sliding_window_size=sliding_window_size,
+        from_sim_obj_sliding_step_size=sliding_step_size, save_fig=save_fig)
 
 
 def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_period_start):

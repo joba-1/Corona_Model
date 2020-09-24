@@ -342,9 +342,9 @@ def plot_distributions_of_durations(simulation_object, save_figure=False, log=Fa
         plt.savefig('outputs/duration_distributions.png')
 
 
-def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, n_time_aggregates, age_groups, save_figure):
+def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
     Interaction_Patterns = simulation_object.get_age_group_specific_interaction_patterns(
-        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups)
 
     max_tot = Interaction_Patterns.max().max()
     min_tot = Interaction_Patterns.min().min()
@@ -366,9 +366,9 @@ def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timest
         plt.savefig('outputs/age_group_dependent_interaction_patterns.png')
 
 
-def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, n_time_aggregates, age_groups, save_figure):
+def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
     Interaction_Patterns = simulation_object.get_age_group_specific_infection_patterns(
-        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
+        lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups)
     max_tot = Interaction_Patterns.max().max()
     min_tot = Interaction_Patterns.min().min()
     y_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
