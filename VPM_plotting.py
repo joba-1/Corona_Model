@@ -76,19 +76,46 @@ def plot_infections_per_location_type(modeled_pop_world_obj, save_figure=False, 
     return ax, loc_infection_dict
 
 
-def plot_distribution_of_location_types(modeled_pop_world_obj):
+def plot_distribution_of_location_types(modeled_pop_world_obj, kind='bar'):
     """
     plots the distribution of the location types that were initialized in this world
     :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
     """
     location_counts = modeled_pop_world_obj.get_distribution_of_location_types()
     locations_types = list(location_counts.keys())
-    plt.bar(locations_types, list(location_counts.values()), color=[
-            locationTypeColors[loc] for loc in locations_types])
-    plt.title('Distribution of generated location types')
-    plt.xlabel('Location type')
-    plt.ylabel('# generated of this type')
+    if kind == 'bar':
+        plt.bar(locations_types, list(location_counts.values()), color=[
+                locationTypeColors[loc] for loc in locations_types])
+        plt.title('Distribution of generated location types')
+        plt.xlabel('Location type')
+        plt.ylabel('# generated of this type')
+    elif kind == 'pie':
+        pass #todo
+
     plt.show()
+
+
+def plot_locations_and_schedules(modeled_pop_world_obj, save_figure=False):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 7))
+    cmap = plt.get_cmap("Set2")
+    colors = cmap(np.arange(0, 10))
+
+    #location types
+    location_distributio_dict = modeled_pop_world_obj.get_distribution_of_location_types()
+    locs_to_show = ['home', 'school', 'public', 'hospital', 'work', 'morgue']
+    values = [location_distributio_dict[x] for x in locs_to_show]
+    axes[0].pie(values, labels=locs_to_show, radius=1, colors=colors,
+                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0.0, 0.0, 0.0, 0.0, 0.0, 0.1], )
+
+    #schedule types
+    schedules_types = [p.type for p in modeled_pop_world_obj.people]
+    schedule_types_unique = list(set(schedules_types))
+    values = [len([x for x in schedules_types if x == st]) /
+            len(schedules_types) for st in schedule_types_unique]
+    axes[1].pie(values, labels=schedule_types_unique, radius=1, colors=colors,
+                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0., 0.0, 0.0, 0.0, 0.1, 0.0], )
+    if save_figure:
+        plt.savefig('plots/location_schedules_pie.png', bbox_inches='tight')            
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10, save_figure=False):
