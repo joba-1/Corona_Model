@@ -266,7 +266,7 @@ class ModeledPopulatedWorld(object):
                     raise Exception("Not enough, humans to infect")
             if x not in inif_I_list_new:
                 inif_I_list_new.append(x)
-        if inif_I_list_new != ini_I_list:
+        if not all(inif_I_list_new == ini_I_list):
             print('list of initial infected changed from ',
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new
@@ -462,7 +462,8 @@ class Simulation(object):
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
         """
-        population_size = len(self.people)
+        #population_size = len(self.people)
+        #print(population_size)
         timecourse = []
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
@@ -698,7 +699,8 @@ class Simulation(object):
         #df.sort_values('infection_time').reset_index(drop=True)
         df = self.simulation_timecourse
         df_I = df[df['Infection_event']>1].copy()
-        df_I.drop(columns=['Temporary_Flags', 'Cumulative_Flags','Interaction_partner','status'], inplace=True)
+        cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags','Interaction_partner','status'] if x in list(df_I.columns) ]
+        df_I.drop(columns=cols_to_drop, inplace=True)
         df_I.set_index('time', inplace=True)
         df_I.columns = ['h_ID','infection_loc_ID','infected_by_ID']
         return df_I
