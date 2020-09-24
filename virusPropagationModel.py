@@ -977,7 +977,7 @@ class Simulation(object):
         out2['traced_contacts'] = [unique_contacts_per_day[i] for i in out2.index]
         return(out2.drop(columns=['time']))
 
-    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    def get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=120, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
         Agent_Info = self.get_agent_info()
         Interaction_matrix = build_interaction_matrix(
             self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)
@@ -985,7 +985,7 @@ class Simulation(object):
             Interaction_matrix, Agent_Info, n_time_aggregates=n_time_aggregates, age_groups=age_groups)
         return(Interaction_HeatmapDF)
 
-    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+    def get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=120, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
         Agent_Info = self.get_agent_info()
         Infection_matrix = build_infection_matrix(
             self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate)

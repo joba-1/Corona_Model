@@ -233,6 +233,13 @@ def plot_and_save_infection_per_location(infection_per_location_list,
     plt.close()    
 
 
+def plot_and_save_interaction_patterns():
+
+def plot_and_save_infection_patterns():
+    
+def plot_and_save_contact_tracing():
+    '''only save no plotting yet'''
+
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
     df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]         

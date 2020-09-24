@@ -88,7 +88,8 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-rec", "--recovered", type=float, help="fraction (0.0-1.0) of initial recoverd agents default = 0.0")
     parser.add_argument("-rec_world", "--recovered_world", type=int,
                         help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 0")
-
+    parser.add_argument("-mht", "--max_houshold_time", type=int,
+                        help="max time for monitoring infected housholds (default is None ->max)")
     options = parser.parse_args(args)
     return options
 
@@ -172,6 +173,7 @@ def simulate_scenario(input_dict):
     reinfections = int(my_dict['reinfections'])
     mu = my_dict['mu']
     product = my_dict['product']
+    max_houshold_time = my_dict['max_houshold_time']
 
     #print(disobedience, reinfections, reinfection_times)
 
@@ -254,10 +256,20 @@ def simulate_scenario(input_dict):
                               'durations': simulation1.get_durations(),
             'flag_trajectories': simulation1.get_flag_sums_over_time(),
             'infections_per_location_type':simulation1.get_infections_per_location_type(),
-            'number_of_infected_households':simulation1.get_number_of_infected_households(time_span=[0,480]),
+            'number_of_infected_households': simulation1.get_number_of_infected_households(time_span=[0, max_houshold_time]),
             'infection_timecourse': simulation1.get_infection_event_information(),
-            }
+            'interaction_patterns': simulation1.get_age_group_specific_interaction_patterns(),
+            'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
+            'contact_tracing': simulation1.contact_tracing(tracing_window=240,
+                                                           loc_time_overlap_tracing=False,
+                                                           trace_all_following_infections=True),
+           }
 
+
+simulation1.get_age_group_specific_interaction_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[
+                                                        0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
+simulation1.get_age_group_specific_infection_patterns(self, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24, n_time_aggregates=5, age_groups=[
+                                                      0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
 
 def get_simualtion_settings(options):
     input_parameter_dict={}
@@ -331,6 +343,11 @@ def get_simualtion_settings(options):
         input_parameter_dict['mu'] = options.mu
     else:
         input_parameter_dict['mu'] = 2
+
+    if options.max_houshold_time:
+        input_parameter_dict['max_houshold_time'] = options.max_houshold_time
+    else:
+        input_parameter_dict['max_houshold_time'] = None
     
     if options.recovered:
         try:
@@ -459,12 +476,18 @@ if __name__ == '__main__':
         infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
         number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
+        interaction_patterns_list = [df['interaction_patterns'] for df in df_dict_list]
+        infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
+        contact_tracing = [df['contact_tracing'] for df in df_dict_list]
 
         plot_and_save_statii(status_trajectories_list, filename=scenario_and_parameter, output_folder=output_folder_plots) 
         plot_and_save_durations(simulation_trajectory_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=False, filename=scenario_and_parameter, output_folder=output_folder_plots)
         plot_flags(flag_trajectories_list, cummulative=True, filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
         plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario_and_parameter, output_folder=output_folder_plots)
+        plot_and_save_interaction_patterns()
+        plot_and_save_infection_patterns()
+        plot_and_save_contact_tracing()
         save_number_of_infected_households(number_of_infected_households_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
         save_infection_timecourse(infection_timecourse_list, filename=scenario_and_parameter, output_folder=output_folder_plots)
         stop = timeit.default_timer()
