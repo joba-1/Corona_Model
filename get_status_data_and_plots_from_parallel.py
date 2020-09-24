@@ -49,7 +49,7 @@ statusAndFlagsColors = {
 #sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
 #scenario = 'reopen_schools_100'
 
-def getOptions(args=sys.argv[1:]):
+def getOptions_1(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
@@ -232,15 +232,22 @@ def plot_and_save_infection_per_location(infection_per_location_list,
 
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
-    df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]
-            
+    df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]         
     df.to_csv(output_folder+filename+'_'+'households'+'.csv')
+
+
+def save_infection_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
+    #df = pd.concat([df_I.reset_index() for df_I in df_I_list], axis=1)
+    #df.columns = [
+    #    'households'+str(i) for i in range(len(number_of_infected_households_list))]
+    for i, df_I in enumerate(df_I_list):
+        df_I.to_csv(output_folder + filename + '_' + 'infection_information' + '_' + str(i) + '.csv')
 
 
 
 if __name__=='__main__':
 
-    options = getOptions(sys.argv[1:])
+    options = getOptions_1(sys.argv[1:])
 
     if options.scenario: # take scenario type as argument or take default
         scenario = options.scenario   
