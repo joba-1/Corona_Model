@@ -86,8 +86,8 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-prod", "--product", type=float, help="fixed product infectivity*mu (default = 0: ignored")
     parser.add_argument("-mu", "--mu", type=float, help="interaction frequency (default = 2")
     parser.add_argument("-rec", "--recovered", type=float, help="fraction (0.0-1.0) of initial recoverd agents default = 0.0")
-    parser.add_argument("-rec_world", "--recovered_world", type=float,
-                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 1")
+    parser.add_argument("-rec_world", "--recovered_world", type=int,
+                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 0")
 
     options = parser.parse_args(args)
     return options
@@ -248,7 +248,9 @@ def simulate_scenario(input_dict):
                               'durations': simulation1.get_durations(),
             'flag_trajectories': simulation1.get_flag_sums_over_time(),
             'infections_per_location_type':simulation1.get_infections_per_location_type(),
-            'number_of_infected_households':simulation1.get_number_of_infected_households(time_span=[0,480])}
+            'number_of_infected_households':simulation1.get_number_of_infected_households(time_span=[0,480]),
+            'infection_timecourse': simulation1.get_infection_event_information(),
+            }
 
 
 def get_simualtion_settings(options):
@@ -343,7 +345,7 @@ def get_simualtion_settings(options):
             print(msg)
             input_parameter_dict['recovered_world'] = 1
     else:
-        input_parameter_dict['recovered_world'] = 1
+        input_parameter_dict['recovered_world'] = 0
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
@@ -359,8 +361,8 @@ def generate_scenario_list(used_scenario, number):
 
 if __name__ == '__main__':
 
-    #input_folder =  '/home/basar/corona_simulations_save/saved_objects/Gangelt_big_RPM_02_schedules_v2_ifm/'
-    input_folder = 'saved_objects/worldsV2/'
+    input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
+    #input_folder = 'saved_objects/worldsV2/'
     world_name = 'V2_RPM02_Gangelt_big_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
@@ -389,6 +391,7 @@ if __name__ == '__main__':
         if used_scenario['parameter'] == 'initial_infections':
             infect_world(currentWorld, IDs=[i+1 for i in range(int(p))])
         else:
+            used_scenario[used_scenario['parameter']] = p
             if used_scenario['parameter'] == 'recover_frac':
                 recover_world(currentWorld, p, from_world=used_scenario['recovered_world'],
                               time_steps = used_scenario['max_time'],
@@ -398,8 +401,7 @@ if __name__ == '__main__':
                               folder = output_folder,
                               world_name = world_name,
                               initial_infectees=[1,2,3,4])
-                used_scenario[used_scenario['parameter']] = p
-                infect_world(currentWorld, IDs=[i+1 for i in range(4)])
+            infect_world(currentWorld, IDs=[i+1 for i in range(4)])
                 
 
         if used_scenario['product'] != 0:
@@ -440,6 +442,7 @@ if __name__ == '__main__':
     
         with Pool(input_parameter_dict['cores']) as pool:
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
+        print(df_dict_list[0].keys())
 
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]

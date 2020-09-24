@@ -202,7 +202,7 @@ def get_simualtion_settings(options):
     else:
         disobedience = 0  
                      
-    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobediance
+    return scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience
 
 
 def generate_scenario_list(used_scenario, number):

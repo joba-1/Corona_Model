@@ -35,7 +35,7 @@ if __name__ == '__main__':
     if options.folder:
         output_folder = options.folder
     else:
-        output_folder = '/home/basar/corona_simulations_save/saved_objects/worlds/V2_RPM2_Gangelt'
+        output_folder = '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
 
     try:
         os.mkdir(output_folder)
@@ -57,6 +57,6 @@ if __name__ == '__main__':
     else:
         size = 1
     
-    mapfunc = partial(ini_and_save_world, size=3)
+    mapfunc = partial(ini_and_save_world, size=size)
     with Pool(cores) as pool:
         pool.map(mapfunc, [i for i in range(number)])

@@ -2,13 +2,16 @@ from virusPropagationModel import *
 import glob
 import matplotlib.pyplot as plt
 import pandas as pd
-import argparse
+from argparse import ArgumentParser
 import sys
 import matplotlib.cm as cm
 from multiprocessing import Pool
 import timeit
 import numpy as np
-
+import os
+os.environ['QT_QPA_PLATFORM']='offscreen'
+import matplotlib.pyplot as plt
+import pandas as pd
 #colors = vpm_plt.statusAndFlagsColors
 
 #def getOptions(args=sys.argv[1:]):
@@ -49,8 +52,8 @@ statusAndFlagsColors = {
 #sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
 #scenario = 'reopen_schools_100'
 
-def getOptions(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
+def getOptions_1(args=sys.argv[1:]):
+    parser = ArgumentParser(description="Parses command.")
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     #parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
@@ -232,15 +235,18 @@ def plot_and_save_infection_per_location(infection_per_location_list,
 
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
-    df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]
-            
+    df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]            
     df.to_csv(output_folder+filename+'_'+'households'+'.csv')
 
-
+def save_infection_information_csv(df_I_list):
+    df = pd.concat([df_I.reset_index() for df_I in df_I_list], axis=1)
+    #df.columns = [
+    #    'households'+str(i) for i in range(len(number_of_infected_households_list))]
+    df.to_csv(output_folder+filename+'_'+'infection_information'+'.csv')
 
 if __name__=='__main__':
 
-    options = getOptions(sys.argv[1:])
+    options = getOptions_1(sys.argv[1:])
 
     if options.scenario: # take scenario type as argument or take default
         scenario = options.scenario   
