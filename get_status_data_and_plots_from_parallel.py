@@ -14,17 +14,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 #colors = vpm_plt.statusAndFlagsColors
 
-#def getOptions(args=sys.argv[1:]):
-#    parser = argparse.ArgumentParser(description="Parses command.")
-#    parser.add_argument("-f", "--folder", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
-#    parser.add_argument("-ma", "--min_area", type=int, help="default 3  (*1e-8) to reduce locations")
-    #parser.add_argument("-n", "--number", type=int, help="A number.")
-    #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
-#    options = parser.parse_args(args)
-#    return options
-#folder = '~/../basar/corona_simulations'
-
-#cmap = cm.get_cmap('Set1')
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
 
 statusAndFlagsColors = {
@@ -43,17 +32,8 @@ statusAndFlagsColors = {
     'ICUed': mainModelCmap(7),  # pink
 }
 
-#scenario = 'no_mitigation'
-#output_folder = 'outputs/'+scenario+'/'
-#input_folder =  'saved_objects/scenario_output_e'
-
-
-#file_list = os.listdir(input_folder)
-#sim_files = [x for x in file_list if x.endswith('pkl')]#and x.startswith('sim')] needs to be sorted if several simualtions in folder
-#scenario = 'reopen_schools_100'
-
 def getOptions_1(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
+    parser = ArgumentParser(description="Parses command.")
     parser.add_argument("-sc", "--scenario", type=str, help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     #parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
@@ -61,9 +41,6 @@ def getOptions_1(args=sys.argv[1:]):
     parser.add_argument("-if", "--input_folder", type=str, help="name of the folder with the simulations ")
     options = parser.parse_args(args)
     return options
-
-
-
 
 def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
     """
@@ -80,18 +57,6 @@ def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
                               'durations': sim.get_durations(),
             'flag_trajectories': sim.get_flag_sums_over_time(),
             'infections_per_location_type':sim.get_infections_per_location_type()}
-
-#sim_files =['sim0_simulationObj.pkl',
-#            'sim1_simulationObj.pkl',
-#            'sim2_simulationObj.pkl',
-#            'sim3_simulationObj.pkl',
-#            'sim4_simulationObj.pkl',
-#            'sim5_simulationObj.pkl',
-#            'sim6_simulationObj.pkl',
-#            'sim7_simulationObj.pkl',
-#            'sim8_simulationObj.pkl',
-#            'sim9_simulationObj.pkl']
-
 
 def plot_and_save_statii(status_trajectories_list,
                          statii=['I','S','R','D'],
@@ -177,7 +142,6 @@ def plot_and_save_durations(simulation_trajectory_list,
         plt.savefig(output_folder+'plots/'+filename+'_'+dur+'.png') 
     plt.close()
 
-
 def plot_flags(flags_l, cummulative=False,
                       filename='scenario',
                       save_as_csv=True,
@@ -232,27 +196,137 @@ def plot_and_save_infection_per_location(infection_per_location_list,
         plt.savefig(output_folder+'plots/'+filename+'_infections_per_location_type.png')    
     plt.close()    
 
+def plot_and_save_patterns(df_list, save_figure=True,
+                           pattern='interactions',
+                           output_folder='output_folder/',
+                           filename='scenario',
+                           ):
 
-def plot_and_save_interaction_patterns():
-
-def plot_and_save_infection_patterns():
+    if pattern =='interactions':
+        c = 'Blues'
+    elif pattern == 'infections':
+        c = 'Reds'    
+    else:
+        raise ValueError
     
-def plot_and_save_contact_tracing():
-    '''only save no plotting yet'''
+    Interaction_Patterns = sum(df_list)/len(df_list) # mean over all dfs
+    max_tot = Interaction_Patterns.max().max()
+    min_tot = Interaction_Patterns.min().min()
+    y_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_positions = np.arange(0.5, len(Interaction_Patterns.index), 1)[::2]
+    x_tick_labels = [int(i) for i in Interaction_Patterns.columns][::2]
+    y_tick_labels = [int(i) for i in Interaction_Patterns.index][::2]
 
+    plt.figure(figsize=(6/1.25, 5/1.25))
+    heatmap = plt.pcolor(Interaction_Patterns, cmap=c,
+                         vmin=min_tot, vmax=max_tot)
+    plt.yticks(y_tick_positions, y_tick_labels)
+    plt.xticks(x_tick_positions, x_tick_labels)
+    plt.colorbar(heatmap)
+    plt.title(pattern+' per age-group')
+    plt.xlabel(pattern+' subject (age-groups)')
+    plt.ylabel(pattern+' object (age-groups)')
+    #plt.show()
+    if save_figure:
+        plt.savefig(output_folder+'plots/' + filename +
+                    'age_group_dependent_'+pattern+'_patterns.svg', bbox_inches='tight')
+        plt.savefig(output_folder+'plots/' + filename +
+                    'age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
+    plt.close()                
+    Interaction_Patterns.to_csv(
+        output_folder+filename+'age_group_dependent_'+pattern+'_patterns.csv')
+
+def plot_and_save_contact_tracing(df_list, filename='scenario', output_folder='outputs/'):
+    '''only save no plotting yet'''
+    df = pd.concat(df_list, axis=0)
+    df.reset_index(inplace=True)
+    df_mean = df.groupby('aggregated_time').mean()
+    df.to_csv(output_folder+filename+'contact_tracing.csv')
+    
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
     df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]         
     df.to_csv(output_folder+filename+'_'+'households'+'.csv')
 
+def plot_infection_per_schedule_type(df_I_list, world,
+                                     cutoff_time=100, nr_most_inf_p=800,
+                                     save_figure=True,filename='scenario',
+                                     output_folder='outputs/',
+                                     relative=True,):
+
+    ####data
+    #world
+    id_Type_dict = {p.ID: p.type for p in world.people}  # faster
+    schedule_types = set(id_Type_dict.values())
+    n_people = len(id_Type_dict)
+    type_ratio_dict = {t: sum([1 for x in id_Type_dict if id_Type_dict[x] == t])/n_people for t in schedule_types}
+    df_world = pd.DataFrame([type_ratio_dict])
+    df_world_m = df_world.mean()
+    
+    #infections
+    group_list = [df[df.index > cutoff_time].groupby(
+            'infected_by_ID').count().sort_values('h_ID') for df in df_I_list]
+    type_ratio_inf_list = []
+    for df in group_list:
+        type_list_inf = [id_Type_dict[x] for x in df[-nr_most_inf_p:].index]
+        type_ratio_inf_list.append(
+            {t: len([1 for x in type_list_inf if x == t])/len(type_list_inf) for t in schedule_types})
+    df_inf_ratios = pd.DataFrame(type_ratio_inf_list)
+    
+    #combine world and infection
+    if relative:
+        df_series = (df_inf_ratios.mean()-df_world_m)/df_world_m
+    else: 
+        df_series = (df_inf_ratios.mean()-df_world_m)
+    df = df_series.to_frame('values')
+    df['positive'] = df > 0
+    df.sort_index(inplace=True)
+
+    ###figure
+    cmap = plt.get_cmap("Set1")
+    colors = cmap(np.arange(0, 3))
+    label_offset = 0.1
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+
+    #df_test[df_test>0].plot(kind='bar', ax=ax, colormap='Set1')
+    df['values'].plot(kind='bar', color=df['positive'].map(
+        {True: colors[0], False: colors[1]}), ax=ax, )
+    ax.spines['bottom'].set_position('zero')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.tick_params(axis='x', direction='out', pad=150, labelrotation=90)
+    ax.set_yticks([])
+    ax.set_ylim(min(df_series)*1.4, max(df_series)*1.4)
+    ax.xaxis.set_ticks_position('none')
+    ax.set_title(filename, pad=30)
+
+    for p in ax.patches:
+        if p.get_height() > 0:
+            ax.annotate('{:.2%}'.format(p.get_height()),
+                        (p.get_x() * 1.005, p.get_height() + label_offset))
+        else:
+            ax.annotate('{:.2%}'.format(p.get_height()),
+                        (p.get_x() * 1.005, p.get_height() - label_offset))
+
+    #save plots and data
+    if save_figure:
+        plt.savefig(output_folder + 'plots/' + filename
+                    + 'contributions_per_schedule.png', bbox_inches='tight')
+        plt.savefig(output_folder + 'plots/' + filename
+                    + 'contributions_per_schedule.svg', bbox_inches='tight')
+    df.to_csv(output_folder+'df_schedules_inf_ratios.csv')
 
 def save_infection_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
-    #df = pd.concat([df_I.reset_index() for df_I in df_I_list], axis=1)
-    #df.columns = [
-    #    'households'+str(i) for i in range(len(number_of_infected_households_list))]
-    for i, df_I in enumerate(df_I_list):
-        df_I.to_csv(output_folder + filename + '_' + 'infection_information' + '_' + str(i) + '.csv')
+    try:
+        os.mkdir(output_folder+'infection_informations/')
+    except:
+        pass
 
+    for i, df_I in enumerate(df_I_list):
+        df_I.to_csv(output_folder + 'infection_informations/' + filename +
+                    '_' + 'infection_information' + '_' + str(i) + '.csv')
 
 
 if __name__=='__main__':

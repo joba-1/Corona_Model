@@ -105,7 +105,7 @@ def plot_locations_and_schedules(modeled_pop_world_obj, save_figure=False):
     locs_to_show = ['home', 'school', 'public', 'hospital', 'work', 'morgue']
     values = [location_distributio_dict[x] for x in locs_to_show]
     axes[0].pie(values, labels=locs_to_show, radius=1, colors=colors,
-                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0.0, 0.0, 0.0, 0.0, 0.0, 0.1], )
+                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], )
 
     #schedule types
     schedules_types = [p.type for p in modeled_pop_world_obj.people]
@@ -113,7 +113,7 @@ def plot_locations_and_schedules(modeled_pop_world_obj, save_figure=False):
     values = [len([x for x in schedules_types if x == st]) /
             len(schedules_types) for st in schedule_types_unique]
     axes[1].pie(values, labels=schedule_types_unique, radius=1, colors=colors,
-                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0., 0.0, 0.0, 0.0, 0.1, 0.0], )
+                wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0., 0.0, 0.0, 0.0, 0.0, 0.0], )
     if save_figure:
         plt.savefig('plots/location_schedules_pie.png', bbox_inches='tight')            
 
@@ -381,7 +381,7 @@ def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timest
     y_tick_labels = [int(i) for i in Interaction_Patterns.index][::2]
 
     plt.figure(figsize=(6/1.25, 5/1.25))
-    heatmap = plt.pcolor(Interaction_Patterns, cmap=plt.cm.Blues, vmin=min_tot, vmax=max_tot)
+    heatmap = plt.pcolor(Interaction_Patterns, cmap='Blues', vmin=min_tot, vmax=max_tot)
     plt.yticks(y_tick_positions, y_tick_labels)
     plt.xticks(x_tick_positions, x_tick_labels)
     plt.colorbar(heatmap)
@@ -404,7 +404,7 @@ def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep
     y_tick_labels = [int(i) for i in Interaction_Patterns.index][::2]
 
     plt.figure(figsize=(6/1.25, 5/1.25))
-    heatmap = plt.pcolor(Interaction_Patterns, cmap=plt.cm.Reds, vmin=min_tot, vmax=max_tot)
+    heatmap = plt.pcolor(Interaction_Patterns, cmap='Reds', vmin=min_tot, vmax=max_tot)
     plt.yticks(y_tick_positions, y_tick_labels)
     plt.xticks(x_tick_positions, x_tick_labels)
     plt.colorbar(heatmap)

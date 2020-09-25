@@ -11,7 +11,7 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
-import scipy
+from scipy import sparse
 from collections import OrderedDict as ordered_dict
 
 
@@ -253,7 +253,7 @@ class ModeledPopulatedWorld(object):
         :return: list of agent IDs
         """
         recovered_people = [p.ID for p in self.people if p.status == 'R']
-        print(len(recovered_people))
+        print('amount of initially recovered agents:',len(recovered_people))
         inif_I_list_new = []
 
         for i in ini_I_list:
@@ -277,6 +277,14 @@ class ModeledPopulatedWorld(object):
         :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
         """
         vpm_plt.plot_distribution_of_location_types(self)
+
+    def plot_locations_and_schedules(self, **kwargs):
+        """
+        plots the distribution of the location and schedule types that were initialized
+        in this world
+        :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
+        """
+        vpm_plt.plot_locations_and_schedules(self, **kwargs)
 
     def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
@@ -1204,7 +1212,6 @@ def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_t
     perday.columns = age_groups
     return(perday)
 
-
 def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:
         max_ts = simulation.simulation_timecourse['time'].max()
@@ -1212,17 +1219,16 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
         max_ts = highest_timestep
     Timecourse = simulation.simulation_timecourse[(simulation.simulation_timecourse['time'] >= lowest_timestep) & (
         simulation.simulation_timecourse['time'] <= max_ts)]
-
     # Infections=Timecourse.loc[Timecourse['Infection_event']>=0,:]
-    Interactions = Timecourse.loc[Timecourse['Interaction_partner'] != '', :]
+    Interactions = Timecourse.loc[Timecourse['Interaction_partner'] != '', :].copy()
     Days = [int(i/timesteps_per_aggregate) for i in Interactions['time']]
-    Interactions['aggregated_time'] = Days
+    Interactions.loc[:,'aggregated_time'] = Days
     individuals = [int(i) for i in list(Timecourse['h_ID'].unique())]
     individual_dict = dict(zip(individuals, list(range(len(individuals)))))
     # out={}
-    interaction_matrix = scipy.sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
+    interaction_matrix = sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
     for d in list(Interactions['aggregated_time'].unique()):
-        DayFrame = Interactions.loc[Interactions['aggregated_time'] == d, ]
+        DayFrame = Interactions[Interactions['aggregated_time'] == d]
         #person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])
         contact_indices = [individual_dict[int(j)] for i in list(
             DayFrame['Interaction_partner']) for j in i.split(',')]
@@ -1236,10 +1242,8 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
         # person_indices=[for j in [[individual_dict[int(DayFrame.loc[i,'h_ID'])]]*len(DayFrame.loc[i,'Interaction_partner'].split(',')) for i in DayFrame.index] for k in j]
         #person_indices=[individuals.index(DayFrame.loc[i,'h_ID']) for i in list(DayFrame.index)]
         interaction_matrix[contact_indices, person_indices] += 1
-
     # cols=subject rows=object
     return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
-
 
 def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
     Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
@@ -1272,12 +1276,10 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     perday.columns = age_groups
     return(perday)
 
-
 def plot_r_eff(self, sliding_window_size, sliding_step_size=1, save_fig=False):
     vpm_neta.plot_r_eff_from_csvs_or_sim_object(
         self, from_sim_obj_sliding_window_size=sliding_window_size,
         from_sim_obj_sliding_step_size=sliding_step_size, save_fig=save_fig)
-
 
 def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_period_start):
     t_diag = t_diagnosis[person]
@@ -1295,7 +1297,6 @@ def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_peri
             set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))
     number_time_loc_overlap = len(list(set(time_place_overlap_ids)))
     return((list(set(','.join(contacts).split(','))), number_time_loc_overlap))
-
 
 def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
     t_diag = t_diagnosis[person]
