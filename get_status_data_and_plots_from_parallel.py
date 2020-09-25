@@ -234,14 +234,14 @@ def plot_and_save_patterns(df_list, save_figure=True,
                     'age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
     plt.close()                
     Interaction_Patterns.to_csv(
-        output_folder+filename+'age_group_dependent_'+pattern+'_patterns.csv')
+        output_folder+filename + '_' + 'age_group_dependent' + '_' + pattern+'_patterns.csv')
 
 def plot_and_save_contact_tracing(df_list, filename='scenario', output_folder='outputs/'):
     '''only save no plotting yet'''
     df = pd.concat(df_list, axis=0)
     df.reset_index(inplace=True)
     df_mean = df.groupby('aggregated_time').mean()
-    df.to_csv(output_folder+filename+'contact_tracing.csv')
+    df.to_csv(output_folder+filename + '_' + 'contact_tracing.csv')
     
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
@@ -316,7 +316,7 @@ def plot_infection_per_schedule_type(df_I_list, world,
                     + 'contributions_per_schedule.png', bbox_inches='tight')
         plt.savefig(output_folder + 'plots/' + filename
                     + 'contributions_per_schedule.svg', bbox_inches='tight')
-    df.to_csv(output_folder+'df_schedules_inf_ratios.csv')
+    df.to_csv(output_folder+filename + '_' + 'df_schedules_inf_ratios.csv')
 
 def save_infection_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
     try:
@@ -327,6 +327,15 @@ def save_infection_timecourse(df_I_list, filename='scenario', output_folder='out
     for i, df_I in enumerate(df_I_list):
         df_I.to_csv(output_folder + 'infection_informations/' + filename +
                     '_' + 'infection_information' + '_' + str(i) + '.csv')
+
+def plot_and_save_r_eff(df_list, save_figure=True,
+                        output_folder='output_folder/',
+                        filename='scenario',
+                        ):
+    """just save the mean df for R_eff"""
+    df_r_eff_mean = sum(df_list)/len(df_list)
+    df_r_eff_mean.to_csv(output_folder+filename+'_r_eff.csv')
+
 
 
 if __name__=='__main__':

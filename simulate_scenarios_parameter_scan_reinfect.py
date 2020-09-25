@@ -256,6 +256,7 @@ def simulate_scenario(input_dict):
                 'number_of_infected_households': simulation1.get_number_of_infected_households(time_span=[0, max_houshold_time]),
                 'infection_timecourse': simulation1.get_infection_event_information(),
                 'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
+                'r_eff': simulation1.get_r_eff_trajectory(96)
                 }
 
     if 'Interaction_partner' in timecourse_keys:
@@ -474,6 +475,7 @@ if __name__ == '__main__':
         number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
+        r_eff_list = [df['r_eff'] for df in df_dict_list]
 
         kwargs_plot = {'filename':scenario_and_parameter, 'output_folder':output_folder_plots}
         
@@ -485,10 +487,10 @@ if __name__ == '__main__':
             infections_per_location_type_list, **kwargs_plot)
         plot_and_save_patterns(infection_patterns_list,  pattern='infections',
                                filename=scenario_and_parameter, output_folder=output_folder_plots)
-        
         plot_infection_per_schedule_type(infection_timecourse_list,
                                          used_scenario['modeledWorld'],
                                          **kwargs_plot)
+        plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
                                          
         save_number_of_infected_households(
             number_of_infected_households_list, **kwargs_plot)

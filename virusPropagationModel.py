@@ -712,6 +712,55 @@ class Simulation(object):
         df_I.columns = ['h_ID', 'infection_loc_ID', 'infected_by_ID']
         return df_I
 
+
+    def get_r_eff_trajectory(self, sliding_window_size, sliding_step_size=1):
+        """
+        :returns: times, r_effs, stds_r_eff
+        """
+        stati_list = self.statuses_in_timecourse
+        humans_df = self.simulation_timecourse.copy()
+        for i in range(len(stati_list)):  # encode statiis from position in statii list
+            humans_df.loc[humans_df['status'] == i, 'status'] = stati_list[i]
+            humans_df.set_index('time')
+        
+        #reproduction_number from infection informations
+        df_inf = self.get_infection_event_information()
+        successful_spreaders_df = df_inf.drop(columns=['infection_loc_ID'])
+        successful_spreaders_df.rename(columns={"h_ID": "infected_ID",
+                                                "infected_by_ID": "infected_by"}, inplace=True)
+        spreader_reproduction_numbers = successful_spreaders_df.groupby('infected_by').count(
+        ).infected_ID.to_frame().rename(columns={"infected_ID": "reproduction_nr"})
+        spreader_reproduction_numbers['infected_ID'] = spreader_reproduction_numbers.index
+        spreader_reproduction_numbers.reset_index(drop=True, inplace=True)
+
+        # makes sure we dont count people that never stopped being infectious (unclosed cases)
+        closed_spreader_cases_IDs = np.unique(
+            humans_df[humans_df.status.isin(['R', 'D'])].h_ID.values)
+        closed_possible_spreaders = humans_df.loc[(humans_df.status == 'I') &  # we only count the actively infected as spreaders
+                                                (humans_df.h_ID.isin(
+                                                    closed_spreader_cases_IDs)),
+                                                ['time', 'h_ID']].rename(columns={"h_ID": "infected_ID"})
+
+        closed_spreaders_with_r = closed_possible_spreaders.merge(
+            spreader_reproduction_numbers, on='infected_ID', how='left')
+        closed_spreaders_with_r['reproduction_nr'] = closed_spreaders_with_r['reproduction_nr'].fillna(
+            0.0).astype(int)
+
+        assert sliding_window_size <= np.max(
+            closed_spreaders_with_r.time), "the sliding window size it more then the time of the last infection in the time course  ! "
+        times = np.arange(sliding_window_size, np.max(
+            closed_spreaders_with_r.time) + 1, sliding_step_size)
+
+        r_effs = np.zeros(len(times))
+        stds_r_eff = np.zeros(len(times))
+
+        for i, t in enumerate(times):
+            time_window_reproduction_nrs = closed_spreaders_with_r.loc[(
+                closed_spreaders_with_r['time'] >= t-sliding_window_size) & (closed_spreaders_with_r['time'] <= t), ['reproduction_nr']]
+            r_effs[i] = time_window_reproduction_nrs.mean()
+            stds_r_eff[i] = time_window_reproduction_nrs.std()
+
+        return pd.DataFrame({'time': times, 'r_eff': r_effs, 'stds_r_eff': stds_r_eff})
     # DF
     def get_distribution_of_statuses_per_age(self, group_ages=True, age_groups_step=10):
         """
@@ -1137,8 +1186,8 @@ class Simulation(object):
                                   'Infection_event'], aggfunc='count')
         return df_pivot
 
-    def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
-        return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
+    #def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
+    #    return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
@@ -1160,9 +1209,9 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
-        vpm_neta.export_r_eff_timecourse_as_csv(
-            self, sliding_window_size, sliding_step_size=1, saved_csv_identifier=saved_csv_identifier)
+    #def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
+    #    vpm_neta.export_r_eff_timecourse_as_csv(
+    #        self, sliding_window_size, sliding_step_size=1, saved_csv_identifier=saved_csv_identifier)
 
     def plot_infections_per_location_type(self, relative_to_building_number=True, save_figure=False):
         ax, loc_dict_inf = vpm_plt.plot_infections_per_location_type(
@@ -1238,6 +1287,13 @@ class Simulation(object):
         vpm_plt.plot_infection_patterns(self, lowest_timestep=lowest_timestep, highest_timestep=highest_timestep,
                                         timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups, save_figure=save_figure)
 
+    def plot_r_eff(self, sliding_window_size, sliding_step_size=1, save_fig=False, plot_std=True):
+        vpm_plt.plot_r_eff_trajectory(self, sliding_window_size=sliding_window_size,
+                                      sliding_step_size=sliding_step_size,
+                                      plot_std=plot_std, save_fig=save_fig)
+        #vpm_neta.plot_r_eff_from_csvs_or_sim_object(
+        #    self, from_sim_obj_sliding_window_size=sliding_window_size,
+        #    from_sim_obj_sliding_step_size=sliding_step_size, save_fig=save_fig)
 
 def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:
@@ -1361,10 +1417,6 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     perday.columns = age_groups
     return(perday)
 
-def plot_r_eff(self, sliding_window_size, sliding_step_size=1, save_fig=False):
-    vpm_neta.plot_r_eff_from_csvs_or_sim_object(
-        self, from_sim_obj_sliding_window_size=sliding_window_size,
-        from_sim_obj_sliding_step_size=sliding_step_size, save_fig=save_fig)
 
 def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_period_start):
     t_diag = t_diagnosis[person]

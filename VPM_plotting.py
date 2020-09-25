@@ -1,8 +1,11 @@
-import matplotlib.pyplot as plt
 import random
+import time
+
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import matplotlib.cm as cm
+
 from collections import OrderedDict as ordered_dict
 
 statusLabels = {
@@ -430,3 +433,53 @@ def plot_interaction_timecourse(simulation_object, save_figure=False, log=False,
     ax.set_title('Interaction Timcourse'), ax.set_ylabel('counts'), ax.set_xlabel('time, h')
     if save_figure:
         plt.savefig('outputs/interaction_timecourse.png')
+
+
+def plot_r_eff_trajectory(simulation_object,
+                          sliding_window_size=None,
+                          sliding_step_size=1,
+                          plot_std=True,
+                          save_fig=False):
+    """
+    plot effictive R-value for given window size from simulation object
+    """
+    assert sliding_window_size is not None, "the desired sliding window size has to be specified under from_sim_obj_sliding_window_size"
+    tc_df = simulation_object.get_r_eff_trajectory(
+        sliding_window_size, sliding_step_size=1)
+    
+    ylabels = ['r_eff']
+    different_windows = False
+
+    cmap = cm.get_cmap("Set2")
+    plt.figure(figsize=(10, 10))
+
+    if not different_windows:
+        plt.plot(tc_df['time'], tc_df['r_eff'],
+                 label='r_eff', color=cmap(0), linewidth=3)
+        if plot_std:
+            std = tc_df['stds_r_eff']
+            plt.fill_between(
+                tc_df['time'], tc_df['r_eff']-std, tc_df['r_eff']+std, color=cmap(0), alpha=0.2)
+        plt.xlabel("Time [h]")
+        plt.ylabel("Effective reproduction number $R_\mathrm{{eff}}$")
+        plt.legend(ylabels, loc='best', frameon=False, title='Sliding window size = {} day(s), step size = {} h'.format(
+            str(round(float(sliding_window_size) / 24, 1)), str(sliding_step_size)))
+    else:
+        plt.plot(tc_df['time'], tc_df['r_eff'],
+                 label='r_eff', color=cmap(0), linewidth=3)
+        if plot_std:
+            std = tc_df['stds_r_eff']
+            plt.fill_between(
+                tc_df['time'], tc_df['r_eff']-std, tc_df['r_eff']+std, color=cmap(0), alpha=0.2)
+        plt.xlabel("Time [h]")
+        plt.ylabel("Effective reproduction number $R_\mathrm{{eff}}$")
+        plt.legend(ylabels, loc='best', frameon=False,
+                   title='Based on varying window sizes and steps (WSIZE[h],WSTEP[h])')
+
+    plt.axhline(y=1., color='gray', linestyle='--')
+
+    plt.show()
+
+    if save_fig:
+        timestr = '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
+        plt.savefig('outputs/r_eff_timecourse'+timestr+'.png', dpi=200)
