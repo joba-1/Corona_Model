@@ -844,10 +844,12 @@ class Simulation(object):
         people = list(self.people)
         Agents_Ages = {str(p.ID): p.age for p in people}
         Agents_Homes = {str(p.ID): p.home.ID for p in people}
+        Agents_Types = {str(p.ID): p.type for p in people}
         Agent_Info = pd.DataFrame()
         Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
         Agent_Info['Age'] = list(Agents_Ages.values())
         Agent_Info['Home'] = list(Agents_Homes.values())
+        Agent_Info['Type'] = list(Agents_Types.values())
         return(Agent_Info)
 
     def get_number_of_infected_households(self, time_span=[0, None], total=False):
@@ -870,6 +872,89 @@ class Simulation(object):
             out['households'] = [
                 len(list(infected_tc.loc[infected_tc['time'] == t, 'Household'].unique())) for t in timesteps]
             return(out)
+
+    def get_contact_distributions(self, timesteps_per_aggregate=24, human_type='all', min_t=0, max_t=None):
+        tc = self.simulation_timecourse
+        if max_t is None:
+            t_max = tc['time'].max()
+        else:
+            t_max = max_t
+
+        if human_type == 'all':
+            timecourse = tc.loc[(tc['time'] <= t_max) & (tc['time'] >= min_t)].copy()
+        else:
+            Agent_Info = self.get_agent_info()
+            for a in list(Agent_Info.loc[Agent_Info['Type'] == human_type].index):
+                tc.loc[tc['h_ID'] == Agent_Info.loc[a, 'ID'],
+                       'human_type'] = Agent_Info.loc[a, 'Type']
+            timecourse = tc.loc[(tc['time'] <= t_max) & (tc['time'] >= min_t)
+                                & (tc['human_type'] == human_type)].copy()
+
+        timecourse['aggregate'] = [int(i/timesteps_per_aggregate) for i in timecourse['time']]
+        n_aggregates = timecourse['aggregate'].max()
+
+        interactions_per_time = []
+        interactions = []
+        interactions_per_agent = {}
+        for t in timecourse['time'].unique():
+            df_t = timecourse.loc[timecourse['time'] == t, ['time', 'h_ID', 'Interaction_partner']]
+            ts_l = []
+            for i in df_t.index:
+                IP = df_t.loc[i, 'Interaction_partner']
+                if df_t.loc[i, 'h_ID'] not in interactions_per_agent.keys():
+                    interactions_per_agent[df_t.loc[i, 'h_ID']] = []
+                if pd.isna(IP):
+                    interactions.append(0)
+                    ts_l.append(0)
+                    interactions_per_agent[df_t.loc[i, 'h_ID']].append(0)
+                else:
+                    interactions.append(int(str(IP).count(',')+1))
+                    ts_l.append(int(str(IP).count(',')+1))
+                    interactions_per_agent[df_t.loc[i, 'h_ID']].append(int(str(IP).count(',')+1))
+            interactions_per_time.append(numpy.mean(ts_l))
+
+        mean_interactions_of_agents = {x: numpy.mean(
+            interactions_per_agent[x]) for x in interactions_per_agent.keys()}
+
+        out = {}
+        for d in range(n_aggregates):
+            df_d = timecourse.loc[timecourse['aggregate'] ==
+                                  d, ['time', 'h_ID', 'Interaction_partner']]
+            h_list = list(df_d['h_ID'].unique())
+            partners = [list(set([p for x in list(df_d.loc[(df_d['h_ID'] == h), 'Interaction_partner'])
+                                  for p in str(x).split(' , ') if p != 'nan'])) for h in h_list]
+            out[d] = dict(zip(h_list, partners))
+
+        n_unique_contacts = []
+        agent_unique_contacts = {}
+        for d in out.keys():
+            for a in out[d].keys():
+                n_unique_contacts.append(len(out[d][a]))
+                if a not in agent_unique_contacts.keys():
+                    agent_unique_contacts[a] = []
+                agent_unique_contacts[a].append(len(out[d][a]))
+
+        mean_unique_interactions_per_day = {i: numpy.mean(
+            agent_unique_contacts[i]) for i in agent_unique_contacts.keys()}
+
+        agent_dict = {}
+        for d in range(n_aggregates):
+            for a in out[d].keys():
+                if a not in agent_dict.keys():
+                    agent_dict[a] = {}
+                if d == 0:
+                    entry = out[d][a]
+                else:
+                    last_entry = agent_dict[a][d-1]
+                    entry = list(set(last_entry+out[d][a]))
+                agent_dict[a][d] = entry
+
+        Day_DF = pd.DataFrame()
+        if len(list(agent_dict.keys())) > 0:
+            for d in list(agent_dict[list(agent_dict.keys())[0]].keys()):
+                Day_DF[d] = [len(agent_dict[a][d]) for a in agent_dict.keys()]
+
+        return({'Mean_interactions_per_agent': mean_interactions_of_agents, 'Mean_interactions_per_timestep': interactions_per_time, 'Mean_unique_interactions_per_agent': mean_unique_interactions_per_day, 'Cumulative_unique_contacts_per_agent': Day_DF})
 
     def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
         if time_span[1] is None:
