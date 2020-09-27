@@ -1051,21 +1051,21 @@ class Simulation(object):
             out = concat_unique_Interactions.groupby('ID').sum()
             out.rename(columns={'number': 'unique_interactions'}, inplace=True)
             out.reset_index(inplace=True)
-            out['mean_interactions_per_timestep'] = [mean_interaction_DF.loc[int(
-                out.loc[i, 'ID']), 'mean_interactions_per_timestep'] for i in out.index]
+            out['ID'] = [int(i) for i in list(out['ID'])]
+            out['mean_interactions_per_timestep'] = [
+                mean_interaction_DF.loc[out.loc[i, 'ID'], 'mean_interactions_per_timestep'] for i in out.index]
             Agent_Info = self.get_agent_info()
-            out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] == int(
-                out.loc[i, 'ID']), 'Type'].values[0] for i in out.index]
+            out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] ==
+                                                   out.loc[i, 'ID'], 'Type'].values[0] for i in out.index]
         else:
             mean_interaction_DF.reset_index(inplace=True)
             out = mean_interaction_DF[['ID', 'mean_interactions_per_timestep']].copy()
-            out['ID'] = [str(i) for i in list(out['ID'])]
             Agent_Info = self.get_agent_info()
             out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] == int(
                 out.loc[i, 'ID']), 'Type'].values[0] for i in out.index]
 
         out.sort_values(by=['ID'], inplace=True)
-        out.reset_index(inplace=True)
+        out.reset_index(drop=True, inplace=True)
         return(out)
 
     def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
