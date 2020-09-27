@@ -253,7 +253,7 @@ class ModeledPopulatedWorld(object):
         :return: list of agent IDs
         """
         recovered_people = [p.ID for p in self.people if p.status == 'R']
-        print('amount of initially recovered agents:',len(recovered_people))
+        print('amount of initially recovered agents:', len(recovered_people))
         inif_I_list_new = []
 
         for i in ini_I_list:
@@ -712,7 +712,6 @@ class Simulation(object):
         df_I.columns = ['h_ID', 'infection_loc_ID', 'infected_by_ID']
         return df_I
 
-
     def get_r_eff_trajectory(self, sliding_window_size, sliding_step_size=1):
         """
         :returns: times, r_effs, stds_r_eff
@@ -722,8 +721,8 @@ class Simulation(object):
         for i in range(len(stati_list)):  # encode statiis from position in statii list
             humans_df.loc[humans_df['status'] == i, 'status'] = stati_list[i]
             humans_df.set_index('time')
-        
-        #reproduction_number from infection informations
+
+        # reproduction_number from infection informations
         df_inf = self.get_infection_event_information()
         successful_spreaders_df = df_inf.drop(columns=['infection_loc_ID'])
         successful_spreaders_df.rename(columns={"h_ID": "infected_ID",
@@ -737,9 +736,9 @@ class Simulation(object):
         closed_spreader_cases_IDs = np.unique(
             humans_df[humans_df.status.isin(['R', 'D'])].h_ID.values)
         closed_possible_spreaders = humans_df.loc[(humans_df.status == 'I') &  # we only count the actively infected as spreaders
-                                                (humans_df.h_ID.isin(
-                                                    closed_spreader_cases_IDs)),
-                                                ['time', 'h_ID']].rename(columns={"h_ID": "infected_ID"})
+                                                  (humans_df.h_ID.isin(
+                                                      closed_spreader_cases_IDs)),
+                                                  ['time', 'h_ID']].rename(columns={"h_ID": "infected_ID"})
 
         closed_spreaders_with_r = closed_possible_spreaders.merge(
             spreader_reproduction_numbers, on='infected_ID', how='left')
@@ -762,6 +761,7 @@ class Simulation(object):
 
         return pd.DataFrame({'time': times, 'r_eff': r_effs, 'stds_r_eff': stds_r_eff})
     # DF
+
     def get_distribution_of_statuses_per_age(self, group_ages=True, age_groups_step=10):
         """
         gets the distribution of the statuses over time, possibly for specified age groups
@@ -1005,6 +1005,61 @@ class Simulation(object):
 
         return({'Mean_interactions_per_agent': mean_interactions_of_agents, 'Mean_interactions_per_timestep': interactions_per_time, 'Mean_unique_interactions_per_agent': mean_unique_interactions_per_day, 'Cumulative_unique_contacts_per_agent': Day_DF})
 
+    def get_contact_distributions2(self, min_t=0, max_t=None):
+        if max_t is None:
+            t_max = self.simulation_timecourse['time'].max()
+        else:
+            t_max = max_t
+
+        timecourse = self.simulation_timecourse.loc[(self.simulation_timecourse['time'] <= t_max) & (
+            self.simulation_timecourse['time'] >= min_t) & (self.simulation_timecourse['Interaction_partner'] != '')].copy()
+
+        timecourse['modified_human_ID'] = [str(i)+',' for i in timecourse['h_ID']]
+        timecourse['partner_count'] = [1+i.count(',') for i in timecourse['Interaction_partner']]
+
+        interactors = ','.join([timecourse.loc[i, 'modified_human_ID']*timecourse.loc[i, 'partner_count']
+                                for i in timecourse.index]).replace(',,', ',').split(',')
+
+        partners = ','.join([i for i in list(timecourse['Interaction_partner'])]).split(',')
+        string_interaction_pairs = [list(x) for x in zip(interactors, partners)]
+        [i.sort() for i in string_interaction_pairs]
+        sorted_interactions = [tuple(i) for i in string_interaction_pairs]
+        unique_interactions = list(set(sorted_interactions))
+        DF_interactions = pd.DataFrame(columns=['A', 'B'], data=sorted_interactions)
+        DF_unique_interactions = pd.DataFrame(columns=['A', 'B'], data=unique_interactions)
+
+        uni_A = DF_unique_interactions.groupby('A').count()
+        uni_B = DF_unique_interactions.groupby('B').count()
+        uni_A.rename_axis('agent', inplace=True)
+        uni_B.rename_axis('agent', inplace=True)
+        uni_B.rename(columns={'A': 'number'}, inplace=True)
+        uni_A.rename(columns={'B': 'number'}, inplace=True)
+        uni_B.reset_index(inplace=True)
+        uni_A.reset_index(inplace=True)
+        concat_Interactions = pd.concat([uni_A, uni_B], axis=0)
+        X_uni = concat_Interactions.groupby('agent').sum()
+        X_uni.rename(columns={'number': 'number_unique_interactions'}, inplace=True)
+
+        inter_A = DF_interactions.groupby('A').count()
+        inter_B = DF_interactions.groupby('B').count()
+        inter_A.rename_axis('agent', inplace=True)
+        inter_B.rename_axis('agent', inplace=True)
+        inter_B.rename(columns={'A': 'number'}, inplace=True)
+        inter_A.rename(columns={'B': 'number'}, inplace=True)
+        inter_B.reset_index(inplace=True)
+        inter_A.reset_index(inplace=True)
+        concat_Interactions = pd.concat([inter_A, inter_B], axis=0)
+        X_inter = concat_Interactions.groupby('agent').sum()
+        X_inter.rename(columns={'number': 'number_interactions'}, inplace=True)
+
+        out = pd.concat([X_inter, X_uni], axis=1)
+        out.reset_index(inplace=True)
+        Agent_Info = self.get_agent_info()
+        out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] == int(
+            out.loc[i, 'agent']), 'Type'].values[0] for i in out.index]
+
+        return(out)
+
     def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
         if time_span[1] is None:
             max_ts = self.simulation_timecourse['time'].max()
@@ -1186,7 +1241,7 @@ class Simulation(object):
                                   'Infection_event'], aggfunc='count')
         return df_pivot
 
-    #def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
+    # def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
     #    return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
 
     def export_time_courses_as_csvs(self, identifier="output"):
@@ -1209,7 +1264,7 @@ class Simulation(object):
         locations_traj.set_index('time').to_csv(
             'outputs/' + identifier + '-locations_time_course.csv')
 
-    #def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
+    # def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
     #    vpm_neta.export_r_eff_timecourse_as_csv(
     #        self, sliding_window_size, sliding_step_size=1, saved_csv_identifier=saved_csv_identifier)
 
@@ -1291,9 +1346,10 @@ class Simulation(object):
         vpm_plt.plot_r_eff_trajectory(self, sliding_window_size=sliding_window_size,
                                       sliding_step_size=sliding_step_size,
                                       plot_std=plot_std, save_fig=save_fig)
-        #vpm_neta.plot_r_eff_from_csvs_or_sim_object(
+        # vpm_neta.plot_r_eff_from_csvs_or_sim_object(
         #    self, from_sim_obj_sliding_window_size=sliding_window_size,
         #    from_sim_obj_sliding_step_size=sliding_step_size, save_fig=save_fig)
+
 
 def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:
@@ -1353,6 +1409,7 @@ def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_t
     perday.columns = age_groups
     return(perday)
 
+
 def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=None, timesteps_per_aggregate=24):
     if highest_timestep is None:
         max_ts = simulation.simulation_timecourse['time'].max()
@@ -1363,7 +1420,7 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
     # Infections=Timecourse.loc[Timecourse['Infection_event']>=0,:]
     Interactions = Timecourse.loc[Timecourse['Interaction_partner'] != '', :].copy()
     Days = [int(i/timesteps_per_aggregate) for i in Interactions['time']]
-    Interactions.loc[:,'aggregated_time'] = Days
+    Interactions.loc[:, 'aggregated_time'] = Days
     individuals = [int(i) for i in list(Timecourse['h_ID'].unique())]
     individual_dict = dict(zip(individuals, list(range(len(individuals)))))
     # out={}
@@ -1385,6 +1442,7 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
         interaction_matrix[contact_indices, person_indices] += 1
     # cols=subject rows=object
     return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
+
 
 def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
     Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
@@ -1434,6 +1492,7 @@ def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_peri
             set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))
     number_time_loc_overlap = len(list(set(time_place_overlap_ids)))
     return((list(set(','.join(contacts).split(','))), number_time_loc_overlap))
+
 
 def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
     t_diag = t_diagnosis[person]
