@@ -1013,17 +1013,26 @@ class Simulation(object):
 
         timecourse = self.simulation_timecourse.loc[(self.simulation_timecourse['time'] <= t_max) & (
             self.simulation_timecourse['time'] >= min_t) & (self.simulation_timecourse['Interaction_partner'] != '')].copy()
+        timecourse2 = self.simulation_timecourse.loc[(self.simulation_timecourse['time'] <= t_max) & (
+            self.simulation_timecourse['time'] >= min_t)].copy()
 
         timecourse['modified_human_ID'] = [str(i)+',' for i in timecourse['h_ID']]
         timecourse['partner_count'] = [1+i.count(',') for i in timecourse['Interaction_partner']]
+
+        timecourse2['modified_human_ID'] = [str(i)+',' for i in timecourse2['h_ID']]
+        timecourse2['partner_count'] = [1+i.count(',') for i in timecourse2['Interaction_partner']]
+        timecourse2.loc[timecourse2['Interaction_partner'] == '', 'partner_count'] = 0
+
+        mean_interactions = timecourse2.groupby('h_ID').mean()
 
         interactors = ','.join([timecourse.loc[i, 'modified_human_ID']*timecourse.loc[i, 'partner_count']
                                 for i in timecourse.index]).replace(',,', ',').split(',')
 
         partners = ','.join([i for i in list(timecourse['Interaction_partner'])]).split(',')
-        string_interaction_pairs = [list(x) for x in zip(interactors, partners)]
-        [i.sort() for i in string_interaction_pairs]
-        sorted_interactions = [tuple(i) for i in string_interaction_pairs]
+
+        interaction_pairs = [list(x) for x in zip(interactors, partners)]
+        [i.sort() for i in interaction_pairs]
+        sorted_interactions = [tuple(i) for i in interaction_pairs]
         unique_interactions = list(set(sorted_interactions))
         DF_interactions = pd.DataFrame(columns=['A', 'B'], data=sorted_interactions)
         DF_unique_interactions = pd.DataFrame(columns=['A', 'B'], data=unique_interactions)
@@ -1057,6 +1066,57 @@ class Simulation(object):
         Agent_Info = self.get_agent_info()
         out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] == int(
             out.loc[i, 'agent']), 'Type'].values[0] for i in out.index]
+        out['mean_timestep_interactions'] = [
+            mean_interactions.loc[int(out.loc[i, 'agent']), 'partner_count'] for i in out.index]
+
+        return(out)
+
+    def get_contact_distributions3(self, min_t=0, max_t=None):
+        if max_t is None:
+            t_max = self.simulation_timecourse['time'].max()
+        else:
+            t_max = max_t
+
+        timecourse = self.simulation_timecourse.loc[(self.simulation_timecourse['time'] <= t_max) & (
+            self.simulation_timecourse['time'] >= min_t)].copy()
+
+        timecourse['modified_human_ID'] = [str(i)+',' for i in timecourse['h_ID']]
+        timecourse['partner_count'] = [1+i.count(',') for i in timecourse['Interaction_partner']]
+        timecourse.loc[timecourse['Interaction_partner'] == '', 'partner_count'] = 0
+
+        mean_interaction_DF = timecourse.groupby('h_ID').mean()
+        timecourse.drop(timecourse[timecourse['Interaction_partner'] == ''].index, inplace=True)
+
+        interactors = ','.join([timecourse.loc[i, 'modified_human_ID']*timecourse.loc[i, 'partner_count']
+                                for i in timecourse.index]).replace(',,', ',').split(',')
+
+        partners = ','.join([i for i in list(timecourse['Interaction_partner'])]).split(',')
+
+        interaction_pairs = [list(x) for x in zip(interactors, partners)]
+        [i.sort() for i in interaction_pairs]
+        sorted_interactions = [tuple(i) for i in interaction_pairs]
+        unique_interactions = list(set(sorted_interactions))
+        DF_interactions = pd.DataFrame(columns=['A', 'B'], data=sorted_interactions)
+        DF_unique_interactions = pd.DataFrame(columns=['A', 'B'], data=unique_interactions)
+
+        uni_A = DF_unique_interactions.groupby('A').count()
+        uni_B = DF_unique_interactions.groupby('B').count()
+        uni_A.rename_axis('ID', inplace=True)
+        uni_B.rename_axis('ID', inplace=True)
+        uni_B.rename(columns={'A': 'number'}, inplace=True)
+        uni_A.rename(columns={'B': 'number'}, inplace=True)
+        uni_B.reset_index(inplace=True)
+        uni_A.reset_index(inplace=True)
+        concat_unique_Interactions = pd.concat([uni_A, uni_B], axis=0)
+
+        out = concat_unique_Interactions.groupby('ID').sum()
+        out.rename(columns={'number': 'unique_interactions'}, inplace=True)
+        out.reset_index(inplace=True)
+        Agent_Info = self.get_agent_info()
+        out['schedule_type'] = [Agent_Info.loc[Agent_Info['ID'] == int(
+            out.loc[i, 'ID']), 'Type'].values[0] for i in out.index]
+        out['mean_interactions_per_timestep'] = [
+            mean_interaction_DF.loc[int(out.loc[i, 'ID']), 'partner_count'] for i in out.index]
 
         return(out)
 
