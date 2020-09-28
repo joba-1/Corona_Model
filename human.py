@@ -250,6 +250,7 @@ class Human(object):
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
 
+
     def update_state(self, time):
         """
         Updates agent-status and -flags.
@@ -300,16 +301,16 @@ class Human(object):
         Arguments to provide are: none
         """
         out = ordered_dict()
-        out['time'] = time  # write down current time-step#
-        out['h_ID'] = self.ID  # write down agent-ID#
-        out['loc'] = self.loc.ID  # write down ID of current location#
+        out['time'] = numpy.uint32(time)  # write down current time-step#
+        out['h_ID'] = numpy.uint32(self.ID)  # write down agent-ID#
+        out['loc'] = numpy.uint32(self.loc.ID)  # write down ID of current location#
         out['status'] = self.encode_stati()  # write down agent-status, in encoded fashion#
         # write down temporary agent-flags, in encoded fashion#
         out['Temporary_Flags'] = self.encode_temporary_flags()
         # write down cumulative agent-flags, in encoded fashion#
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = ','.join(self.contact_persons)
-        out['Infection_event'] = int(self.infected_by)
+        out['Infection_event'] = numpy.uint32(self.infected_by)
         if keys_list == 'all':
             return(out)
         else:
@@ -505,12 +506,12 @@ class Human(object):
         self.stati_times['infection_time'] = 0
         self.was_infected = True
         self.is_infected = True
-        self.infected_by = 0 #  infected from patient zero (not in agent list)
+        self.infected_by = 0  # infected from patient zero (not in agent list)
 
     def set_initially_recovered(self):
         """
         Set status of agent initially to 'R'. The statii  'preliminary_was_infected', 'was_infected'
-        and 'preliminary_is_infected', 'is_infected' are set accordingly to True and False. Agents considered to 
+        and 'preliminary_is_infected', 'is_infected' are set accordingly to True and False. Agents considered to
         be infected by no one.
         """
         self.preliminary_status = 'R'
@@ -520,7 +521,7 @@ class Human(object):
         self.stati_times['recover_time'] = 0
         self.was_recovered = True
         self.is_infected = False
-        self.infected_by = -1 #      
+        self.infected_by = -1
 
     def get_immunity_loss_prob(self):  # this needs improvement and is preliminary
         """
