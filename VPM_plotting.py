@@ -43,6 +43,14 @@ locationTypeColors = {
     'morgue': locationsCmap1(7),  # gray
     'mixing_loc': locationsCmap1(1)
 }
+scheduleTypeColors = {
+    'adult': defaultCmap(0),
+    'medical_professional': defaultCmap(1),
+    'pensioner': defaultCmap(2),
+    'public_worker': defaultCmap(3),
+    'teacher': defaultCmap(4),
+    'under_age': defaultCmap(5),
+}
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
