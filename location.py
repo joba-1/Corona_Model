@@ -85,6 +85,7 @@ class World(object):
         loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
+        loc_class_dic['mixing_loc'] = ['mixing_loc']
 
         loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
             + list(self.df_buildings['amenity'].unique())\
@@ -119,6 +120,7 @@ class World(object):
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
         morgue_bool = False
+        mix_bool = False
         # healthcare, work, public_place, school = self.location_classifier(self.df_buildings)
 
         cols = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
@@ -156,6 +158,13 @@ class World(object):
                                                                  (min(self.df_buildings['building_coordinates_x'])-distance,
                                                                   min(self.df_buildings['building_coordinates_y'])-distance),
                                                                  'morgue',
+                                                                 'no',
+                                                                 9.321282e-06,)})
+        if not mix_bool:
+            locations.update({len(self.df_buildings)+3: Location(len(self.df_buildings)+3,
+                                                                 (sum(self.df_buildings['building_coordinates_x'])/len(self.df_buildings['building_coordinates_x']),
+                                                                  sum(self.df_buildings['building_coordinates_y'])/len(self.df_buildings['building_coordinates_y'])),
+                                                                 'mixing_loc',
                                                                  'no',
                                                                  9.321282e-06,)})
 

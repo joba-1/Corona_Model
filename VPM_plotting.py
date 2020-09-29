@@ -41,15 +41,7 @@ locationTypeColors = {
     'hospital': locationsCmap1(5),  # mustard yellow
     'school': locationsCmap2(17),  # olive green - khaki
     'morgue': locationsCmap1(7),  # gray
-}
-
-scheduleTypeColors = {
-    'adult': defaultCmap(0) ,
-    'medical_professional': defaultCmap(1)  ,
-    'pensioner': defaultCmap(2) ,
-    'public_worker': defaultCmap(3) ,
-    'teacher': defaultCmap(4)   ,
-    'under_age': defaultCmap(5) ,
+    'mixing_loc': locationsCmap1(1)
 }
 
 
@@ -69,6 +61,7 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
 
     if save_figure:
         plt.savefig('outputs/infections_per_time_per_loc_type.png')
+
 
 def plot_infections_per_location_type(sim_obj, save_figure=False, relative=False, ax=None):
     """
@@ -91,9 +84,9 @@ def plot_infections_per_location_type(sim_obj, save_figure=False, relative=False
     ax.set_ylabel(' Infection events')
     return ax, df
 
+
 def plot_infections_per_schedule_type(sim_obj, relative=False, fraction_most_infect_p=1,
-                                     ax=None, save_figure=False, **kwargs):
-    
+                                      ax=None, save_figure=False, **kwargs):
     """
     plot infections per schedule type in a bar plot
     :params: save_figure: bool,
@@ -104,7 +97,7 @@ def plot_infections_per_schedule_type(sim_obj, relative=False, fraction_most_inf
     if not ax:
         fig, ax = plt.subplots(1, 1, figsize=(6, 4))
     inf_sched_series = sim_obj.get_infections_per_schedule_type(fraction_most_infectious=fraction_most_infect_p,
-        relative=relative).mean()
+                                                                relative=relative).mean()
     df = inf_sched_series.to_frame('values')
     df.sort_index(inplace=True)
     colors = [scheduleTypeColors[schedule_type]
@@ -114,6 +107,7 @@ def plot_infections_per_schedule_type(sim_obj, relative=False, fraction_most_inf
     ax.set_xlabel('schedule-type')
     ax.set_ylabel(' Infection events')
     return ax, df
+
 
 def plot_distribution_of_location_types(modeled_pop_world_obj,
                                         kind='bar',
@@ -130,27 +124,28 @@ def plot_distribution_of_location_types(modeled_pop_world_obj,
     df = loc_series.to_frame('values')
     df.sort_index(inplace=True)
     colors = [locationTypeColors[loc] for loc in df.index.values]
-    
+
     if kind == 'bar':
         df['values'].plot(kind='bar', color=colors, ax=ax)
         ax.set_title('Distribution of generated location types')
         ax.set_xlabel('Location type')
         ax.set_ylabel('# generated of this type')
     elif kind == 'pie':
-        pass #todo
+        pass  # todo
     if save_fig:
         plt.savefig('plots/location_distribution.png', bbox_inches='tight')
-    return ax, df 
+    return ax, df
+
 
 def plot_locations_and_schedules(modeled_pop_world_obj,
-                                 locs_to_hide=[], # example ['home']
+                                 locs_to_hide=[],  # example ['home']
                                  axes=None,
                                  save_figure=False):
     """
     plots two pie plots for location and schedule types
     :params: locs_to_hide list of location types, # example ['home']  axes=None,
                                  save_figure=False
-    """                             
+    """
     location_distribution_df = modeled_pop_world_obj.get_distribution_of_location_types()
     location_distribution_df.drop(columns=locs_to_hide, inplace=True)
     location_distribution_df_m = location_distribution_df.mean()
@@ -162,8 +157,8 @@ def plot_locations_and_schedules(modeled_pop_world_obj,
     locs_to_show = ['home', 'school', 'public', 'hospital', 'work', 'morgue']
     location_distribution_df_m.plot(kind='pie', radius=1, colors=colors, ax=axes[0],
                                     wedgeprops=dict(width=0.7, edgecolor='w'),)
-                                    #explode=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],)
-    #schedule types
+    # explode=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],)
+    # schedule types
 
     schedules = [p.type for p in modeled_pop_world_obj.people]
     schedule_types = modeled_pop_world_obj.schedule_types
@@ -174,7 +169,8 @@ def plot_locations_and_schedules(modeled_pop_world_obj,
     axes[1].pie(values, labels=schedule_types, radius=1, colors=colors,
                 wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0., 0.0, 0.0, 0.0, 0.0, 0.0], )
     if save_figure:
-        plt.savefig('plots/location_schedules_pie.png', bbox_inches='tight')            
+        plt.savefig('plots/location_schedules_pie.png', bbox_inches='tight')
+
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10, save_figure=False):
     age_groups_status_distribution = modeled_pop_world_obj.get_distribution_of_ages_and_infected(
@@ -202,6 +198,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
         fig.savefig('outputs/initial_distribution_of_ages_and_infected.png')
     plt.show()
 
+
 """def plot_distribution_of_ages_and_infected(simulation_object, age_groups_step=10):
     age_groups_status_distribution = simulation_object.get_distribution_of_ages_and_infected(age_groups_step)
     width_of_bars = 0.50
@@ -221,6 +218,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     ax.legend()
     plt.tight_layout()
     plt.show()"""
+
 
 def plot_status_timecourse(simulation_object, specific_statuses=None, specific_people=None, save_figure=False):
     """
@@ -252,6 +250,7 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
     if save_figure:
         plt.savefig('outputs/status_plot.png')
 
+
 def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, save_figure=False):
     trajectories_df = simulation_object.get_distribution_of_statuses_per_age(
         age_groups_step=age_groups_step)
@@ -276,6 +275,7 @@ def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, sav
     if save_figure:
         plt.savefig('outputs/age_groups_status_plot.png')
 
+
 def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=False):
     """
     plots the time course for the selected flags
@@ -294,6 +294,7 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     plt.show()
     if save_figure:
         plt.savefig('outputs/flags_plot.png')
+
 
 def plot_location_type_occupancy_timecourse(simulation_object, specific_types=None, save_figure=False):
     """
@@ -330,6 +331,7 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
     plt.show()
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png')
+
 
 def plot_status_at_location(simulation_object, save_figure=False):
     loc_stat = simulation_object.get_location_and_status()
@@ -384,6 +386,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
     if save_figure:
         plt.savefig('outputs/loc_types_occupancy_plot.png')
 
+
 def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
 
     loc_stat = simulation_object.get_location_and_status()
@@ -404,6 +407,7 @@ def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
         if save_figure:
             plt.savefig('plots/loc_t_'+str(time)+'.png')
 
+
 def plot_distributions_of_durations(simulation_object, save_figure=False, log=False):
     """
     plots the distributions of the total duration of the infection,
@@ -417,6 +421,7 @@ def plot_distributions_of_durations(simulation_object, save_figure=False, log=Fa
     plt.show()
     if save_figure:
         plt.savefig('outputs/duration_distributions.png')
+
 
 def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
     Interaction_Patterns = simulation_object.get_age_group_specific_interaction_patterns(
@@ -441,6 +446,7 @@ def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timest
     if save_figure:
         plt.savefig('outputs/age_group_dependent_interaction_patterns.png')
 
+
 def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
     Interaction_Patterns = simulation_object.get_age_group_specific_infection_patterns(
         lowest_timestep=lowest_timestep, highest_timestep=highest_timestep, timesteps_per_aggregate=timesteps_per_aggregate, age_groups=age_groups)
@@ -463,6 +469,7 @@ def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep
     if save_figure:
         plt.savefig('outputs/age_group_dependent_infection_patterns.png')
 
+
 def plot_interaction_timecourse(simulation_object, save_figure=False, log=False, diagnosed_contact=False):
     """
     plot the interaction timecourse for all agents and the interaction of all agents which will be diagnosed at some point
@@ -478,6 +485,7 @@ def plot_interaction_timecourse(simulation_object, save_figure=False, log=False,
     if save_figure:
         plt.savefig('outputs/interaction_timecourse.png')
 
+
 def plot_r_eff_trajectory(simulation_object,
                           sliding_window_size=None,
                           sliding_step_size=1,
@@ -489,7 +497,7 @@ def plot_r_eff_trajectory(simulation_object,
     assert sliding_window_size is not None, "the desired sliding window size has to be specified under from_sim_obj_sliding_window_size"
     tc_df = simulation_object.get_r_eff_trajectory(
         sliding_window_size, sliding_step_size=1)
-    
+
     ylabels = ['r_eff']
     different_windows = False
 
@@ -527,28 +535,29 @@ def plot_r_eff_trajectory(simulation_object,
         timestr = '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
         plt.savefig('outputs/r_eff_timecourse'+timestr+'.png', dpi=200)
 
+
 def plot_ratio_change(df, cmap_='Set1',
                       ax=None,
                       label_offset=0.09,
                       title='Title',
                       save_figure=True,
                       output_folder='plots/',
-                      y_axis = True,
+                      y_axis=True,
                       ):
     """
-    plot the change between two input Dataframes as bar plot without grid 
+    plot the change between two input Dataframes as bar plot without grid
     :return: axes of plot
     """
-    #if df.index.values[0] in scheduleTypeColors:
+    # if df.index.values[0] in scheduleTypeColors:
     #    colors = [scheduleTypeColors[x] for x in df.index.values]
-    #elif df.index.values[0] in locationTypeColors:
+    # elif df.index.values[0] in locationTypeColors:
     #    colors = [locationTypeColors[x] for x in df.index.values]
-    #else:    
+    # else:
     cmap = plt.get_cmap(cmap_)
     colors = cmap(np.arange(0, 2))
     if not ax:
         fig, ax = plt.subplots(1, 1, figsize=(5, 4))
-    ##plot
+    # plot
     df['values'].plot(kind='bar', color=df['positive'].map(
         {True: colors[0], False: colors[1]}), ax=ax)
     ax.spines['bottom'].set_position('zero')

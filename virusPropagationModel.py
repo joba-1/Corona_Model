@@ -126,6 +126,7 @@ class ModeledPopulatedWorld(object):
                     schedules[bound][0], p=schedules[bound][1]))
                 break
         my_locations = {}
+        my_locations['home'] = home.ID
         for loc in schedule['locs']:
             if not loc in my_locations:
                 if loc == 'home':
