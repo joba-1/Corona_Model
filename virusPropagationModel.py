@@ -1187,7 +1187,7 @@ class Simulation(object):
         """
         assert (fraction_most_infect_p >= 0.0) or (fraction_most_infect_p <= 1.),\
             "fraction musst be between 0 and 1"
-        df_inf = self. infection_information
+        df_inf = self.infection_information
         df = df_inf.groupby('infected_by_ID').count(
         ).sort_values('h_ID', ascending=False,)
         n_most_inf_people = int(fraction_most_infect_p*len(df))

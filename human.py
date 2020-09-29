@@ -301,16 +301,16 @@ class Human(object):
         Arguments to provide are: none
         """
         out = ordered_dict()
-        out['time'] = numpy.uint32(time)  # write down current time-step#
-        out['h_ID'] = numpy.uint32(self.ID)  # write down agent-ID#
-        out['loc'] = numpy.uint32(self.loc.ID)  # write down ID of current location#
+        out['time'] = numpy.uint16(time)  # write down current time-step#
+        out['h_ID'] = numpy.uint16(self.ID)  # write down agent-ID#
+        out['loc'] = numpy.uint16(self.loc.ID)  # write down ID of current location#
         out['status'] = self.encode_stati()  # write down agent-status, in encoded fashion#
         # write down temporary agent-flags, in encoded fashion#
         out['Temporary_Flags'] = self.encode_temporary_flags()
         # write down cumulative agent-flags, in encoded fashion#
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = ','.join(self.contact_persons)
-        out['Infection_event'] = numpy.uint32(self.infected_by)
+        out['Infection_event'] = numpy.int32(self.infected_by)
         if keys_list == 'all':
             return(out)
         else:
