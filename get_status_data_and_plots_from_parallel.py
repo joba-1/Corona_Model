@@ -12,6 +12,7 @@ import os
 os.environ['QT_QPA_PLATFORM']='offscreen'
 import matplotlib.pyplot as plt
 import pandas as pd
+import VPM_plotting as vpm_plt
 #colors = vpm_plt.statusAndFlagsColors
 
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags
@@ -184,7 +185,7 @@ def plot_and_save_infection_per_location(infection_per_location_list,
                                                     save_as_csv=True,
                                                       save_plot=True, output_folder='outputs/'):
     fig, ax = plt.subplots(1,1,figsize=(8,6)) 
-    inf_per_loc_df = pd.DataFrame(infection_per_location_list)
+    inf_per_loc_df = pd.concat(infection_per_location_list)
     inf_per_loc_df.boxplot(ax=ax)
     plt.title('scenario')
     plt.ylabel('infections per location type/locations of type')
@@ -313,10 +314,73 @@ def plot_infection_per_schedule_type(df_I_list, world,
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
-                    + 'contributions_per_schedule.png', bbox_inches='tight')
+                    + '_contributions_per_schedule.png', bbox_inches='tight')
         plt.savefig(output_folder + 'plots/' + filename
-                    + 'contributions_per_schedule.svg', bbox_inches='tight')
+                    + '_contributions_per_schedule.svg', bbox_inches='tight')
     df.to_csv(output_folder+filename + '_' + 'df_schedules_inf_ratios.csv')
+
+
+def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_obj,
+                                                    save_figure=True, filename='scenario',
+                                                    output_folder='outputs/',
+                                                    relative=False,):
+    """
+    plot differences in infection per location type as fraction and the frequence of location types
+    :params: kwargs = cmap_='Set1', ax=None, label_offset=0.09, title='Title', save_figure=save_figure, 
+    output_folder='plots/'
+    :return: axes object and Dataframe
+    """
+
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    #df_i_std = pd.concat(df_list).std()
+    df_loc_types_w = modeled_pop_world_obj.get_distribution_of_location_types(
+        relative=True, locs_to_hide=['morgue'])
+    df_loc_types_i = pd.concat(df_list)
+    df_delta = get_delta_df(df_loc_types_i, df_loc_types_w, relative=relative)
+    print(df_delta)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax,
+                                   save_figure=False,
+                                   label_offset=0.09,
+                                   title=filename,)
+    #save plots and data
+    if save_figure:
+        plt.savefig(output_folder + 'plots/' + filename
+                    + '_contributions_per_location.png', bbox_inches='tight')
+        plt.savefig(output_folder + 'plots/' + filename
+                    + '_contributions_per_location.svg', bbox_inches='tight')
+    df_delta.to_csv(output_folder+filename + '_' +
+                    'df_location_inf_ratios.csv')
+
+
+def plot_and_save_infections_per_schedule_type_delta(df_list, modeled_pop_world_obj,
+                                                     save_figure=True, filename='scenario',
+                                                     output_folder='outputs/',
+                                                     fraction_most_infectious=1.,
+                                                     sched_to_hide=[],
+                                                     relative=False, **kwargs):
+                                                                                        
+    """
+    plot differences in infection per schedule type as fraction and the frequence of location types
+    :params: kwargs = cmap_='Set1', ax=None, label_offset=0.09, title='Title', save_figure=save_figure, 
+    output_folder='plots/'
+    :return: axes object and Dataframe
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+
+    df_sched_types_w = modeled_pop_world_obj.get_distribution_of_schedule_types(
+        relative=True, sched_to_hide=sched_to_hide)
+    df_sched_types_i = pd.concat(df_list)
+    df_delta = get_delta_df(
+        df_sched_types_i, df_sched_types_w, relative=relative)
+    ax = vpm_plt.plot_ratio_change(df_delta, **kwargs)
+    #save plots and data
+    if save_figure:
+        plt.savefig(output_folder + 'plots/' + filename
+                    + '_contributions_per_schedule.png', bbox_inches='tight')
+        plt.savefig(output_folder + 'plots/' + filename
+                    + '_contributions_per_schedule.svg', bbox_inches='tight')
+    df_delta.to_csv(output_folder+filename + '_' +
+                    'df_location_inf_ratios.csv')
 
 def save_infection_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
     try:
