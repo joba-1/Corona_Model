@@ -93,7 +93,6 @@ def getOptions(args=sys.argv[1:]):
     options = parser.parse_args(args)
     return options
 
-
 def get_previous_infections(world,
                             time_steps=1500,
                             infectivity=0.3,
@@ -252,11 +251,13 @@ def simulate_scenario(input_dict):
                 'stat_trajectories': simulation1.get_status_trajectories(),
                 'durations': simulation1.get_durations(),
                 'flag_trajectories': simulation1.get_flag_sums_over_time(),
-                'infections_per_location_type':simulation1.get_infections_per_location_type(),
                 'number_of_infected_households': simulation1.get_number_of_infected_households(time_span=[0, max_houshold_time]),
                 'infection_timecourse': simulation1.get_infection_event_information(),
                 'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
-                'r_eff': simulation1.get_r_eff_trajectory(96)
+                'r_eff': simulation1.get_r_eff_trajectory(96),
+                'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
+                'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
+                'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
                 }
 
     if 'Interaction_partner' in timecourse_keys:
@@ -265,7 +266,6 @@ def simulate_scenario(input_dict):
                                                                   loc_time_overlap_tracing=False,
                                                                   trace_all_following_infections=True)
     return sim_dict
-
 
 def get_simualtion_settings(options):
     input_parameter_dict={}
@@ -368,7 +368,6 @@ def get_simualtion_settings(options):
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
-
 def generate_scenario_list(used_scenario, number):
     print('generating scenario list')
     print(used_scenario)
@@ -376,7 +375,6 @@ def generate_scenario_list(used_scenario, number):
     for i, d in enumerate(used_scenarios):
         d['run'] = i
     return used_scenarios    
-
 
 if __name__ == '__main__':
 
@@ -472,10 +470,12 @@ if __name__ == '__main__':
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
         infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        infections_per_schedule_type_list = [df['infections_per_schedule_type'] for df in df_dict_list]
         number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
         r_eff_list = [df['r_eff'] for df in df_dict_list]
+
 
         kwargs_plot = {'filename':scenario_and_parameter, 'output_folder':output_folder_plots}
         
@@ -483,17 +483,23 @@ if __name__ == '__main__':
         plot_and_save_durations(simulation_trajectory_list, **kwargs_plot)
         plot_flags(flag_trajectories_list, cummulative=False, **kwargs_plot)
         plot_flags(flag_trajectories_list, cummulative=True, filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
-        plot_and_save_infection_per_location(
-            infections_per_location_type_list, **kwargs_plot)
-        plot_and_save_patterns(infection_patterns_list,  pattern='infections',
-                               filename=scenario_and_parameter, output_folder=output_folder_plots)
-        plot_infection_per_schedule_type(infection_timecourse_list,
-                                         used_scenario['modeledWorld'],
-                                         **kwargs_plot)
+        plot_and_save_infection_per_location(infections_per_location_type_list, **kwargs_plot)
+        plot_and_save_infections_per_location_type_delta(infections_per_location_type_list,
+                                                         used_scenario['modeledWorld'],
+                                                         relative=False, **kwargs_plot)
+        plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
+                                                         used_scenario['modeledWorld'],
+                                                         save_figure=True, 
+                                                         fraction_most_infectious=1.,
+                                                         sched_to_hide=[],
+                                                         relative=False, **kwargs_plot)
+        plot_and_save_patterns(infection_patterns_list, pattern='infections',filename=scenario_and_parameter, output_folder=output_folder_plots)
+        #plot_infection_per_schedule_type(infection_timecourse_list,
+        #                                 used_scenario['modeledWorld'],
+        #                                 **kwargs_plot)
         plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
                                          
-        save_number_of_infected_households(
-            number_of_infected_households_list, **kwargs_plot)
+        save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
         save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
         
         if 'contact_tracing' in df_dict_list[0].keys():
