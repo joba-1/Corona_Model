@@ -971,7 +971,7 @@ class Simulation(object):
         all_human_IDs = list(timecourse['h_ID'].unique())
         out = pd.DataFrame()
         out['ID'] = all_human_IDs
-        out['interactions'] = [Total_interactions.loc[i, 'number'] for i in all_human_IDs]
+        out['interactions'] = [Total_interactions.loc[i, 'number']/2 for i in all_human_IDs]
         out['unique_interactions'] = [Total_unique_interactions.loc[i, 'number']
                                       for i in all_human_IDs]
         Agent_Info = self.get_agent_info()
@@ -985,12 +985,9 @@ class Simulation(object):
         Node_count_DF['Pairs'] = [','.join([str(i[0]), str(i[1])]) for i in sorted_interactions]
         Node_count_DF['Count'] = [1]*len(sorted_interactions)
         encounters_number = pd.DataFrame(Node_count_DF.groupby('Pairs').sum())
-        encounters_number['Occurrences'] = [1]*len(encounters_number)
-        interaction_abundances = pd.DataFrame(encounters_number.groupby('Count').count())
-        interaction_abundances.reset_index(inplace=True)
-        interaction_abundances.sort_values(by=['Count'], inplace=True)
+        encounters_number.reset_index(inplace=True, drop=True)
         #interaction_abundances.drop(interaction_abundances[interaction_abundances['Count'] == 0], inplace=True)
-        return(interaction_abundances, out)
+        return(encounters_number, out)
         # return(interaction_abundances.loc[interaction_abundances['Count'] != 0], out)
 
     def contact_tracing(self, tracing_window=336, time_span=[0, None], timesteps_per_aggregate=24, loc_time_overlap_tracing=True, trace_secondary_infections=True, trace_all_following_infections=False):
