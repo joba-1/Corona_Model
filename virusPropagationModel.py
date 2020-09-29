@@ -1531,9 +1531,14 @@ def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
     # return(contact_number)
 
 
-def get_infection_event_information(df_timecourse,
-                                    dropped_columns=['Temporary_Flags', 'Cumulative_Flags',
-                                                     'Interaction_partner', 'status']):
+def sort_tuple(a):
+    if a[0] > a[1]:
+        return (a[0], a[1])
+    else:
+        return (a[1], a[0])
+
+
+def get_infection_event_information(df_timecourse, dropped_columns=['Temporary_Flags', 'Cumulative_Flags', 'Interaction_partner', 'status']):
     """
     Returns a pandas DataFrame with information on all infection-events:
     ID of agent, who got infected ('h_ID'),
