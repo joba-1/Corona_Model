@@ -125,6 +125,8 @@ def getOptions(args=sys.argv[1:]):
                         help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 0")
     parser.add_argument("-mht", "--max_houshold_time", type=int,
                         help="max time for monitoring infected housholds (default is None ->max)")
+    parser.add_argument("-mix", "--mixing", type=bool,
+                        help="use homogeneous mixing when True (default is False)")
     options = parser.parse_args(args)
     return options
 
@@ -195,7 +197,7 @@ def simulate_scenario(input_dict):
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
                'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default',
                'output_folder': 'scenario_output', 'world': None, 'disobedience': 0,
-               'reinfection_times': [], 'reinfections': 1, 'mu': 2, 'product': 0}
+               'reinfection_times': [], 'reinfections': 1, 'mu': 2, 'product': 0, 'mix': False}
 
     my_dict.update(input_dict)
 
@@ -216,6 +218,7 @@ def simulate_scenario(input_dict):
     max_houshold_time = my_dict['max_houshold_time']
     # ['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags', 'loc', 'Infection_event']
     timecourse_keys = my_dict['timecourse_keys']
+    mix = my_dict['mix']
 
     #print(disobedience, reinfections, reinfection_times)
 
@@ -229,6 +232,10 @@ def simulate_scenario(input_dict):
         times = [start_2, start_3, max_time]
 
     simulation1 = Simulation(modeledWorld, times[0], run_immediately=False)
+
+    if mix:
+        simulation1.set_homogeneous_mixing()
+
     if product != 0:
         simulation1.change_agent_attributes(
             {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'replacement'}}})
@@ -412,6 +419,11 @@ def get_simualtion_settings(options):
             input_parameter_dict['recovered_world'] = 1
     else:
         input_parameter_dict['recovered_world'] = 0
+
+    if options.mixing:
+        input_parameter_dict['mix'] = options.mixing
+    else:
+        input_parameter_dict['mix'] = False
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
