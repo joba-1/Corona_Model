@@ -492,6 +492,19 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix, **kwargs)
 
+    def make_homogeneous_mixing(self, mixing_loc_type='mixing_loc', home_quarantine=True):
+        for loc in self.locations.keys():
+            if self.locations[loc].location_type == mixing_loc_type:
+                for p in self.people:
+                    list_of_locs = p.original_schedule['locs']
+                    p.loc.leave(p)
+                    p.loc = self.locations[loc]
+                    p.loc.enter(p)
+                    p.schedule['locs'] = [self.locations[loc]]*len(list_of_locs)
+                    p.original_schedule['locs'] = [self.locations[loc]]*len(list_of_locs)
+                    if not home_quarantine:
+                        p.diagnosed_schedule['locs'] = [self.locations[loc]]*len(list_of_locs)
+
     def simulate(self, timecourse_keys='all'):
         df_timecourse = self.run_simulation(timecourse_keys=timecourse_keys)
         df_infections = get_infection_event_information(df_timecourse)
