@@ -293,7 +293,7 @@ class ModeledPopulatedWorld(object):
                     raise Exception("Not enough, humans to infect")
             if x not in inif_I_list_new:
                 inif_I_list_new.append(x)
-        if not all(inif_I_list_new == ini_I_list):
+        if not (set(inif_I_list_new) == set(ini_I_list)):
             print('list of initial infected changed from ',
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new

@@ -440,8 +440,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/worldsV2/'
-    world_name = 'V2_RPM02_Gangelt_big_'
+    input_folder = 'saved_objects/worldsV2_hm/'
+    world_name = 'V2_RPM02_hm_Gangelt_big_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -470,7 +470,7 @@ if __name__ == '__main__':
     for p in used_scenario['p_range']:
         currentWorld = copy.deepcopy(used_scenario['modeledWorld'])
         if used_scenario['parameter'] == 'initial_infections':
-            infect_world(currentWorld, IDs=[i+1 for i in range(int(p))])
+            infectees_list = [i+1 for i in range(int(p))]
         elif used_scenario['parameter'] == 'random_initial_infections':
             infectees_list = np.random.choice(
                 [p.ID for p in currentWorld.people], size=4)
@@ -486,8 +486,8 @@ if __name__ == '__main__':
                               folder=output_folder,
                               world_name=world_name,
                               initial_infectees=[1, 2, 3, 4])
-            infect_world(currentWorld, IDs=[i+1 for i in range(4)])
-
+            infectees_list = [i+1 for i in range(4)]
+        infect_world(currentWorld, IDs = infectees_list)
         if used_scenario['product'] != 0:
             if parameter == 'mu':
                 scenario_and_parameter = world_name + used_scenario['name'] + '_prod_'+str(
@@ -500,8 +500,9 @@ if __name__ == '__main__':
                 parameter)+'_'+'{:.3f}'.format(p)+'_rw_'+str(used_scenario['recovered_world'])
         else:
             scenario_and_parameter = world_name + 'Ifreq_' + \
-                str(mu)+'_'+used_scenario['name'] + '_'+str(parameter)+'_'+'{:.3f}'.format(p)
-
+                str(mu)+'_'+used_scenario['name'] + '_'+ str(parameter)+'_'+'{:.3f}'.format(p)
+        if used_scenario['mix']:
+            scenario_and_parameter = 'mix_'+ scenario_and_parameter
         output_folder_plots = output_folder + 'outputs/' + scenario_and_parameter + '_ri_' + \
             str(used_scenario['reinfections']) + '_rx_' + \
             str(len(used_scenario['reinfection_times'])) + '/'

@@ -10,7 +10,7 @@ from functools import partial
 
 
 
-def ini_and_save_world(i,size=1,schedule='schedule_v2', **kwargs):
+def ini_and_save_world(i,size=1, schedule='schedule_v2', **kwargs):
     world = ModeledPopulatedWorld(1000,10, world_from_file=True,
             geofile_name='datafiles/Buildings_Gangelt_MA_'+str(size)+'.csv',
                                      agent_agent_infection=True,
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     options_dict['size'] = size
 
 
-    schedule = 'schedule_v2'    
+    schedule = 'schedules_v2'    
 
     mapfunc = partial(ini_and_save_world, size=size, schedule=schedule)
     with Pool(cores) as pool:
