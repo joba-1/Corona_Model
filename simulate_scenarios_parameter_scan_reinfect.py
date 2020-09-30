@@ -299,6 +299,7 @@ def simulate_scenario(input_dict):
         'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
         'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
         'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
+        'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168)
     }
 
     if 'Interaction_partner' in timecourse_keys:
@@ -521,14 +522,13 @@ if __name__ == '__main__':
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-        infections_per_location_type_list = [
-            df['infections_per_location_type'] for df in df_dict_list]
-        infections_per_schedule_type_list = [
-            df['infections_per_schedule_type'] for df in df_dict_list]
-        number_of_infected_households_list = [
-            df['number_of_infected_households'] for df in df_dict_list]
+        infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        infections_per_schedule_type_list = [df['infections_per_schedule_type'] for df in df_dict_list]
+        number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
+        encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
+        contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
         r_eff_list = [df['r_eff'] for df in df_dict_list]
 
         kwargs_plot = {'filename': scenario_and_parameter, 'output_folder': output_folder_plots}
@@ -554,6 +554,11 @@ if __name__ == '__main__':
         #                                 used_scenario['modeledWorld'],
         #                                 **kwargs_plot)
         plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
+        plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
+        print('check')
+        plot_and_save_contacts(
+            contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
+        
 
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
         save_infection_timecourse(infection_timecourse_list, **kwargs_plot)

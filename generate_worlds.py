@@ -2,6 +2,7 @@ from virusPropagationModel import *
 from VPM_save_and_load import *
 import glob
 import os
+import csv 
 from multiprocessing import Pool
 import argparse
 import sys
@@ -9,14 +10,14 @@ from functools import partial
 
 
 
-def ini_and_save_world(i,size=1,**kwargs):
+def ini_and_save_world(i,size=1,schedule='schedule_v2', **kwargs):
     world = ModeledPopulatedWorld(1000,10, world_from_file=True,
             geofile_name='datafiles/Buildings_Gangelt_MA_'+str(size)+'.csv',
                                      agent_agent_infection=True,
                              automatic_initial_infections=False,
-                                  input_schedules='schedules_v2')
-    world.save('Gangelt_MA_'+str(size)+'_'+str(i), date_suffix=False, folder=output_folder, **kwargs)#'/home/basar/corona_simulations/saved_objects/worlds/')
-    print('worlds/Gangelt_MA_'+str(size)+'_'+str(i)+' created')
+                                  input_schedules=schedule)
+    world.save('Gangelt_MA_'+str(size)+'_'+schedule+'_'+str(i), date_suffix=False, folder=output_folder, **kwargs)#'/home/basar/corona_simulations/saved_objects/worlds/')
+    print('worlds/Gangelt_MA_'+str(size)+'_'+schedule+'_'+str(i)+' created')
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
@@ -54,11 +55,13 @@ if __name__ == '__main__':
     else:
         cores = 50
     options_dict['cores'] = cores
+    
     if options.number:
         number = options.number
     else:
         number = 100
     options_dict['number'] = number
+    
     if options.size:
         size = options.size
     else:
@@ -66,6 +69,13 @@ if __name__ == '__main__':
     options_dict['size'] = size
 
 
-    mapfunc = partial(ini_and_save_world, size=size)
+    schedule = 'schedule_v2'    
+
+    mapfunc = partial(ini_and_save_world, size=size, schedule=schedule)
     with Pool(cores) as pool:
         pool.map(mapfunc, [i for i in range(number)])
+
+    with open(output_folder + 'gen_world_parameters.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            for key in options_dict:
+                writer.writerow([key, options_dict[key]])
