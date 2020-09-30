@@ -4,7 +4,7 @@ age (upper bound)	version	fraction	Start time	expand to range	mo	Start time	expa
 			13	16	mixing_loc	13	16	mixing_loc	13	16	mixing_loc	13	16	mixing_loc	13	16	mixing_loc	17	22	mixing_loc	17	22	mixing_loc
 			17	22	mixing_loc	17	22	mixing_loc	17	22	mixing_loc	17	22	mixing_loc	17	22	mixing_loc
 
-67	1	0.77	7	12	work	mo		work	mo		work	mo		work	mo		work	10	16	mixing_loc	10	16	mixing_loc	adult
+67	1	0.77	7	12	mixing_loc	mo		mixing_loc	mo		mixing_loc	mo		mixing_loc	mo		mixing_loc	10	16	mixing_loc	10	16	mixing_loc	adult
 			p7	9	mixing_loc	mo		mixing_loc	mo		mixing_loc	mo		mixing_loc	mo		mixing_loc	17	22	mixing_loc	17	22	mixing_loc
 			p1	3	mixing_loc	p1	3	mixing_loc	p1	3	mixing_loc	p1	3	mixing_loc	p1	3	mixing_loc
 
