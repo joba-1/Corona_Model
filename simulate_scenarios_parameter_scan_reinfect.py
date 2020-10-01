@@ -474,7 +474,6 @@ if __name__ == '__main__':
         elif used_scenario['parameter'] == 'random_initial_infections':
             infectees_list = np.random.choice(
                 [p.ID for p in currentWorld.people], size=4)
-            infect_world(currentWorld, IDs=infectees_list)
         else:
             used_scenario[used_scenario['parameter']] = p
             if used_scenario['parameter'] == 'recover_frac':
@@ -487,6 +486,7 @@ if __name__ == '__main__':
                               world_name=world_name,
                               initial_infectees=[1, 2, 3, 4])
             infectees_list = [i+1 for i in range(4)]
+        print(infectees_list)
         infect_world(currentWorld, IDs = infectees_list)
         if used_scenario['product'] != 0:
             if parameter == 'mu':
@@ -591,6 +591,13 @@ if __name__ == '__main__':
             writer = csv.writer(csvfile, delimiter=',')
             for key in used_scenario:
                 writer.writerow([key, used_scenario[key]])
+
+        agent_infos = used_scenario['modeledWorld'].get_agent_info()
+        agent_infos.to_csv(output_folder_plots +
+                           scenario_and_parameter +'_agent_infos.csv')
+        location_infos = used_scenario['modeledWorld'].get_location_info()
+        location_infos.to_csv(output_folder_plots + scenario_and_parameter + '_location_infos.csv')
+
         del(currentWorld)
 
     print(df_dict_list)

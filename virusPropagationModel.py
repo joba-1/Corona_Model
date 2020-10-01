@@ -298,6 +298,12 @@ class ModeledPopulatedWorld(object):
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new
 
+    def get_location_info(self):
+        return(location_info(self))
+
+    def get_agent_info(self):
+        return(agent_info(self))
+
     def plot_distribution_of_location_types(self, **kwargs):
         """
         plots the distribution of the location types that were initialized in this world
@@ -948,32 +954,14 @@ class Simulation(object):
         sub_df = parsed_df.loc[:, cols_of_interest]
         gdf = sub_df.groupby('time')
         flag_sums = gdf.sum()
-        simulation_timepoints = list(gdf.groups.keys())
+        #simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
 
     def get_location_info(self):
-        locations = list(self.locations.values())
-        Location_Types = {str(l.ID): l.location_type for l in locations}
-        Location_Areas = {str(l.ID): l.area for l in locations}
-        Location_Neighbourhood = {str(l.ID): l.neighbourhood_ID for l in locations}
-        Location_Info = pd.DataFrame()
-        Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
-        Location_Info['Type'] = list(Location_Types.values())
-        Location_Info['Area'] = list(Location_Areas.values())
-        Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
-        return(Location_Info)
+        return(location_info(self))
 
     def get_agent_info(self):
-        people = list(self.people)
-        Agents_Ages = {str(p.ID): p.age for p in people}
-        Agents_Homes = {str(p.ID): p.home.ID for p in people}
-        Agents_Types = {str(p.ID): p.type for p in people}
-        Agent_Info = pd.DataFrame()
-        Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
-        Agent_Info['Age'] = list(Agents_Ages.values())
-        Agent_Info['Home'] = list(Agents_Homes.values())
-        Agent_Info['Type'] = list(Agents_Types.values())
-        return(Agent_Info)
+        return(agent_info(self))
 
     def get_number_of_infected_households(self, time_span=[0, None], total=False):
         if time_span[1] is None:
@@ -1454,6 +1442,11 @@ def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_t
         agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
         CMgroup.loc['AgeGroup_subject', i] = agePerson
     Out = CMgroup.transpose().groupby(['AgeGroup_subject']).sum()
+    ##add zeros for missing agegroups
+    for missing_age_group in list(set(age_groups)-set(Out.columns)): 
+        Out[missing_age_group] = [0.0]*len(Out)
+        Out.loc[95,:] = [0.0]*len(Out.iloc[0])
+    ####
     perday = Out/n_time_aggregates
     perday.index = age_groups
     perday.columns = age_groups
@@ -1494,7 +1487,13 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
     return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
 
 
-def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+def build_agegroup_aggregated_interaction_matrix(Interaction_matrix,
+                                                 Agent_Info,
+                                                 n_time_aggregates=5,
+                                                 age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+                                                 ):
+    """
+    """                                                
     Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
     for i in age_groups:
         age_index = age_groups.index(i)
@@ -1519,7 +1518,12 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     for i in list(CMgroup.columns):
         agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
         CMgroup.loc['AgeGroup_object', i] = agePerson
-    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()
+    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()    
+    ##add zeros for missing agegroups
+    for missing_age_group in list(set(age_groups)-set(Out.columns)): 
+        Out[missing_age_group] = [0.0] * len(Out)
+        Out.loc[95,:] = [0.0] * len(Out.iloc[0])
+    ##    
     perday = Out/n_time_aggregates
     perday.index = age_groups
     perday.columns = age_groups
@@ -1601,3 +1605,30 @@ def get_delta_df(df_data, df_world, relative=True):
     df['positive'] = df > 0
     df.sort_index(inplace=True)
     return df
+
+def location_info(world_sim_obj):
+    """object can either be world or simulation"""
+    locations = list(world_sim_obj.locations.values())
+    Location_Types = {str(l.ID): l.location_type for l in locations}
+    Location_Areas = {str(l.ID): l.area for l in locations}
+    Location_Neighbourhood = {
+        str(l.ID): l.neighbourhood_ID for l in locations}
+    Location_Info = pd.DataFrame()
+    Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
+    Location_Info['Type'] = list(Location_Types.values())
+    Location_Info['Area'] = list(Location_Areas.values())
+    Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
+    return(Location_Info)
+
+def agent_info(world_sim_obj):
+    """object can either be world or simulation"""
+    people = list(world_sim_obj.people)
+    Agents_Ages = {str(p.ID): p.age for p in people}
+    Agents_Homes = {str(p.ID): p.home.ID for p in people}
+    Agents_Types = {str(p.ID): p.type for p in people}
+    Agent_Info = pd.DataFrame()
+    Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
+    Agent_Info['Age'] = list(Agents_Ages.values())
+    Agent_Info['Home'] = list(Agents_Homes.values())
+    Agent_Info['Type'] = list(Agents_Types.values())
+    return(Agent_Info)
