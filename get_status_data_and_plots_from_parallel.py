@@ -249,6 +249,11 @@ def save_number_of_infected_households(number_of_infected_households_list, filen
     df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]         
     df.to_csv(output_folder+filename+'_'+'households'+'.csv')
 
+def save_infectivities(infectivities_list, tp, filename='scenario', output_folder='outputs/'):
+    df = pd.concat([infectivities_list[j].set_index('ID') for j in range(len(infectivities_list))], axis=1)
+    df.columns = ['infectivities'+str(i) for i in range(len(infectivities_list))]         
+    df.to_csv(output_folder+filename+'_'+'infectivities'+tp+'.csv')
+
 def plot_infection_per_schedule_type(df_I_list, world,
                                      cutoff_time=100, nr_most_inf_p=800,
                                      save_figure=True,filename='scenario',
