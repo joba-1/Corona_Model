@@ -324,7 +324,8 @@ def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_
                                                     save_figure=True, filename='scenario',
                                                     output_folder='outputs/',
                                                     relative=False,
-                                                    locs_to_hide=['morgue','mixing_loc'],):
+                                                    locs_to_hide=['morgue','mixing_loc'],
+                                                     **kwargs):
     """
     plot differences in infection per location type as fraction and the frequence of location types
     :params: kwargs = cmap_='Set1', ax=None, label_offset=0.09, title='Title', save_figure=save_figure, 
@@ -338,10 +339,7 @@ def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_
         relative=True, locs_to_hide=locs_to_hide)
     df_loc_types_i = pd.concat(df_list)
     df_delta = get_delta_df(df_loc_types_i, df_loc_types_w, relative=relative)
-    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax,
-                                   save_figure=False,
-                                   label_offset=0.09,
-                                   title=filename,)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax,**kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -372,7 +370,7 @@ def plot_and_save_infections_per_schedule_type_delta(df_list, modeled_pop_world_
     df_sched_types_i = pd.concat(df_list)
     df_delta = get_delta_df(
         df_sched_types_i, df_sched_types_w, relative=relative)
-    ax = vpm_plt.plot_ratio_change(df_delta, **kwargs)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, **kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -407,15 +405,16 @@ def plot_and_save_r_eff(df_list, save_figure=True,
 def plot_and_save_encounters(df_list, save_figure=True,
                             output_folder='output_folder/',
                             filename='scenario',
+                            bins=np.arange(1,20,1)
                             ):
     """
     """
     df = pd.concat(df_list)
-    df.hist(bins=np.arange(0, 300, 10), density=True)
+    df.hist(bins=bins, density=True)
     if save_figure:
-        plt.savefig(output_folder + 'plots/' + filename+'_' + 'encounters'
+        plt.savefig(output_folder + 'plots/' + filename + '_' + 'encounters'
                     + '.png', bbox_inches='tight')
-        plt.savefig(output_folder + 'plots/' + filename+'_' + 'encounters'
+        plt.savefig(output_folder + 'plots/' + filename + '_' + 'encounters'
                     + '.svg', bbox_inches='tight')
 
     df.to_csv(output_folder+filename+'_encounters.csv')

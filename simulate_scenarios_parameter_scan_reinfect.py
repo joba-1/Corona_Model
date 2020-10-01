@@ -557,13 +557,14 @@ if __name__ == '__main__':
                                                          locs_to_hide=['morgue'],
                                                          relative=False,
                                                          label_offset=0.03,
-                                                         title='Infections per schedule type',
+                                                         title='Infections per location type',
                                                          **kwargs_plot)
         plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
                                                          used_scenario['modeledWorld'],
                                                          save_figure=True,
                                                          fraction_most_infectious=1.,
                                                          sched_to_hide=[],
+                                                         title='Infections per schedule type',
                                                          label_offset=0.03,
                                                          relative=False, **kwargs_plot)
         plot_and_save_patterns(infection_patterns_list, pattern='infections',
@@ -573,7 +574,6 @@ if __name__ == '__main__':
         #                                 **kwargs_plot)
         plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
         plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
-        print('check')
         plot_and_save_contacts(
             contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
         

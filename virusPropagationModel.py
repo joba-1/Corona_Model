@@ -1045,7 +1045,7 @@ class Simulation(object):
 
         Node_count_DF = pd.DataFrame()
         Node_count_DF['Pairs'] = [','.join([str(i[0]), str(i[1])]) for i in sorted_interactions]
-        Node_count_DF['Count'] = [1]*len(sorted_interactions)
+        Node_count_DF['Count'] = [0.5]*len(sorted_interactions) ## 0.5 since all interactions are doubled in timecourse
         encounters_number = pd.DataFrame(Node_count_DF.groupby('Pairs').sum())
         encounters_number.reset_index(inplace=True, drop=True)
         #interaction_abundances.drop(interaction_abundances[interaction_abundances['Count'] == 0], inplace=True)
