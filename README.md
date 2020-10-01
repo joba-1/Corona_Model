@@ -7,6 +7,43 @@ This model is maintained by the [Klipp lab for theoretical biophysics](https://r
 
 Python commands are highlighted by green color throughout this document.
 
+## Setup
+The code in this repository was implemented using python 3.7 \
+Only this version or newer versions of python are supported.
+
+### Quick setup using conda
+Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup. 
+1. First, clone this repository to your local machine if you have not done so yet. 
+
+2. Then, make sure you have Anaconda/Miniconda3 installed by running the following code in your terminal
+    ```
+    conda --v
+    ```
+    This should return something like `conda 4.X.X`. If it doesn't, [install the latest Miniconda3](https://docs.conda.io/en/latest/miniconda.html). \
+    To make sure you have the latest version, run
+    ```
+    conda update conda
+    ```
+3. Then run the following pieces of code to set up the local environment:
+    ```
+    cd /path/to/this/repository
+    ```
+    ```
+    conda env create --file gerdaenv.yml
+    ```
+    ```
+    conda activate gerdaenv
+    ```
+
+In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command 
+```
+python3 testrunner.py
+```
+Note: this could take a few minutes and might result in figures popping up, which have to be closed after inspection.
+
+That was it. You can now proceed to the 'Usage' part. Make sure to activate the 'gerdaenv' environment again if it is no longer activated before moving on.
+
+
 ## Usage
 To run the model, the jupyter notebook [RUN_CoronaABM.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/development/RUN_CoronaABM.ipynb) is provided.
 
