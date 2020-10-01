@@ -430,7 +430,6 @@ def plot_and_save_contacts(df_list,
                            ):
     """
     """
-    print('contacts!!!!!!!')
     df_combined = pd.concat(df_list)
     df_w = modeled_pop_world_obj.get_distribution_of_schedule_types(
         relative=True)

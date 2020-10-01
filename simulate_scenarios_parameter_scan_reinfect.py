@@ -554,12 +554,17 @@ if __name__ == '__main__':
         plot_and_save_infection_per_location(infections_per_location_type_list, **kwargs_plot)
         plot_and_save_infections_per_location_type_delta(infections_per_location_type_list,
                                                          used_scenario['modeledWorld'],
-                                                         relative=False, **kwargs_plot)
+                                                         locs_to_hide=['morgue'],
+                                                         relative=False,
+                                                         label_offset=0.03,
+                                                         title='Infections per schedule type',
+                                                         **kwargs_plot)
         plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
                                                          used_scenario['modeledWorld'],
                                                          save_figure=True,
                                                          fraction_most_infectious=1.,
                                                          sched_to_hide=[],
+                                                         label_offset=0.03,
                                                          relative=False, **kwargs_plot)
         plot_and_save_patterns(infection_patterns_list, pattern='infections',
                                filename=scenario_and_parameter, output_folder=output_folder_plots)
