@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 500, 'start_2': 200, 'start_3': 300, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 1000, 'closed_locs': [
@@ -37,7 +37,7 @@ scenarios = [{'run': 0, 'max_time': 500, 'start_2': 200, 'start_3': 300, 'closed
                  'public', 'work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run': 0, 'max_time': 500, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
+             {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
@@ -66,10 +66,7 @@ scenarios = [{'run': 0, 'max_time': 500, 'start_2': 200, 'start_3': 300, 'closed
 #world_list = os.listdir('/home/basar/corona_simulations/saved_objects/worlds')
 #world_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')]
 
-
-def getOptions(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+'''
                         0: no_mitigation \n \
                         1: no_mitigation_medics_02 \n \
                         2: close_all\n \
@@ -95,7 +92,19 @@ def getOptions(args=sys.argv[1:]):
                         22: close_public_school_reopen_school IF03\n \
                         23: close_public_school_reopen_public IF03\n \
                         24: close_public_work IF03\n \
-                        25: close_work_school ")
+                        25: close_work_school
+'''
+
+def getOptions(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+                        13: no_mitigation  IF03\n \
+                        14: no_mitigation_medics_02  IF03\n \
+                        15: close_all IF03\n \
+                        16: close_all_reopen_all IF03\n \
+                        17: close_all_reopen_work IF03\n \
+                        18: close_all_reopen_school IF03\n \
+                        19: close_all_reopen_public IF03")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", type=int,
@@ -117,12 +126,12 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-rt", "--reinfection_times", nargs='*', type=int,
                         help="times for reinfections (default empty = no reinfections)")
     parser.add_argument("-prod", "--product", type=float,
-                        help="fixed product infectivity*mu (default = 0: ignored")
-    parser.add_argument("-mu", "--mu", type=float, help="interaction frequency (default = 2")
+                        help="fixed product infectivity*mu (default = 0: ignored)")
+    parser.add_argument("-mu", "--mu", type=float, help="interaction frequency (default = 2)")
     parser.add_argument("-rec", "--recovered", type=float,
                         help="fraction (0.0-1.0) of initial recoverd agents default = 0.0")
     parser.add_argument("-rec_world", "--recovered_world", type=int,
-                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 0")
+                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1 (default 0) ")
     parser.add_argument("-mht", "--max_houshold_time", type=int,
                         help="max time for monitoring infected housholds (default is None ->max)")
     parser.add_argument("-mix", "--mixing", type=bool,
@@ -365,8 +374,8 @@ def get_simualtion_settings(options):
         else:
             input_parameter_dict['output_folder'] = options.folder + '/'
     else:
-        #input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
-        input_parameter_dict['output_folder'] = 'parallel_test/'
+        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
+        #input_parameter_dict['output_folder'] = 'parallel_test/'
 
     if options.parameter:  # number of simulations
         input_parameter_dict['parameter'] = options.parameter
@@ -456,8 +465,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/parralel_HM_test/'
-    world_name = 'V2_RPM02_hm_Gangelt_big_'
+    input_folder = 'saved_objects/parralel_HM/'
+    world_name = 'parralel_HM_V2_RPM02_hm_Gangelt_big_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -599,8 +608,8 @@ if __name__ == '__main__':
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
         save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
 
-        save_infectivities(infectivities_at_2,'_2_', **kwargs_plot)
-        save_infectivities(infectivities_at_3,'_3_', **kwargs_plot)
+        save_infectivities(infectivities_at_2_list,'_2_', **kwargs_plot)
+        save_infectivities(infectivities_at_3_list,'_3_', **kwargs_plot)
 
         if 'contact_tracing' in df_dict_list[0].keys():
             contact_tracing = [df['contact_tracing'] for df in df_dict_list]

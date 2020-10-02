@@ -344,7 +344,7 @@ def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_
         relative=True, locs_to_hide=locs_to_hide)
     df_loc_types_i = pd.concat(df_list)
     df_delta = get_delta_df(df_loc_types_i, df_loc_types_w, relative=relative)
-    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax,**kwargs)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, save_figure=False, **kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -375,7 +375,7 @@ def plot_and_save_infections_per_schedule_type_delta(df_list, modeled_pop_world_
     df_sched_types_i = pd.concat(df_list)
     df_delta = get_delta_df(
         df_sched_types_i, df_sched_types_w, relative=relative)
-    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, **kwargs)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, save_figure=False, **kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -445,7 +445,7 @@ def plot_and_save_contacts(df_list,
         df_transposed = df_int_ratio.to_frame().transpose().reset_index(drop=True)
         df_delta = get_delta_df(df_transposed, df_w, relative=relative)
         vpm_plt.plot_ratio_change(
-            df_delta, title=interaction_type, label_offset=0.02)
+            df_delta, title=interaction_type, save_figure=False, label_offset=0.02)
 
         if save_figure:
             plt.savefig(output_folder + 'plots/' + filename+'_'+ interaction_type
