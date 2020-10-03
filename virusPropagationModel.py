@@ -1240,6 +1240,16 @@ class Simulation(object):
     # def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
     #    return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
 
+    def get_infectivities(self):
+    	IDs = []
+    	infectivities = []
+    	for p in self.people:
+    		IDs.append(p.ID)
+    		infectivities.append(p.get_infectivity())
+    	pd_dict = {'ID': IDs, 'infectivity': infectivities}
+    	df = pd.DataFrame(pd_dict)
+    	return(df)
+
     def export_time_courses_as_csvs(self, identifier="output"):
         """
         export the human simulation time course, human commutative status time course, and locations time course

@@ -10,8 +10,8 @@ from functools import partial
 
 
 
-def ini_and_save_world(i,size=1, schedule='schedule_v2', **kwargs):
-    world = ModeledPopulatedWorld(1000,10, world_from_file=True,
+def ini_and_save_world(i, output_folder='saved_objects/', size=1, schedule='schedules_v2', **kwargs):
+    world = ModeledPopulatedWorld(1000, 10, world_from_file=True,
             geofile_name='datafiles/Buildings_Gangelt_MA_'+str(size)+'.csv',
                                      agent_agent_infection=True,
                              automatic_initial_infections=False,
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     schedule = 'schedules_v2'    
 
-    mapfunc = partial(ini_and_save_world, size=size, schedule=schedule)
+    mapfunc = partial(ini_and_save_world, output_folder=output_folder, size=size, schedule=schedule)
     with Pool(cores) as pool:
         pool.map(mapfunc, [i for i in range(number)])
 
