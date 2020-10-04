@@ -207,6 +207,35 @@ class ModeledPopulatedWorld(object):
         for p in to_infect:
             p.set_initially_infected()
 
+    def set_agents_attribute(self, attribute, value, id_list=[]):
+        """
+        Set the attribute of all agents with an ID listed in id_list to the value.
+        IF id_list is empty the attribute value is change for all agents
+        """
+        ##needs to be adjusted to cope with  wrong values
+        if id_list:
+            [setattr(p, attribute, value) for p in self.people
+                if p.ID in id_list]
+        else:        
+            [setattr(p, attribute, value) for p in self.people]
+
+
+    def set_im_for_subset(self, im, id_list, keep_average=True):
+        """
+        set interaction modifier agents with ID in  id_list.
+        if keep_average = True, the interaction modifier of the
+        rest are adjusted such that the average IM remains 1.
+        """
+        self.set_agents_attribute('interaction_modifier', im, id_list=id_list)
+                
+        if keep_average:
+            n_people = self.number_of_people
+            rest = [p.ID for p in self.people if p.ID not in id_list]
+            n_rest = len(rest)
+            im_rest = (1 - im) * n_people / n_rest + im
+            self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
+
+
     def get_location_types(self):
         location_types = list(self.world.loc_class_dic.keys())
         location_types.remove('excluded_buildings')
@@ -1619,26 +1648,21 @@ def get_delta_df(df_data, df_world, relative=True):
 def location_info(world_sim_obj):
     """object can either be world or simulation"""
     locations = list(world_sim_obj.locations.values())
-    Location_Types = {str(l.ID): l.location_type for l in locations}
-    Location_Areas = {str(l.ID): l.area for l in locations}
-    Location_Neighbourhood = {
-        str(l.ID): l.neighbourhood_ID for l in locations}
-    Location_Info = pd.DataFrame()
-    Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
-    Location_Info['Type'] = list(Location_Types.values())
-    Location_Info['Area'] = list(Location_Areas.values())
-    Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
-    return(Location_Info)
+    location_info_list  = [{'ID': l.ID ,
+                            'Type': l.location_type,
+                            'Area': l.area,
+                            'Coordinates': l.coordinates,
+                            'Neighbourhood': l.neighbourhood_ID}
+                            for l in locations]
+    return(pd.DataFrame(location_info_list))
 
 def agent_info(world_sim_obj):
     """object can either be world or simulation"""
     people = list(world_sim_obj.people)
-    Agents_Ages = {str(p.ID): p.age for p in people}
-    Agents_Homes = {str(p.ID): p.home.ID for p in people}
-    Agents_Types = {str(p.ID): p.type for p in people}
-    Agent_Info = pd.DataFrame()
-    Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
-    Agent_Info['Age'] = list(Agents_Ages.values())
-    Agent_Info['Home'] = list(Agents_Homes.values())
-    Agent_Info['Type'] = list(Agents_Types.values())
-    return(Agent_Info)
+    agent_info_list  = [{'ID': p.ID ,
+                        'Age': p.age ,
+                        'Home': p.home.ID,
+                        'Type': p.type,
+                        'Interaction Modifier': p.interaction_modifier}
+                        for p in people]
+    return(pd.DataFrame(agent_info_list))

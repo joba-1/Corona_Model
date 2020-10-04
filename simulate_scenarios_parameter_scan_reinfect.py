@@ -136,6 +136,9 @@ def getOptions(args=sys.argv[1:]):
                         help="max time for monitoring infected housholds (default is None ->max)")
     parser.add_argument("-mix", "--mixing", type=bool,
                         help="use homogeneous mixing when True (default is False)")
+    parser.add_argument("-iar", "--im_age_range", nargs='+', type=float,
+                        help="""choose the interaction modifier for a specific age range 
+                        in order : IM min_age max_age (default 1 -1 100)""")
     options = parser.parse_args(args)
     return options
 
@@ -194,6 +197,20 @@ def recover_world(world, frac, from_world=True, **kwargs):
             p.set_initially_recovered()
 
 # times: 3 durations for simulations; closed_locs: list of forbidden locations
+
+def set_interaction_modifier_for_age_range(world, iar_list,
+                                           keep_average=True,):
+    """
+    set interaction modifier for agents with min_age<age<max_age,
+    and if  keep_average: change the modfifier for the rest accordingly
+    """
+    im = iar_list[0]
+    min_age = iar_list[1]
+    max_age = iar_list[2]
+    p_subset_ids = [p.ID for p in world.people if (
+        p.age > min_age) & (p.age < max_age)]
+    world.set_im_for_subset(im, id_list=p_subset_ids)
+    print('nr of agents with changed IM', len(p_subset_ids))
 
 
 def simulate_scenario(input_dict):
@@ -449,6 +466,13 @@ def get_simualtion_settings(options):
         input_parameter_dict['mix'] = options.mixing
     else:
         input_parameter_dict['mix'] = False
+
+    if options.im_age_range:  # interaction modifier, lower and upper bounds for ages are passed
+        # if given take list of bounds
+        input_parameter_dict['im_age_range'] = options.im_age_range
+    else:
+        input_parameter_dict['im_age_range'] = [1,-1,100] # nothing changes IM 1 -1<age<100
+
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
@@ -465,8 +489,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/parralel_HM/'
-    world_name = 'parralel_HM_V2_RPM02_hm_Gangelt_big_'
+    input_folder = 'saved_objects/worldsV2_hm/' #saved_objects/parralel_HM/'
+    world_name = 'HM_V2_RPM02_hm_Gangelt_big_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -497,8 +521,7 @@ if __name__ == '__main__':
         if used_scenario['parameter'] == 'initial_infections':
             infectees_list = [i+1 for i in range(int(p))]
         elif used_scenario['parameter'] == 'random_initial_infections':
-            infectees_list = np.random.choice(
-                [p.ID for p in currentWorld.people], size=4)
+            infectees_list = np.random.choice([p.ID for p in currentWorld.people], size=4)
         else:
             used_scenario[used_scenario['parameter']] = p
             if used_scenario['parameter'] == 'recover_frac':
@@ -512,7 +535,13 @@ if __name__ == '__main__':
                               initial_infectees=[1, 2, 3, 4])
             infectees_list = [i+1 for i in range(4)]
         print(infectees_list)
+        
         infect_world(currentWorld, IDs = infectees_list)
+        
+        set_interaction_modifier_for_age_range(currentWorld,
+                                               used_scenario['im_age_range'],
+                                               keep_average=True,)
+
         if used_scenario['product'] != 0:
             if parameter == 'mu':
                 scenario_and_parameter = world_name + used_scenario['name'] + '_prod_'+str(
@@ -534,7 +563,11 @@ if __name__ == '__main__':
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         # '/home/basar/corona_simulations_save/'
         used_scenarios = generate_scenario_list(used_scenario, input_parameter_dict['number'])
-
+        scenario_and_parameter = 'IAR_' \
+            + str(used_scenario['im_age_range'][0]) + '_' \
+            + str(used_scenario['im_age_range'][1]+1) + '_' \
+            + str(used_scenario['im_age_range'][2]-1) + '_' \
+            + scenario_and_parameter  
         for sc in used_scenarios:
             sc['world'] = currentWorld
 
@@ -627,10 +660,10 @@ if __name__ == '__main__':
             for key in used_scenario:
                 writer.writerow([key, used_scenario[key]])
 
-        agent_infos = used_scenario['modeledWorld'].get_agent_info()
+        agent_infos = currentWorld.get_agent_info()
         agent_infos.to_csv(output_folder_plots +
                            scenario_and_parameter +'_agent_infos.csv')
-        location_infos = used_scenario['modeledWorld'].get_location_info()
+        location_infos = currentWorld.get_location_info()
         location_infos.to_csv(output_folder_plots + scenario_and_parameter + '_location_infos.csv')
 
         del(currentWorld)
