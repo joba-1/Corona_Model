@@ -1,4 +1,4 @@
-# TBP HU-Berlin SARS-CoV-2 infection transmission ABM 
+# TBP HU-Berlin SARS-CoV-2 infection transmission ABM
 
 ## General Information
 The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
@@ -12,8 +12,8 @@ The code in this repository was implemented using python 3.7 \
 Only this version or newer versions of python are supported.
 
 ### Quick setup using conda
-Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup. 
-1. First, clone this repository to your local machine if you have not done so yet. 
+Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup.
+1. First, clone this repository to your local machine if you have not done so yet.
 
 2. Then, make sure you have Anaconda/Miniconda3 installed by running the following code in your terminal
     ```
@@ -24,6 +24,13 @@ Follow these three steps to make use of the virtual environment provided in the 
     ```
     conda update conda
     ```
+    If you don't want to permanently activate the conda base environment, add following code to your ~/.bashrc:
+    ```
+    [ -e "$(which conda)" ] && conda deactivate
+    ```
+    It has to be placed below the "# <<< conda initialize <<<" line
+    This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
+
 3. Then run the following pieces of code to set up the local environment:
     ```
     cd /path/to/this/repository
