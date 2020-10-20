@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run': 0, 'max_time': 168, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 1000, 'closed_locs': [
@@ -336,19 +336,19 @@ def simulate_scenario(input_dict):
         infectivities_at_3 = pd.DataFrame(columns = ['ID','infectivity'])
 
     sim_dict = {
-        'stat_trajectories': simulation1.get_status_trajectories(),
-        'durations': simulation1.get_durations(),
-        'flag_trajectories': simulation1.get_flag_sums_over_time(),
-        'number_of_infected_households': simulation1.get_number_of_infected_households(time_span=[0, max_houshold_time]),
-        'infection_timecourse': simulation1.get_infection_event_information(),
-        'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
-        'r_eff': simulation1.get_r_eff_trajectory(96),
+        #'stat_trajectories': simulation1.get_status_trajectories(),
+        #'durations': simulation1.get_durations(),
+        #'flag_trajectories': simulation1.get_flag_sums_over_time(),
+        #'number_of_infected_households': simulation1.get_number_of_infected_households(time_span=[0, max_houshold_time]),
+        #'infection_timecourse': simulation1.get_infection_event_information(),
+        #'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
+        #'r_eff': simulation1.get_r_eff_trajectory(96),
         'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
-        'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
-        'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
+        #'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
+        #'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
         'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
-        'infectivities_at_2': infectivities_at_2,
-        'infectivities_at_3': infectivities_at_3
+        #'infectivities_at_2': infectivities_at_2,
+        #'infectivities_at_3': infectivities_at_3
     }
 
     if 'Interaction_partner' in timecourse_keys:
@@ -490,7 +490,7 @@ if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
     input_folder = 'saved_objects/parralel_HM_V2/' #saved_objects/parralel_HM/'
-    world_name = 'parralel_HM_V2_simX_'
+    world_name = 'parralel_HM_V2_no_inf_mix_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -534,9 +534,9 @@ if __name__ == '__main__':
                               world_name=world_name,
                               initial_infectees=[1, 2, 3, 4])
             infectees_list = [i+1 for i in range(4)]
-        print(infectees_list)
+        #print(infectees_list)
         
-        infect_world(currentWorld, IDs = infectees_list)
+        #infect_world(currentWorld, IDs = infectees_list)
         
         set_interaction_modifier_for_age_range(currentWorld,
                                                used_scenario['im_age_range'],
@@ -590,59 +590,59 @@ if __name__ == '__main__':
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
         print(df_dict_list[0].keys())
 
-        status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
-        simulation_trajectory_list = [df['durations'] for df in df_dict_list]
-        flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-        infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
-        infections_per_schedule_type_list = [df['infections_per_schedule_type'] for df in df_dict_list]
-        number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
-        infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
-        infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
+        #status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
+        #simulation_trajectory_list = [df['durations'] for df in df_dict_list]
+        #flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
+        #infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        #infections_per_schedule_type_list = [df['infections_per_schedule_type'] for df in df_dict_list]
+        #number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
+        #infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
+        #infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
         encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
         contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
-        r_eff_list = [df['r_eff'] for df in df_dict_list]
-        infectivities_at_2_list = [df['infectivities_at_2'] for df in df_dict_list]
-        infectivities_at_3_list = [df['infectivities_at_3'] for df in df_dict_list]
+        #r_eff_list = [df['r_eff'] for df in df_dict_list]
+        #infectivities_at_2_list = [df['infectivities_at_2'] for df in df_dict_list]
+        #infectivities_at_3_list = [df['infectivities_at_3'] for df in df_dict_list]
 
         kwargs_plot = {'filename': scenario_and_parameter, 'output_folder': output_folder_plots}
 
-        plot_and_save_statii(status_trajectories_list, **kwargs_plot)
-        plot_and_save_durations(simulation_trajectory_list, **kwargs_plot)
-        plot_flags(flag_trajectories_list, cummulative=False, **kwargs_plot)
-        plot_flags(flag_trajectories_list, cummulative=True,
-                   filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
-        plot_and_save_infection_per_location(infections_per_location_type_list, **kwargs_plot)
-        plot_and_save_infections_per_location_type_delta(infections_per_location_type_list,
-                                                         used_scenario['modeledWorld'],
-                                                         locs_to_hide=['morgue'],
-                                                         relative=False,
-                                                         label_offset=0.03,
-                                                         title='Infections per location type',
-                                                         **kwargs_plot)
-        plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
-                                                         used_scenario['modeledWorld'],
-                                                         save_figure=True,
-                                                         fraction_most_infectious=1.,
-                                                         sched_to_hide=[],
-                                                         title='Infections per schedule type',
-                                                         label_offset=0.03,
-                                                         relative=False, **kwargs_plot)
-        plot_and_save_patterns(infection_patterns_list, pattern='infections',
-                               filename=scenario_and_parameter, output_folder=output_folder_plots)
+        #plot_and_save_statii(status_trajectories_list, **kwargs_plot)
+        #plot_and_save_durations(simulation_trajectory_list, **kwargs_plot)
+        #plot_flags(flag_trajectories_list, cummulative=False, **kwargs_plot)
+        #plot_flags(flag_trajectories_list, cummulative=True,
+         #          filename=scenario_and_parameter+'_cumulativ', output_folder=output_folder_plots)
+        #plot_and_save_infection_per_location(infections_per_location_type_list, **kwargs_plot)
+        #plot_and_save_infections_per_location_type_delta(infections_per_location_type_list,
+         #                                                used_scenario['modeledWorld'],
+          #                                               locs_to_hide=['morgue'],
+           #                                              relative=False,
+            #                                             label_offset=0.03,
+             #                                            title='Infections per location type',
+              #                                           **kwargs_plot)
+        #plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
+         #                                                used_scenario['modeledWorld'],
+          #                                               save_figure=True,
+           #                                              fraction_most_infectious=1.,
+            #                                             sched_to_hide=[],
+             #                                            title='Infections per schedule type',
+              #                                           label_offset=0.03,
+               #                                          relative=False, **kwargs_plot)
+        #plot_and_save_patterns(infection_patterns_list, pattern='infections',
+         #                      filename=scenario_and_parameter, output_folder=output_folder_plots)
         # plot_infection_per_schedule_type(infection_timecourse_list,
         #                                 used_scenario['modeledWorld'],
         #                                 **kwargs_plot)
-        plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
+        #plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
         plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
         plot_and_save_contacts(
             contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
         
 
-        save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
-        save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
+        #save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
+        #save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
 
-        save_infectivities(infectivities_at_2_list,'_2_', **kwargs_plot)
-        save_infectivities(infectivities_at_3_list,'_3_', **kwargs_plot)
+        #save_infectivities(infectivities_at_2_list,'_2_', **kwargs_plot)
+        #save_infectivities(infectivities_at_3_list,'_3_', **kwargs_plot)
 
         if 'contact_tracing' in df_dict_list[0].keys():
             contact_tracing = [df['contact_tracing'] for df in df_dict_list]

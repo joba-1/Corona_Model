@@ -232,8 +232,9 @@ class ModeledPopulatedWorld(object):
             n_people = self.number_of_people
             rest = [p.ID for p in self.people if p.ID not in id_list]
             n_rest = len(rest)
-            im_rest = (1 - im) * n_people / n_rest + im
-            self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
+            if n_rest>0:
+                im_rest = (1 - im) * n_people / n_rest + im
+                self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
 
 
     def get_location_types(self):
