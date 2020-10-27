@@ -708,7 +708,7 @@ class Simulation(object):
         # DF
     def get_agent_specific_duration_info(self):
         df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
-            'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
+                          'h_ID', 'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
         return(df)
 
     def get_durations(self):
