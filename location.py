@@ -82,18 +82,51 @@ class World(object):
         '''
         loc_class_dic = {}
 
-        loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
+        loc_class_dic['excluded_buildings'] = ['garage', 
+                                               'roof',
+                                               'shed', 
+                                               'bungalow', 
+                                               'silo',]
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
         loc_class_dic['mixing_loc'] = ['mixing_loc']
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
+        loc_class_dic['work'] = ['industrial',
+                                 'greenhouse',
+                                 'barn',
+                                 'cowshed',
+                                 'shed', 
+                                 'commercial', 
+                                 'warehouse', 
+                                 'office', 
+                                 'farm', 
+                                 'fire_station', 
+                                 'farm_auxiliary', 
+                                 'retail']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
 
-        # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe', 'sports_centre']\
+        # What is a public place or just work place e.g. restaurante, cafe...
+        loc_class_dic['public'] = ['arts_centre',
+                                    'brothel',
+                                    'cafe',
+                                    'public', 
+                                    'chapel', 
+                                    'church',
+                                    'community_centre',
+                                    'fast_food',
+                                    'library',
+                                    'police',
+                                    'place_of_worship',
+                                    'parish_hall',
+                                    'pharmacy',
+                                    'townhall', 
+                                    'restaurant', 
+                                    'social_facility',
+                                    'grocery_store', 
+                                    'cafe', 
+                                    'sports_centre']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
 
@@ -116,7 +149,7 @@ class World(object):
 
         loc_class_dic = self.assign_location_classifier()
         # Columns important to classify building type and therefore which location type it is
-        col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        #col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
         morgue_bool = False
@@ -334,14 +367,14 @@ class Location(object):
             # create vector of interaction modifier
             v = np.array([interaction_modifier])
             # set interaction probability threshold
-            interaction_probability = mu/(n-1)
+            interaction_probability = mu / (n - 1)
             # Create triangle matrix from v  on top of diagonal (rest zeros)
             M = v.transpose().dot(v)
-            C = np.triu(M)-np.eye(n)*v**2
+            C = np.triu(M) - np.eye(n) * v ** 2
             # generate array of random numbers with dimension n times n
             P = np.random.random((n, n))
             # build logical array, showing where drawn probabilities are smaller than mu
-            I = P < C*interaction_probability
+            I = P < C * interaction_probability
             # build list of interacting-ids (as tuples)
             cp1, cp2 = np.where(I)
             pairs = list(zip([human_ids[i]

@@ -66,34 +66,6 @@ scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_
 #world_list = os.listdir('/home/basar/corona_simulations/saved_objects/worlds')
 #world_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')]
 
-'''
-                        0: no_mitigation \n \
-                        1: no_mitigation_medics_02 \n \
-                        2: close_all\n \
-                        3: close_all_reopen_all\n \
-                        4: close_all_reopen_work\n \
-                        5: close_all_reopen_school\n \
-                        6: close_all_reopen_public\n \
-                        7: close_public_school\n \
-                        8: close_public_school_reopen_all\n \
-                        9: close_public_school_reopen_school\n \
-                        10: close_public_school_reopen_public\n \
-                        11: close_public_work\n \
-                        12: close_work_school \n \
-                        13: no_mitigation  IF03\n \
-                        14: no_mitigation_medics_02  IF03\n \
-                        15: close_all IF03\n \
-                        16: close_all_reopen_all IF03\n \
-                        17: close_all_reopen_work IF03\n \
-                        18: close_all_reopen_school IF03\n \
-                        19: close_all_reopen_public IF03\n \
-                        20: close_public_school IF03\n \
-                        21: close_public_school_reopen_all IF03\n \
-                        22: close_public_school_reopen_school IF03\n \
-                        23: close_public_school_reopen_public IF03\n \
-                        24: close_public_work IF03\n \
-                        25: close_work_school
-'''
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
@@ -486,6 +458,27 @@ def generate_scenario_list(used_scenario, number):
     return used_scenarios
 
 
+def get_scenario_name(world_name, used_scenario):
+    """not done yet"""
+    scenario_name = world_name + used_scenario['name']
+
+    if used_scenario['product'] != 0:
+        if parameter == 'mu':
+            param_specs = '_prod_'+str(product)+'_inf_'+str(float(product)/float(p))+'_'+str(parameter)+'_'+'{:.3f}'.format(p)
+        else:
+            param_specs = '_prod_'+str(product)+'_inf_'+str(float(product)/float(mu))+'_'+str(parameter)+'_'+'{: .3f}'.format(p)
+    elif used_scenario['parameter'] == 'recover_frac':
+        param_specs = 'Ifreq_'+str(mu)+'_'+used_scenario['name'] + '_'+str(
+            parameter)+'_'+'{:.3f}'.format(p)+'_rw_'+str(used_scenario['recovered_world'])
+    else:
+        param_specs = 'Ifreq_' + \
+            str(mu)+'_'+used_scenario['name'] + '_'+ str(parameter)+'_'+'{:.3f}'.format(p)
+    if used_scenario['mix']:
+        param_specs = 'mix_' + scenario_and_parameter
+    
+    scenario_name = scenario_name + param_specs
+    return(scenario_name)
+
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
@@ -542,6 +535,8 @@ if __name__ == '__main__':
                                                used_scenario['im_age_range'],
                                                keep_average=True,)
 
+        scenario_and_parameter = get_scenario_name(world_name, used_scenario)
+
         if used_scenario['product'] != 0:
             if parameter == 'mu':
                 scenario_and_parameter = world_name + used_scenario['name'] + '_prod_'+str(
@@ -557,17 +552,21 @@ if __name__ == '__main__':
                 str(mu)+'_'+used_scenario['name'] + '_'+ str(parameter)+'_'+'{:.3f}'.format(p)
         if used_scenario['mix']:
             scenario_and_parameter = 'mix_'+ scenario_and_parameter
+
+        scenario_and_parameter = 'IAR_' \
+            + str(used_scenario['im_age_range'][0]) + '_' \
+            + str(int(used_scenario['im_age_range'][1]+1)) + '_' \
+            + str(int(used_scenario['im_age_range'][2]-1)) + '_' \
+            + scenario_and_parameter  
+
         output_folder_plots = output_folder + 'outputs/' + scenario_and_parameter + '_ri_' + \
             str(used_scenario['reinfections']) + '_rx_' + \
             str(len(used_scenario['reinfection_times'])) + '/'
-        #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
-        # '/home/basar/corona_simulations_save/'
-        used_scenarios = generate_scenario_list(used_scenario, input_parameter_dict['number'])
-        scenario_and_parameter = 'IAR_' \
-            + str(used_scenario['im_age_range'][0]) + '_' \
-            + str(used_scenario['im_age_range'][1]+1) + '_' \
-            + str(used_scenario['im_age_range'][2]-1) + '_' \
-            + scenario_and_parameter  
+
+        used_scenarios = generate_scenario_list(
+            used_scenario, input_parameter_dict['number'])
+
+
         for sc in used_scenarios:
             sc['world'] = currentWorld
 
