@@ -705,14 +705,18 @@ class Simulation(object):
         table['location_type'] = [self.locations[loc_id].location_type for loc_id in table['loc']]
         return table
 
-    # DF
+        # DF
+    def get_agent_specific_duration_info(self):
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
+                          'h_ID', 'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
+        return(df)
+
     def get_durations(self):
         """
          Returns a pandas DataFrame with the durations of certain states of the agents.
          :return: pandas DataFrame
          """
-        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
-            'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
+        df = self.get_agent_specific_duration_info()
         out = pd.DataFrame()
         #out['infection_to_death'] = df['death_time'] - df['infection_time']
         #out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
