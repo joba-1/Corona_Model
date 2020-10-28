@@ -37,7 +37,7 @@ scenarios = [{'run': 0, 'max_time': 600, 'start_2': 50, 'start_3': 100, 'closed_
                  'public', 'work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
@@ -175,6 +175,15 @@ def infect_world(world, IDs=[1]):
     ID_list = world.get_remaining_possible_initial_infections(IDs)
     world.initialize_infection(specific_people_ids=ID_list)
 
+def get_ordered_ids(world, schedule_types):
+    ids_by_type = {s_type:[] for s_type in schedule_types}
+    for p in world.people:
+        ids_by_type[p.schedule['type']].append(p.ID)
+    ordered_ids = []
+    for s_type in schedule_types:
+        ordered_ids.extend(ids_by_type[s_type])
+    return ordered_ids
+
 
 def recover_world(world, frac, by_schedule=None, from_world=True, **kwargs):
     susceptibles = [p.ID for p in world.people if p.status == 'S']
@@ -184,21 +193,8 @@ def recover_world(world, frac, by_schedule=None, from_world=True, **kwargs):
     # define recovered agents
 
     if by_schedule=='ordered':
-        n_agents = float(len(world.people))
-        n_left = float(len(world.people))
-        ps_to_recover = []
-        done=False
-        for s_type in schedule_types:
-            if done:
-                break
-            for p in world.people:
-                if 1.-(n_left/n_agents) >= frac:
-                    done=True
-                    break
-                elif p.schedule['type']==s_type:
-                    if p.ID in susceptibles:
-                        ps_to_recover.append(p.ID)
-                        n_left-=1.
+        ordered_ids = get_ordered_ids(world, schedule_types)
+        ps_to_recover = ordered_ids[:int(frac*n)]
     elif by_schedule in schedule_types:
         ps_to_recover = []
         for p in world.people:
@@ -519,8 +515,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/parralel_HM_V2_test/' #saved_objects/parralel_HM/'
-    world_name = 'parralel_HM_V2_recover_ordered_test_'
+    input_folder = 'saved_objects/parralel_HM_V2/' #saved_objects/parralel_HM/'
+    world_name = 'parralel_HM_V2_ordered_2nd_attempt_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -570,11 +566,11 @@ if __name__ == '__main__':
                               initial_infectees=[1, 2, 3, 4])
             infectees_list = [i+1 for i in range(4)]
         print(infectees_list)
-        
-        infect_world(currentWorld, IDs = infectees_list)
 
         if rec_schedule:
             recover_world(currentWorld, rec_frac, by_schedule=rec_schedule, from_world=False)
+        
+        infect_world(currentWorld, IDs = infectees_list)
         
         set_interaction_modifier_for_age_range(currentWorld,
                                                used_scenario['im_age_range'],
