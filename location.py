@@ -86,17 +86,26 @@ class World(object):
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
         loc_class_dic['mixing_loc'] = ['mixing_loc']
-
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
-            + list(self.df_buildings['amenity'].unique())\
-            + list(self.df_buildings['shop'].unique())
+        
+        cols = ['amenity', 'shop', 'leisure', 'sport','building']
+        for col in cols:
+            try:
+                list(df_buildings[col].unique())
+            except:
+                buildings[col] = [np.nan]*len(buildings)
+       
+    
+        loc_class_dic['work'] = ['commercial','civic', 'transformer_tower', 'warehouse','hangar',' industrial', 'office', 'car_repair']\
+            + list(df_buildings['amenity'].unique())\
+            + list(df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe', 'sports_centre']\
-            + list(self.df_buildings['leisure'].unique())\
-            + list(self.df_buildings['sport'].unique())
-
+        loc_class_dic['public'] = ['bakery', 'service','butcher', 'car', 'chemist', 'travel_agency', 'copyshop','public','supermarket', 'chapel','hotel', 'pub','church','watermill', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe',\
+                                   'sports_centre', 'community_centre','fast_food','townhall', 'bank', 'toilets','place_of_worship','church']\
+            + list(df_buildings['leisure'].unique())\
+            + list(df_buildings['sport'].unique())
+            
         loc_class_dic['school'] = ['school', 'university', 'kindergarten']
         # Cleaning the list public place of nan
         loc_class_dic['public'] = [x for x in loc_class_dic['public'] if ~pd.isnull(x)]
