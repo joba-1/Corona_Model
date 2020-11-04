@@ -90,21 +90,21 @@ class World(object):
         cols = ['amenity', 'shop', 'leisure', 'sport','building']
         for col in cols:
             try:
-                list(df_buildings[col].unique())
+                list(self.df_buildings[col].unique())
             except:
-                buildings[col] = [np.nan]*len(buildings)
+                self.df_buildings[col] = [np.nan]*len(self.df_buildings)
        
     
         loc_class_dic['work'] = ['commercial','civic', 'transformer_tower', 'warehouse','hangar',' industrial', 'office', 'car_repair']\
-            + list(df_buildings['amenity'].unique())\
-            + list(df_buildings['shop'].unique())
+            + list(self.df_buildings['amenity'].unique())\
+            + list(self.df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
         loc_class_dic['public'] = ['bakery', 'service','butcher', 'car', 'chemist', 'travel_agency', 'copyshop','public','supermarket', 'chapel','hotel', 'pub','church','watermill', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe',\
                                    'sports_centre', 'community_centre','fast_food','townhall', 'bank', 'toilets','place_of_worship','church']\
-            + list(df_buildings['leisure'].unique())\
-            + list(df_buildings['sport'].unique())
+            + list(self.df_buildings['leisure'].unique())\
+            + list(self.df_buildings['sport'].unique())
             
         loc_class_dic['school'] = ['school', 'university', 'kindergarten']
         # Cleaning the list public place of nan
