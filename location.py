@@ -86,7 +86,7 @@ class World(object):
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
         loc_class_dic['mixing_loc'] = ['mixing_loc']
-        
+
         cols = ['amenity', 'shop', 'leisure', 'sport','building']
         for col in cols:
             try:
@@ -94,13 +94,14 @@ class World(object):
             except:
                 self.df_buildings[col] = [np.nan]*len(self.df_buildings)
        
-    
-        loc_class_dic['work'] = ['commercial','civic', 'transformer_tower', 'warehouse','hangar',' industrial', 'office', 'car_repair']\
+        loc_class_dic['work'] = ['commercial','civic', 'transformer_tower', 'warehouse','hangar',\
+                                ' industrial', 'office', 'car_repair']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
+        
         loc_class_dic['public'] = ['bakery', 'service','butcher', 'car', 'chemist', 'travel_agency', 'copyshop','public','supermarket', 'chapel','hotel', 'pub','church','watermill', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe',\
                                    'sports_centre', 'community_centre','fast_food','townhall', 'bank', 'toilets','place_of_worship','church']\
             + list(self.df_buildings['leisure'].unique())\
