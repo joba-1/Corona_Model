@@ -232,8 +232,9 @@ class ModeledPopulatedWorld(object):
             n_people = self.number_of_people
             rest = [p.ID for p in self.people if p.ID not in id_list]
             n_rest = len(rest)
-            im_rest = (1 - im) * n_people / n_rest + im
-            self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
+            if n_rest>0:
+                im_rest = (1 - im) * n_people / n_rest + im
+                self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
 
 
     def get_location_types(self):
@@ -918,14 +919,15 @@ class Simulation(object):
         ID_Type_dict = {l.ID: l.location_type for l in self.locations.values()
                         if l.ID in infection_locations}
         n_locs_inf = len(infection_events)
-        if relative:
-            inf_loc_ratio_dict = {t: sum(
-                [1 for x in infection_locations if ID_Type_dict[x] == t])/n_locs_inf for t in self.location_types}
-        else:
-            inf_loc_ratio_dict = {t: sum(
-                [1 for x in infection_locations if ID_Type_dict[x] == t]) for t in self.location_types}
+        if n_locs_inf>0:
+            if relative:
+                inf_loc_ratio_dict = {t: sum(
+                    [1 for x in infection_locations if ID_Type_dict[x] == t])/n_locs_inf for t in self.location_types}
+            else:
+                inf_loc_ratio_dict = {t: sum(
+                    [1 for x in infection_locations if ID_Type_dict[x] == t]) for t in self.location_types}
 
-        loc_infection_dict_0.update(inf_loc_ratio_dict)
+            loc_infection_dict_0.update(inf_loc_ratio_dict)
         if 'morgue' in loc_infection_dict_0:
             del loc_infection_dict_0['morgue']
         return pd.DataFrame([loc_infection_dict_0])
@@ -942,14 +944,15 @@ class Simulation(object):
             fraction_most_infect_p=fraction_most_infectious)
         ID_Type_dict = {p.ID: p.type for p in self.people if p.ID in infectees}
         n_infectees = len(infectees)
-        if relative:
-            inf_schedule_ratio_dict = {t: sum(
-                [1 for x in infectees if ID_Type_dict[x] == t])/n_infectees for t in self.schedule_types}
-        else:
-            inf_schedule_ratio_dict = {t: sum(
-                [1 for x in infectees if ID_Type_dict[x] == t]) for t in self.schedule_types}
+        if n_infectees>0:
+            if relative:
+                inf_schedule_ratio_dict = {t: sum(
+                    [1 for x in infectees if ID_Type_dict[x] == t])/n_infectees for t in self.schedule_types}
+            else:
+                inf_schedule_ratio_dict = {t: sum(
+                    [1 for x in infectees if ID_Type_dict[x] == t]) for t in self.schedule_types}
 
-        people_infection_dict_0.update(inf_schedule_ratio_dict)
+            people_infection_dict_0.update(inf_schedule_ratio_dict)
 
         return pd.DataFrame([people_infection_dict_0])
 

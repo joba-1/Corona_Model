@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run': 0, 'max_time': 600, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 1000, 'closed_locs': [
@@ -37,7 +37,7 @@ scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_
                  'public', 'work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
@@ -99,7 +99,6 @@ def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
                         13: no_mitigation  IF03\n \
-                        14: no_mitigation_medics_02  IF03\n \
                         15: close_all IF03\n \
                         16: close_all_reopen_all IF03\n \
                         17: close_all_reopen_work IF03\n \
@@ -132,6 +131,8 @@ def getOptions(args=sys.argv[1:]):
                         help="fraction (0.0-1.0) of initial recoverd agents default = 0.0")
     parser.add_argument("-rec_world", "--recovered_world", type=int,
                         help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1 (default 0) ")
+    parser.add_argument("-rec_schedule", "--recovered_schedule", type=str,
+                        help="simulates the world after recovering all agents with given schedule type (default=None)")
     parser.add_argument("-mht", "--max_houshold_time", type=int,
                         help="max time for monitoring infected housholds (default is None ->max)")
     parser.add_argument("-mix", "--mixing", type=bool,
@@ -174,13 +175,33 @@ def infect_world(world, IDs=[1]):
     ID_list = world.get_remaining_possible_initial_infections(IDs)
     world.initialize_infection(specific_people_ids=ID_list)
 
+def get_ordered_ids(world, schedule_types):
+    ids_by_type = {s_type:[] for s_type in schedule_types}
+    for p in world.people:
+        ids_by_type[p.schedule['type']].append(p.ID)
+    ordered_ids = []
+    for s_type in schedule_types:
+        ordered_ids.extend(ids_by_type[s_type])
+    return ordered_ids
 
-def recover_world(world, frac, from_world=True, **kwargs):
+
+def recover_world(world, frac, by_schedule=None, from_world=True, **kwargs):
     susceptibles = [p.ID for p in world.people if p.status == 'S']
     n = len(susceptibles)
 
+    schedule_types = ['under_age', 'adult', 'teacher', 'medical_professional', 'public_worker', 'pensioner']
     # define recovered agents
-    if not from_world:
+
+    if by_schedule=='ordered':
+        ordered_ids = get_ordered_ids(world, schedule_types)
+        ps_to_recover = ordered_ids[:int(frac*n)]
+    elif by_schedule in schedule_types:
+        ps_to_recover = []
+        for p in world.people:
+            if p.schedule['type']==by_schedule:
+                if p.ID in susceptibles:
+                    ps_to_recover.append(p.ID)
+    elif not from_world:
         ps_to_recover = []
         for pid in susceptibles:
             prob = random.random()
@@ -451,6 +472,11 @@ def get_simualtion_settings(options):
     else:
         input_parameter_dict['recovered_frac'] = 0.0
 
+    if options.recovered_schedule:
+        input_parameter_dict['rec_schedule'] = options.recovered_schedule
+    else:
+        input_parameter_dict['rec_schedule'] = None
+
     if options.recovered_world:
         try:
             assert(options.recovered_world in [0, 1]
@@ -489,8 +515,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/worldsV2_hm/' #saved_objects/parralel_HM/'
-    world_name = 'HM_V2_RPM02_hm_Gangelt_big_'
+    input_folder = 'saved_objects/parralel_HM_V2/' #saved_objects/parralel_HM/'
+    world_name = 'parralel_HM_V2_ordered_2nd_attempt_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -515,8 +541,13 @@ if __name__ == '__main__':
     product = used_scenario['product']
     parameter = used_scenario['parameter']
     mu = used_scenario['mu']
+    rec_schedule = used_scenario['rec_schedule']
 
     for p in used_scenario['p_range']:
+        if used_scenario['parameter'] == 'recover_frac' and rec_schedule:
+            rec_frac = p
+        else:
+            rec_frac = used_scenario['recovered_frac']
         currentWorld = copy.deepcopy(used_scenario['modeledWorld'])
         if used_scenario['parameter'] == 'initial_infections':
             infectees_list = [i+1 for i in range(int(p))]
@@ -524,7 +555,7 @@ if __name__ == '__main__':
             infectees_list = np.random.choice([p.ID for p in currentWorld.people], size=4)
         else:
             used_scenario[used_scenario['parameter']] = p
-            if used_scenario['parameter'] == 'recover_frac':
+            if used_scenario['parameter'] == 'recover_frac' and not rec_schedule:
                 recover_world(currentWorld, p, from_world=used_scenario['recovered_world'],
                               time_steps=used_scenario['max_time'],
                               infectivity=used_scenario['infectivity'],
@@ -535,6 +566,9 @@ if __name__ == '__main__':
                               initial_infectees=[1, 2, 3, 4])
             infectees_list = [i+1 for i in range(4)]
         print(infectees_list)
+
+        if rec_schedule:
+            recover_world(currentWorld, rec_frac, by_schedule=rec_schedule, from_world=False)
         
         infect_world(currentWorld, IDs = infectees_list)
         
