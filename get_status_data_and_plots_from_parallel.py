@@ -241,7 +241,6 @@ def plot_and_save_contact_tracing(df_list, filename='scenario', output_folder='o
     '''only save no plotting yet'''
     df = pd.concat(df_list, axis=0)
     df.reset_index(inplace=True)
-    df_mean = df.groupby('aggregated_time').mean()
     df.to_csv(output_folder+filename + '_' + 'contact_tracing.csv')
     
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
@@ -253,6 +252,11 @@ def save_infectivities(infectivities_list, tp, filename='scenario', output_folde
     df = pd.concat([infectivities_list[j].set_index('ID') for j in range(len(infectivities_list))], axis=1)
     df.columns = ['infectivities'+str(i) for i in range(len(infectivities_list))]         
     df.to_csv(output_folder+filename+'_'+'infectivities'+tp+'.csv')
+
+def save_transition_times(df_transition_times, filename='scenario', output_folder='outputs/'):
+    df = pd.concat(df_transition_times, axis=0)
+    df.reset_index(inplace=True, drop=True)
+    df.to_csv(output_folder+filename + '_' + 'transition_times.csv')
 
 def plot_infection_per_schedule_type(df_I_list, world,
                                      cutoff_time=100, nr_most_inf_p=800,
