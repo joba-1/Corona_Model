@@ -793,6 +793,11 @@ class Simulation(object):
         out['diagnosis_to_death'] = df['death_time'] - df['diagnosis_time']
         return out
 
+    def get_agent_specific_duration_info(self):
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
+                          'h_ID', 'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
+        return(df)
+
     # DF ## changed. should be used in other functions ?
     def get_infection_event_information(self):
         """
@@ -848,13 +853,19 @@ class Simulation(object):
         closed_spreaders_with_r['reproduction_nr'] = closed_spreaders_with_r['reproduction_nr'].fillna(
             0.0).astype(int)
 
-        assert sliding_window_size <= np.max(
-            closed_spreaders_with_r.time), "the sliding window size it more then the time of the last infection in the time course  ! "
-        times = np.arange(sliding_window_size, np.max(
-            closed_spreaders_with_r.time) + 1, sliding_step_size)
+        if sliding_window_size > np.max(closed_spreaders_with_r.time):
+            times=[]
+            r_effs=[]
+            stds_r_eff=[]
 
-        r_effs = np.zeros(len(times))
-        stds_r_eff = np.zeros(len(times))
+        #assert sliding_window_size <= np.max(
+         #   closed_spreaders_with_r.time), "the sliding window size it more then the time of the last infection in the time course  ! "
+        else:
+            times = np.arange(sliding_window_size, np.max(
+                closed_spreaders_with_r.time) + 1, sliding_step_size)
+
+            r_effs = np.zeros(len(times))
+            stds_r_eff = np.zeros(len(times))
 
         for i, t in enumerate(times):
             time_window_reproduction_nrs = closed_spreaders_with_r.loc[(
