@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 2500, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run': 0, 'max_time': 600, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 1000, 'closed_locs': [
@@ -37,7 +37,7 @@ scenarios = [{'run': 0, 'max_time': 2500, 'start_2': 200, 'start_3': 500, 'close
                  'public', 'work'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_public_work'},
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
-             {'run': 0, 'max_time': 500, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.3, 'name':'no_mitigation_medics_02_IF03', 'hospital_coeff': 0.02},
@@ -66,10 +66,7 @@ scenarios = [{'run': 0, 'max_time': 2500, 'start_2': 200, 'start_3': 500, 'close
 #world_list = os.listdir('/home/basar/corona_simulations/saved_objects/worlds')
 #world_files = [input_folder+'/'+x for x in file_list if x.endswith('pkl')]
 
-
-def getOptions(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+'''
                         0: no_mitigation \n \
                         1: no_mitigation_medics_02 \n \
                         2: close_all\n \
@@ -95,7 +92,18 @@ def getOptions(args=sys.argv[1:]):
                         22: close_public_school_reopen_school IF03\n \
                         23: close_public_school_reopen_public IF03\n \
                         24: close_public_work IF03\n \
-                        25: close_work_school ")
+                        25: close_work_school
+'''
+
+def getOptions(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+                        13: no_mitigation  IF03\n \
+                        15: close_all IF03\n \
+                        16: close_all_reopen_all IF03\n \
+                        17: close_all_reopen_work IF03\n \
+                        18: close_all_reopen_school IF03\n \
+                        19: close_all_reopen_public IF03")
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", type=int,
@@ -117,14 +125,21 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-rt", "--reinfection_times", nargs='*', type=int,
                         help="times for reinfections (default empty = no reinfections)")
     parser.add_argument("-prod", "--product", type=float,
-                        help="fixed product infectivity*mu (default = 0: ignored")
-    parser.add_argument("-mu", "--mu", type=float, help="interaction frequency (default = 2")
+                        help="fixed product infectivity*mu (default = 0: ignored)")
+    parser.add_argument("-mu", "--mu", type=float, help="interaction frequency (default = 2)")
     parser.add_argument("-rec", "--recovered", type=float,
                         help="fraction (0.0-1.0) of initial recoverd agents default = 0.0")
     parser.add_argument("-rec_world", "--recovered_world", type=int,
-                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1  (default 0")
+                        help="recovered world simulates the world and uses the infection pattern to define the recovered population 0 or 1 (default 0) ")
+    parser.add_argument("-rec_schedule", "--recovered_schedule", type=str,
+                        help="simulates the world after recovering all agents with given schedule type (default=None)")
     parser.add_argument("-mht", "--max_houshold_time", type=int,
                         help="max time for monitoring infected housholds (default is None ->max)")
+    parser.add_argument("-mix", "--mixing", type=bool,
+                        help="use homogeneous mixing when True (default is False)")
+    parser.add_argument("-iar", "--im_age_range", nargs='+', type=float,
+                        help="""choose the interaction modifier for a specific age range 
+                        in order : IM min_age max_age (default 1 -1 100)""")
     options = parser.parse_args(args)
     return options
 
@@ -160,13 +175,33 @@ def infect_world(world, IDs=[1]):
     ID_list = world.get_remaining_possible_initial_infections(IDs)
     world.initialize_infection(specific_people_ids=ID_list)
 
+def get_ordered_ids(world, schedule_types):
+    ids_by_type = {s_type:[] for s_type in schedule_types}
+    for p in world.people:
+        ids_by_type[p.schedule['type']].append(p.ID)
+    ordered_ids = []
+    for s_type in schedule_types:
+        ordered_ids.extend(ids_by_type[s_type])
+    return ordered_ids
 
-def recover_world(world, frac, from_world=True, **kwargs):
+
+def recover_world(world, frac, by_schedule=None, from_world=True, **kwargs):
     susceptibles = [p.ID for p in world.people if p.status == 'S']
     n = len(susceptibles)
 
+    schedule_types = ['under_age', 'adult', 'teacher', 'medical_professional', 'public_worker', 'pensioner']
     # define recovered agents
-    if not from_world:
+
+    if by_schedule=='ordered':
+        ordered_ids = get_ordered_ids(world, schedule_types)
+        ps_to_recover = ordered_ids[:int(frac*n)]
+    elif by_schedule in schedule_types:
+        ps_to_recover = []
+        for p in world.people:
+            if p.schedule['type']==by_schedule:
+                if p.ID in susceptibles:
+                    ps_to_recover.append(p.ID)
+    elif not from_world:
         ps_to_recover = []
         for pid in susceptibles:
             prob = random.random()
@@ -184,6 +219,20 @@ def recover_world(world, frac, from_world=True, **kwargs):
 
 # times: 3 durations for simulations; closed_locs: list of forbidden locations
 
+def set_interaction_modifier_for_age_range(world, iar_list,
+                                           keep_average=True,):
+    """
+    set interaction modifier for agents with min_age<age<max_age,
+    and if  keep_average: change the modfifier for the rest accordingly
+    """
+    im = iar_list[0]
+    min_age = iar_list[1]
+    max_age = iar_list[2]
+    p_subset_ids = [p.ID for p in world.people if (
+        p.age > min_age) & (p.age < max_age)]
+    world.set_im_for_subset(im, id_list=p_subset_ids)
+    print('nr of agents with changed IM', len(p_subset_ids))
+
 
 def simulate_scenario(input_dict):
     '''
@@ -195,7 +244,7 @@ def simulate_scenario(input_dict):
                'closed_locs': ['public', 'school', 'work'], 'reopen_locs': ['public', 'school', 'work'],
                'infectivity': 0.5, 'hospital_coeff': 0.01, 'name': 'default',
                'output_folder': 'scenario_output', 'world': None, 'disobedience': 0,
-               'reinfection_times': [], 'reinfections': 1, 'mu': 2, 'product': 0}
+               'reinfection_times': [], 'reinfections': 1, 'mu': 2, 'product': 0, 'mix': False}
 
     my_dict.update(input_dict)
 
@@ -216,6 +265,7 @@ def simulate_scenario(input_dict):
     max_houshold_time = my_dict['max_houshold_time']
     # ['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags', 'loc', 'Infection_event']
     timecourse_keys = my_dict['timecourse_keys']
+    mix = my_dict['mix']
 
     #print(disobedience, reinfections, reinfection_times)
 
@@ -229,6 +279,10 @@ def simulate_scenario(input_dict):
         times = [start_2, start_3, max_time]
 
     simulation1 = Simulation(modeledWorld, times[0], run_immediately=False)
+
+    if mix:
+        simulation1.set_homogeneous_mixing()
+
     if product != 0:
         simulation1.change_agent_attributes(
             {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'replacement'}}})
@@ -253,12 +307,14 @@ def simulate_scenario(input_dict):
     for i, t in enumerate(times):
         # print(simulation1.time)
         if simulation1.time+1 == start_2:
+            infectivities_at_2 = simulation1.get_infectivities()
             for p in simulation1.people:
                 if p.ID in obedient_people:
                     for loc in closed_locs:
                         p.stay_home_instead_of_going_to(loc)
 
         if simulation1.time+1 == start_3:
+            infectivities_at_3 = simulation1.get_infectivities()
             for p in simulation1.people:
                 p.reset_schedule()
                 for loc in list(set(closed_locs)-set(reopen_locs)):
@@ -288,6 +344,18 @@ def simulate_scenario(input_dict):
     print(my_dict['output_folder'])
     #simulation1.save(name+'_'+str(my_dict['run']), date_suffix=False, folder=my_dict['output_folder'])
 
+    try:
+        infectivities_at_2
+    except NameError:
+        print('infectivities_at_2 does not exist')
+        infectivities_at_2 = pd.DataFrame(columns = ['ID','infectivity'])
+
+    try:
+        infectivities_at_3
+    except NameError:
+        print('infectivities_at_3 does not exist')
+        infectivities_at_3 = pd.DataFrame(columns = ['ID','infectivity'])
+
     sim_dict = {
         'stat_trajectories': simulation1.get_status_trajectories(),
         'durations': simulation1.get_durations(),
@@ -299,6 +367,9 @@ def simulate_scenario(input_dict):
         'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
         'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
         'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
+        'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
+        'infectivities_at_2': infectivities_at_2,
+        'infectivities_at_3': infectivities_at_3
     }
 
     if 'Interaction_partner' in timecourse_keys:
@@ -341,8 +412,8 @@ def get_simualtion_settings(options):
         else:
             input_parameter_dict['output_folder'] = options.folder + '/'
     else:
-        #input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
-        input_parameter_dict['output_folder'] = 'parallel_test/'
+        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
+        #input_parameter_dict['output_folder'] = 'parallel_test/'
 
     if options.parameter:  # number of simulations
         input_parameter_dict['parameter'] = options.parameter
@@ -401,6 +472,11 @@ def get_simualtion_settings(options):
     else:
         input_parameter_dict['recovered_frac'] = 0.0
 
+    if options.recovered_schedule:
+        input_parameter_dict['rec_schedule'] = options.recovered_schedule
+    else:
+        input_parameter_dict['rec_schedule'] = None
+
     if options.recovered_world:
         try:
             assert(options.recovered_world in [0, 1]
@@ -411,6 +487,18 @@ def get_simualtion_settings(options):
             input_parameter_dict['recovered_world'] = 1
     else:
         input_parameter_dict['recovered_world'] = 0
+
+    if options.mixing:
+        input_parameter_dict['mix'] = options.mixing
+    else:
+        input_parameter_dict['mix'] = False
+
+    if options.im_age_range:  # interaction modifier, lower and upper bounds for ages are passed
+        # if given take list of bounds
+        input_parameter_dict['im_age_range'] = options.im_age_range
+    else:
+        input_parameter_dict['im_age_range'] = [1,-1,100] # nothing changes IM 1 -1<age<100
+
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
@@ -427,8 +515,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/worldsV2/'
-    world_name = 'V2_RPM02_Gangelt_big_'
+    input_folder = 'saved_objects/parralel_HM_V2/' #saved_objects/parralel_HM/'
+    world_name = 'parralel_HM_V2_ordered_2nd_attempt_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -453,18 +541,21 @@ if __name__ == '__main__':
     product = used_scenario['product']
     parameter = used_scenario['parameter']
     mu = used_scenario['mu']
+    rec_schedule = used_scenario['rec_schedule']
 
     for p in used_scenario['p_range']:
+        if used_scenario['parameter'] == 'recover_frac' and rec_schedule:
+            rec_frac = p
+        else:
+            rec_frac = used_scenario['recovered_frac']
         currentWorld = copy.deepcopy(used_scenario['modeledWorld'])
         if used_scenario['parameter'] == 'initial_infections':
-            infect_world(currentWorld, IDs=[i+1 for i in range(int(p))])
+            infectees_list = [i+1 for i in range(int(p))]
         elif used_scenario['parameter'] == 'random_initial_infections':
-            infectees_list = np.random.choice(
-                [p.ID for p in currentWorld.people], size=4)
-            infect_world(currentWorld, IDs=infectees_list)
+            infectees_list = np.random.choice([p.ID for p in currentWorld.people], size=4)
         else:
             used_scenario[used_scenario['parameter']] = p
-            if used_scenario['parameter'] == 'recover_frac':
+            if used_scenario['parameter'] == 'recover_frac' and not rec_schedule:
                 recover_world(currentWorld, p, from_world=used_scenario['recovered_world'],
                               time_steps=used_scenario['max_time'],
                               infectivity=used_scenario['infectivity'],
@@ -473,7 +564,17 @@ if __name__ == '__main__':
                               folder=output_folder,
                               world_name=world_name,
                               initial_infectees=[1, 2, 3, 4])
-            infect_world(currentWorld, IDs=[i+1 for i in range(4)])
+            infectees_list = [i+1 for i in range(4)]
+        print(infectees_list)
+
+        if rec_schedule:
+            recover_world(currentWorld, rec_frac, by_schedule=rec_schedule, from_world=False)
+        
+        infect_world(currentWorld, IDs = infectees_list)
+        
+        set_interaction_modifier_for_age_range(currentWorld,
+                                               used_scenario['im_age_range'],
+                                               keep_average=True,)
 
         if used_scenario['product'] != 0:
             if parameter == 'mu':
@@ -487,15 +588,20 @@ if __name__ == '__main__':
                 parameter)+'_'+'{:.3f}'.format(p)+'_rw_'+str(used_scenario['recovered_world'])
         else:
             scenario_and_parameter = world_name + 'Ifreq_' + \
-                str(mu)+'_'+used_scenario['name'] + '_'+str(parameter)+'_'+'{:.3f}'.format(p)
-
+                str(mu)+'_'+used_scenario['name'] + '_'+ str(parameter)+'_'+'{:.3f}'.format(p)
+        if used_scenario['mix']:
+            scenario_and_parameter = 'mix_'+ scenario_and_parameter
         output_folder_plots = output_folder + 'outputs/' + scenario_and_parameter + '_ri_' + \
             str(used_scenario['reinfections']) + '_rx_' + \
             str(len(used_scenario['reinfection_times'])) + '/'
         #output_folder_plots = 'outputs/' + scenario_and_parameter + '_ri_'+str(reinfections) + '_rx_'+str(len(reinfection_times)) +'/'
         # '/home/basar/corona_simulations_save/'
         used_scenarios = generate_scenario_list(used_scenario, input_parameter_dict['number'])
-
+        scenario_and_parameter = 'IAR_' \
+            + str(used_scenario['im_age_range'][0]) + '_' \
+            + str(used_scenario['im_age_range'][1]+1) + '_' \
+            + str(used_scenario['im_age_range'][2]-1) + '_' \
+            + scenario_and_parameter  
         for sc in used_scenarios:
             sc['world'] = currentWorld
 
@@ -521,15 +627,16 @@ if __name__ == '__main__':
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-        infections_per_location_type_list = [
-            df['infections_per_location_type'] for df in df_dict_list]
-        infections_per_schedule_type_list = [
-            df['infections_per_schedule_type'] for df in df_dict_list]
-        number_of_infected_households_list = [
-            df['number_of_infected_households'] for df in df_dict_list]
+        infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
+        infections_per_schedule_type_list = [df['infections_per_schedule_type'] for df in df_dict_list]
+        number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
+        encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
+        contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
         r_eff_list = [df['r_eff'] for df in df_dict_list]
+        infectivities_at_2_list = [df['infectivities_at_2'] for df in df_dict_list]
+        infectivities_at_3_list = [df['infectivities_at_3'] for df in df_dict_list]
 
         kwargs_plot = {'filename': scenario_and_parameter, 'output_folder': output_folder_plots}
 
@@ -541,12 +648,18 @@ if __name__ == '__main__':
         plot_and_save_infection_per_location(infections_per_location_type_list, **kwargs_plot)
         plot_and_save_infections_per_location_type_delta(infections_per_location_type_list,
                                                          used_scenario['modeledWorld'],
-                                                         relative=False, **kwargs_plot)
+                                                         locs_to_hide=['morgue'],
+                                                         relative=False,
+                                                         label_offset=0.03,
+                                                         title='Infections per location type',
+                                                         **kwargs_plot)
         plot_and_save_infections_per_schedule_type_delta(infections_per_schedule_type_list,
                                                          used_scenario['modeledWorld'],
                                                          save_figure=True,
                                                          fraction_most_infectious=1.,
                                                          sched_to_hide=[],
+                                                         title='Infections per schedule type',
+                                                         label_offset=0.03,
                                                          relative=False, **kwargs_plot)
         plot_and_save_patterns(infection_patterns_list, pattern='infections',
                                filename=scenario_and_parameter, output_folder=output_folder_plots)
@@ -554,9 +667,16 @@ if __name__ == '__main__':
         #                                 used_scenario['modeledWorld'],
         #                                 **kwargs_plot)
         plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
+        plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
+        plot_and_save_contacts(
+            contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
+        
 
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
         save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
+
+        save_infectivities(infectivities_at_2_list,'_2_', **kwargs_plot)
+        save_infectivities(infectivities_at_3_list,'_3_', **kwargs_plot)
 
         if 'contact_tracing' in df_dict_list[0].keys():
             contact_tracing = [df['contact_tracing'] for df in df_dict_list]
@@ -573,6 +693,13 @@ if __name__ == '__main__':
             writer = csv.writer(csvfile, delimiter=',')
             for key in used_scenario:
                 writer.writerow([key, used_scenario[key]])
+
+        agent_infos = currentWorld.get_agent_info()
+        agent_infos.to_csv(output_folder_plots +
+                           scenario_and_parameter +'_agent_infos.csv')
+        location_infos = currentWorld.get_location_info()
+        location_infos.to_csv(output_folder_plots + scenario_and_parameter + '_location_infos.csv')
+
         del(currentWorld)
 
     print(df_dict_list)
