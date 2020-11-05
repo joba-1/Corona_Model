@@ -181,7 +181,8 @@ def set_interaction_modifier_for_age_range(world, iar_list,
     max_age = iar_list[2]
     p_subset_ids = [p.ID for p in world.people if (
         p.age > min_age) & (p.age < max_age)]
-    world.set_im_for_subset(im, id_list=p_subset_ids)
+    world.set_im_for_subset(im, id_list=p_subset_ids,
+                            keep_average=keep_average)
     print('nr of agents with changed IM', len(p_subset_ids))
 
 
