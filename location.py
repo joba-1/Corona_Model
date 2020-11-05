@@ -97,6 +97,7 @@ class World(object):
         loc_class_dic['work'] = ['civic', 'commercial', 'company', 'construction', 'cowshed', 'farm', 'farm_auxiliary', 'fire_station', 'greenhouse', 'industrial',\
                                  'manufacture', 'office', 'retail', 'service', 'shed', 'stable', 'transformer_tower', 'warehouse']\
             + list(self.df_buildings['amenity'].unique())\
+            + list(self.df_buildings['shop'].unique())
             
 
         # What is a public place or just work place e.g. restaurante, cafe...
@@ -105,7 +106,6 @@ class World(object):
                                    'hut', 'parish_hall', 'place_of_worship', 'police', 'pub', 'public', 'restaurant', 'ruins', 'service', 'shelter',\
                                    'social_facility', 'sports_centre', 'sports_hall', 'supermarket', 'temple', 'toilets', 'townhall', 'train_station']\
             + list(self.df_buildings['leisure'].unique())\
-            + list(self.df_buildings['shop'].unique())\
             + list(self.df_buildings['sport'].unique())
             
         loc_class_dic['school'] = ['school', 'university', 'kindergarten']
@@ -127,7 +127,7 @@ class World(object):
 
         loc_class_dic = self.assign_location_classifier()
         # Columns important to classify building type and therefore which location type it is
-        col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        # col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
         morgue_bool = False
