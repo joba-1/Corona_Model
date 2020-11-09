@@ -547,7 +547,7 @@ class Human(object):
         coeff = 1
         out = -1
         if self.loc.location_type in location_coefficient_dict.keys():
-            coeff = location_coefficient_dict['self.loc.location_type']
+            coeff = location_coefficient_dict[self.loc.location_type]
         infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
         if infection_probability >= randomval():
             self.preliminary_status = 'I'  # set owns preliminary status to infected ##
