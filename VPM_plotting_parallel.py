@@ -11,18 +11,18 @@ confi_z_dict = {99: 2.576,
                 95: 1.96,
                 90: 1.645, }
 
-def plot_stat_para(ax, folder_scenario, server_data_folder, statii=['S', 'I', 'R', 'D'], log=False):
+def plot_stat_para(ax, folder_scenario, server_data_folder, statii=['S', 'I', 'R', 'D'], log=False, suffix=0, prefix=0):
     for stat in statii:
         try:
             df_stat = pd.read_csv(server_data_folder + folder_scenario +
-                             '/'+folder_scenario+'_'+stat+'.csv')
+                             '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
         except:
             try:
                 df_stat = pd.read_csv(server_data_folder + folder_scenario +
                                  '/IAR_1_0_99_'+folder_scenario[:-10]+'_'+stat+'.csv')
             except:
                 print("can't read ", server_data_folder + folder_scenario +
-                      '/'+folder_scenario+'_'+stat+'.csv')
+                      '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
         df_stat.drop('time', axis=1, inplace=True)
         if not stat.startswith('c'):    
             df_stat.plot(legend=False, alpha=0.1,
