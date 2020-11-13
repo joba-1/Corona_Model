@@ -40,7 +40,9 @@ def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
                               statii=['S', 'I', 'R', 'D'],
                               error_type = 'std', 
                               ci = 95,
-                              log=False):
+                              log=False,
+                              nr_of_agents=1,
+                              per_day=False,):
     for stat in statii:
         try:
             df_stat = pd.read_csv(server_data_folder + folder_scenario +
@@ -54,19 +56,24 @@ def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
                       '/'+folder_scenario+'_'+stat+'.csv')
         df_stat.drop('time', axis=1, inplace=True)
 
-        df_stat_m = df_stat.mean(axis=1)
-        df_stat_std = df_stat.std(axis=1)
+        df_stat_m = df_stat.mean(axis=1)/nr_of_agents
+        df_stat_std = df_stat.std(axis=1)/nr_of_agents
         
         if error_type == 'std':
             error = df_stat_std
         elif error_type == 'CI' :
             error = confi_z_dict[ci]*df_stat_std.values / \
                 np.sqrt(len(df_stat.columns))
-
-        ax.plot(df_stat_m,
+        if per_day:
+            a=24
+            xlabel='Time [days]'
+        else:
+            a=1
+            xlabel = 'Time [hours]'
+        ax.plot(df_stat_m.index/a, df_stat_m.values,
                 color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
                 label=stat.split('_')[-1])
-        ax.fill_between(df_stat_m.index, df_stat_m.values-error,
+        ax.fill_between(df_stat_m.index/a, df_stat_m.values-error,
                         df_stat_m.values+error, color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
                         alpha=0.3)
 
