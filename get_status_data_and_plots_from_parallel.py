@@ -258,6 +258,11 @@ def save_transition_times(df_transition_times, filename='scenario', output_folde
     df.reset_index(inplace=True, drop=True)
     df.to_csv(output_folder+filename + '_' + 'transition_times.csv')
 
+def save_recovered_lists(df_recovered_lists, filename='scenario', output_folder='outputs/'):
+    df = pd.concat([df_recovered_lists[j] for j in range(len(df_recovered_lists))], axis=1)
+    df.columns = ['recovered'+str(i) for i in range(len(df_recovered_lists))]  
+    df.to_csv(output_folder+filename + '_' + 'recovered_lists.csv')
+
 def plot_infection_per_schedule_type(df_I_list, world,
                                      cutoff_time=100, nr_most_inf_p=800,
                                      save_figure=True,filename='scenario',
