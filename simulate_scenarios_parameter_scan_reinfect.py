@@ -147,8 +147,10 @@ def getOptions(args=sys.argv[1:]):
     options = parser.parse_args(args)
     return options
 
+# /home/basar/corona_simulations_save/outputs/parralel_HM_V2_recover_testing_Ifreq_2_no_mitigation_IF03_None_ri_1_rx_0/parralel_HM_V2_recover_testing_Ifreq_2_no_mitigation_IF03_None_1.000_ri_1_rx_0/infection_informations/
+# IAR_1_0_99_parralel_HM_V2_recover_testing_Ifreq_2_no_mitigation_IF03_None_1.000_infection_information_0.csv
 
-def get_previous_infections(world,
+def get_previous_infections(world, n,
                             save_folder='',
                             time_steps=1500,
                             infectivity=0.3,
@@ -159,11 +161,15 @@ def get_previous_infections(world,
                             initial_infectees=[1, 2, 3, 4]
                             ):
     world.initialize_infection(specific_people_ids=initial_infectees)
-    print(folder+world_name + 'previous_infections.csv')
+    #print(folder+world_name + 'previous_infections.csv')
+    folder_name = '/home/basar/corona_simulations_save/simulation_results_20201028/base_scenario/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_ri_1_rx_0/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_ri_1_rx_0/infection_informations/'
+    file_name = 'IAR_1_0_99_parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_infection_information_'+str(n)+'.csv'
+
     try:
-        df_inf = pd.read_csv(folder+world_name + 'previous_infections.csv')
-        print(folder+world_name + 'previous_infections.csv used for infection pattern')
+        df_inf = pd.read_csv(folder_name+file_name)
+        print(folder_name+file_name + ' used for infection pattern')
     except:
+        print('no files found, simulating previous infections.')
         simulation_inf_ini = Simulation(world, time_steps, run_immediately=False)
         simulation_inf_ini.change_agent_attributes(
             {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
@@ -183,7 +189,7 @@ def infect_world(world, IDs=[1]):
     ID_list = world.get_remaining_possible_initial_infections(IDs)
     world.initialize_infection(specific_people_ids=ID_list)
 
-def get_ordered_ids(world, save_folder='', **kwargs):
+def get_ordered_ids(world, n, save_folder='', **kwargs):
     schedule_types = ['under_age', 'adult', 'teacher', 'medical_professional', 'public_worker', 'pensioner']
     ids_by_type = {s_type:[] for s_type in schedule_types}
     for p in world.people:
@@ -193,7 +199,7 @@ def get_ordered_ids(world, save_folder='', **kwargs):
         ordered_ids.extend(ids_by_type[s_type])
     return ordered_ids
 
-def get_ids_by_interactions(world, save_folder='', **kwargs):
+def get_ids_by_interactions(world, n, save_folder='', **kwargs):
     server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
     filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
@@ -204,7 +210,7 @@ def get_ids_by_interactions(world, save_folder='', **kwargs):
     to_recover_list = list(contacts_sorted['ID'].values)
     return to_recover_list
 
-def get_ids_by_households(world, save_folder='', **kwargs):
+def get_ids_by_households(world, n, save_folder='', **kwargs):
     server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
     filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
     ai = pd.read_csv(server_data_folder+filename+'agent_infos.csv')
@@ -233,7 +239,7 @@ def get_ids_by_households(world, save_folder='', **kwargs):
     to_recover_list = list(households_sorted['ID']) ### id list
     return to_recover_list
 
-def get_random_id_list(world, save_folder='', **kwargs):
+def get_random_id_list(world, n, save_folder='', **kwargs):
     agent_ids = [p.ID for p in world.people]
     random.shuffle(agent_ids)
     return agent_ids
@@ -244,7 +250,7 @@ def get_ids_for_recovery(world, rec_by, n, save_folder='', **kwargs):
     if rec_by:
         get_ids_func = get_rec_by(rec_by)
         for i in range(n):
-            ids_list.append(get_ids_func(world, save_folder, **kwargs))
+            ids_list.append(get_ids_func(world, i, save_folder=save_folder, **kwargs))
     else:
         for i in range(n):
             ids_list.append([])
@@ -274,8 +280,7 @@ def recover_world(world, frac, recover_id_list):
     return ps_to_recover
 
 
-def set_interaction_modifier_for_age_range(world, iar_list,
-                                           keep_average=True,):
+def set_interaction_modifier_for_age_range(world, iar_list, keep_average=True,):
     """
     set interaction modifier for agents with min_age<age<max_age,
     and if  keep_average: change the modfifier for the rest accordingly
@@ -593,7 +598,7 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/parralel_HM_V2/' #saved_objects/parralel_HM/'
+    input_folder = 'saved_objects/parralel_HM_V2/'
     world_name = 'parralel_HM_V2_recover_scan_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
