@@ -404,6 +404,16 @@ def save_infection_timecourse(df_I_list, filename='scenario', output_folder='out
         df_I.to_csv(output_folder + 'infection_informations/' + filename +
                     '_' + 'infection_information' + '_' + str(i) + '.csv')
 
+def save_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
+    try:
+        os.mkdir(output_folder+'timecourses/')
+    except:
+        pass
+
+    for i, df_I in enumerate(df_I_list):
+        df_I.to_csv(output_folder + 'timecourses/' + filename +
+                    '_' + 'timecourse' + '_' + str(i) + '.csv')
+
 def plot_and_save_r_eff(df_list, save_figure=True,
                         output_folder='output_folder/',
                         filename='scenario',

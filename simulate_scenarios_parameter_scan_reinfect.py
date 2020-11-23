@@ -244,6 +244,16 @@ def get_random_id_list(world, n, save_folder='', **kwargs):
     random.shuffle(agent_ids)
     return agent_ids
 
+def get_ids_by_age(world, n, save_folder='', **kwargs):
+    #ages_and_ids = [(p.age, p.ID) for p in world.people]
+    #ages_and_ids_df = pd.DataFrame(ages_and_ids, columns=['age','id'])
+    #ages_and_ids_df.sort_values('age', ascending=False, inplace=True)
+
+    ages_and_ids_df = pd.read_csv('/home/basar/corona_simulations_save/outputs/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_recover_frac_rec_age_ri_1_rx_0/ages_and_ids_0.5_0.9.csv')
+    ages_and_ids_df.to_csv(save_folder+'ages_and_ids.csv')
+    ids_only = list(ages_and_ids_df['id'])
+    return ids_only
+
 def get_ids_for_recovery(world, rec_by, n, save_folder='', **kwargs):
     print(kwargs)
     ids_list=[]
@@ -266,6 +276,7 @@ def get_rec_by(rec_by):
         'overrepresentation': get_ordered_ids,
         'interactions': get_ids_by_interactions,
         'households': get_ids_by_households,
+        'age': get_ids_by_age,
     }
     return switcher.get(rec_by)
 
@@ -436,6 +447,7 @@ def simulate_scenario(input_dict):
     df_recover_list = pd.DataFrame({my_dict['run']: recover_list})   
 
     sim_dict = {
+       # 'timecourse': simulation1.simulation_timecourse,
         'stat_trajectories': simulation1.get_status_trajectories(),
         'durations': simulation1.get_durations(),
         'flag_trajectories': simulation1.get_flag_sums_over_time(),
@@ -455,9 +467,9 @@ def simulate_scenario(input_dict):
 
     if 'Interaction_partner' in timecourse_keys:
         sim_dict['interaction_patterns'] = simulation1.get_age_group_specific_interaction_patterns()
-        sim_dict['contact_tracing'] = simulation1.contact_tracing(tracing_window=240,
-                                                                  loc_time_overlap_tracing=False,
-                                                                  trace_all_following_infections=True)
+        #sim_dict['contact_tracing'] = simulation1.contact_tracing(tracing_window=240,
+         #                                                         loc_time_overlap_tracing=False,
+          #                                                        trace_all_following_infections=True)
     return sim_dict
 
 
@@ -560,8 +572,8 @@ def get_simualtion_settings(options):
 
     if options.recover_by:
         try:
-            assert(options.recover_by in ['random','world','overrepresentation','interactions','households']
-                   ), "recover by must be in ['random','world','overrepresentation','interactions','households']"
+            assert(options.recover_by in ['random','world','overrepresentation','interactions','households','age']
+                   ), "recover by must be in ['random','world','overrepresentation','interactions','households','age']"
             input_parameter_dict['recover_by'] = options.recover_by
         except AssertionError as msg:
             print(msg)
@@ -743,6 +755,7 @@ if __name__ == '__main__':
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
         print(df_dict_list[0].keys())
 
+       # timecourse_list = [df['timecourse'] for df in df_dict_list]
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
@@ -761,6 +774,7 @@ if __name__ == '__main__':
 
         kwargs_plot = {'filename': scenario_and_parameter, 'output_folder': output_folder_plots}
 
+       # save_timecourse(timecourse_list, **kwargs_plot)
         plot_and_save_statii(status_trajectories_list, **kwargs_plot)
         plot_and_save_durations(simulation_trajectory_list, **kwargs_plot)
         plot_flags(flag_trajectories_list, cummulative=False, **kwargs_plot)

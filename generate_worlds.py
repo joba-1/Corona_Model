@@ -71,7 +71,7 @@ if __name__ == '__main__':
     options_dict['size'] = size
 
     if options.town:
-        assert options.town in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations'],"town must be in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations']"
+        assert options.town in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations','Gangelt_plus_10_public_locations'],"town must be in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations','Gangelt_plus_10_public_locations']"
         town = options.town
     else:
         town = 'Gangelt'
