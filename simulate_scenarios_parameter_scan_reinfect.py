@@ -245,14 +245,39 @@ def get_random_id_list(world, n, save_folder='', **kwargs):
     return agent_ids
 
 def get_ids_by_age(world, n, save_folder='', **kwargs):
-    #ages_and_ids = [(p.age, p.ID) for p in world.people]
-    #ages_and_ids_df = pd.DataFrame(ages_and_ids, columns=['age','id'])
-    #ages_and_ids_df.sort_values('age', ascending=False, inplace=True)
-
-    ages_and_ids_df = pd.read_csv('/home/basar/corona_simulations_save/outputs/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_recover_frac_rec_age_ri_1_rx_0/ages_and_ids_0.5_0.9.csv')
+    ages_and_ids = [(p.age, p.ID) for p in world.people]
+    ages_and_ids_df = pd.DataFrame(ages_and_ids, columns=['age','id'])
+    ages_and_ids_df.sort_values('age', ascending=False, inplace=True)
+    #ages_and_ids_df = pd.read_csv('/home/basar/corona_simulations_save/outputs/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_recover_frac_rec_age_ri_1_rx_0/ages_and_ids_0.5_0.9.csv')
     ages_and_ids_df.to_csv(save_folder+'ages_and_ids.csv')
     ids_only = list(ages_and_ids_df['id'])
     return ids_only
+
+def get_ids_by_age_and_interactions(world, n, save_folder='', **kwargs):
+    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
+    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
+    contacts_mean = contacts.groupby('ID').mean()
+    contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
+
+    ages_and_ids = [(p.age, p.ID) for p in world.people]
+    ages_and_ids_df = pd.DataFrame(ages_and_ids, columns=['age','id'])
+    ages_and_ids_under_thirteen = ages_and_ids_df[ages_and_ids_df['age']<13]
+    ages_and_ids_under_thirteen.sort_values('age', ascending=False, inplace=True)
+    #ages_and_ids_under_thirteen = pd.read_csv(save_folder+'ages_and_ids_under_13_0.5_0.9.csv')
+    ages_and_ids_under_thirteen.to_csv(save_folder+'ages_and_ids_under_13_0.1_0.46.csv')
+
+    ages_and_ids_short = ages_and_ids_df[ages_and_ids_df['age']>59]
+    ages_and_ids_short.sort_values('age', ascending=False, inplace=True)
+    #ages_and_ids_short = pd.read_csv(save_folder+'ages_and_ids_over_59_0.5_0.9.csv')
+    ages_and_ids_short.to_csv(save_folder+'ages_and_ids_over_59_0.1_0.46.csv')
+
+    contacts_sorted.drop(index=list(ages_and_ids_under_thirteen['id'])+list(ages_and_ids_short['id']), inplace=True)
+    #contacts_sorted = pd.read_csv(save_folder+'ages_13_to_59_by_interactions_0.5_0.9.csv')
+    contacts_sorted.to_csv(save_folder+'ages_13_to_59_by_interactions_0.1_0.46.csv')
+
+    final_ids = list(ages_and_ids_short['id'])+list(contacts_sorted.index)+list(ages_and_ids_under_thirteen['id'])
+    return final_ids
 
 def get_ids_for_recovery(world, rec_by, n, save_folder='', **kwargs):
     print(kwargs)
@@ -277,6 +302,7 @@ def get_rec_by(rec_by):
         'interactions': get_ids_by_interactions,
         'households': get_ids_by_households,
         'age': get_ids_by_age,
+        'age_interactions': get_ids_by_age_and_interactions,
     }
     return switcher.get(rec_by)
 
@@ -572,8 +598,8 @@ def get_simualtion_settings(options):
 
     if options.recover_by:
         try:
-            assert(options.recover_by in ['random','world','overrepresentation','interactions','households','age']
-                   ), "recover by must be in ['random','world','overrepresentation','interactions','households','age']"
+            assert(options.recover_by in ['random','world','overrepresentation','interactions','households','age','age_interactions']
+                   ), "recover by must be in ['random','world','overrepresentation','interactions','households','age','age_interactions']"
             input_parameter_dict['recover_by'] = options.recover_by
         except AssertionError as msg:
             print(msg)
