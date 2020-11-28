@@ -812,7 +812,7 @@ class Simulation(object):
         #    'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
         # df.sort_values('infection_time').reset_index(drop=True)
         df = self.simulation_timecourse
-        df_I = df[df['Infection_event'] > 1].copy()
+        df_I = df[df['Infection_event'] > 0].copy()
         cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags',
                                     'Interaction_partner', 'status'] if x in list(df_I.columns)]
         df_I.drop(columns=cols_to_drop, inplace=True)
