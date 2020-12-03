@@ -12,7 +12,8 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_locs': [],                         'reopen_locs':[],                          'infectivity':0.6, 'name':'no_mitigation_IF06'},
+scenarios = [{'run': 0, 'max_time': 3000, 'start_2': 50, 'start_3': 100, 'closed_locs': [], 'reopen_locs':[], 'infectivity':0.15, 'name':'no_mitigation_IF015'},
+
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
              {'run': 0, 'max_time': 600, 'start_2': 200, 'start_3': 500, 'closed_locs': [
@@ -38,7 +39,7 @@ scenarios = [{'run': 0, 'max_time': 200, 'start_2': 50, 'start_3': 100, 'closed_
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 3000, 'start_2': 100, 'start_3': 200, 'closed_locs': [],
+             {'run': 0, 'max_time': 2000, 'start_2': 10, 'start_3': 20, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
@@ -162,6 +163,8 @@ def get_previous_infections(world, n,
                             ):
     world.initialize_infection(specific_people_ids=initial_infectees)
     #print(folder+world_name + 'previous_infections.csv')
+    #folder_name = '/home/basar/corona_simulations_save/simulation_results_20201028/base_scenario_inf_0.15/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF015_None_1.000_ri_1_rx_0/infection_informations/'
+    #file_name = 'IAR_1_0_99_parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF015_None_1.000_infection_information_'+str(n)+'.csv'
     folder_name = '/home/basar/corona_simulations_save/simulation_results_20201028/base_scenario/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_ri_1_rx_0/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_ri_1_rx_0/infection_informations/'
     file_name = 'IAR_1_0_99_parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_infection_information_'+str(n)+'.csv'
 
@@ -200,12 +203,13 @@ def get_ordered_ids(world, n, save_folder='', **kwargs):
     return ordered_ids
 
 def get_ids_by_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
-    contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
-    contacts_mean = contacts.groupby('ID').mean()
-    contacts_mean.reset_index(inplace=True)
-    contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
+    #server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
+    #filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    #contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
+    #contacts_mean = contacts.groupby('ID').mean()
+    #contacts_mean.reset_index(inplace=True)
+    #contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
+    contacts_sorted = pd.read_csv(save_folder+'agents_sorted_by_interactions_0.5_0.9.csv')
     contacts_sorted.to_csv(save_folder+'agents_sorted_by_interactions.csv')
     to_recover_list = list(contacts_sorted['ID'].values)
     return to_recover_list
@@ -242,6 +246,9 @@ def get_ids_by_households(world, n, save_folder='', **kwargs):
 def get_random_id_list(world, n, save_folder='', **kwargs):
     agent_ids = [p.ID for p in world.people]
     random.shuffle(agent_ids)
+    #df = pd.read_csv('/home/basar/corona_simulations_save/simulation_results_20201028/recover_random_scan_0.5_0.9/recovery_id_lists.csv')
+    #print(df)
+    #agent_ids = list(df[str(n)])
     return agent_ids
 
 def get_ids_by_age(world, n, save_folder='', **kwargs):
@@ -473,7 +480,7 @@ def simulate_scenario(input_dict):
     df_recover_list = pd.DataFrame({my_dict['run']: recover_list})   
 
     sim_dict = {
-       # 'timecourse': simulation1.simulation_timecourse,
+        #'timecourse': simulation1.simulation_timecourse,
         'stat_trajectories': simulation1.get_status_trajectories(),
         'durations': simulation1.get_durations(),
         'flag_trajectories': simulation1.get_flag_sums_over_time(),
@@ -481,10 +488,10 @@ def simulate_scenario(input_dict):
         'infection_timecourse': simulation1.get_infection_event_information(),
         'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
         #'r_eff': simulation1.get_r_eff_trajectory(96),
-        #'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
+        'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
         'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
         'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
-        #'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
+        'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
         'infectivities_at_2': infectivities_at_2,
         'infectivities_at_3': infectivities_at_3,
         'transition_times': df_transition_times,
@@ -636,8 +643,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/parralel_HM_V2/'
-    world_name = 'parralel_HM_V2_recover_scan_'
+    input_folder = 'saved_objects/new_sim_obj/'
+    world_name = 'new_sim_obj_recover_scan_test_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -781,7 +788,7 @@ if __name__ == '__main__':
             df_dict_list = pool.map(simulate_scenario, used_scenarios)
         print(df_dict_list[0].keys())
 
-       # timecourse_list = [df['timecourse'] for df in df_dict_list]
+        #timecourse_list = [df['timecourse'] for df in df_dict_list]
         status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
         simulation_trajectory_list = [df['durations'] for df in df_dict_list]
         flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
@@ -790,8 +797,8 @@ if __name__ == '__main__':
         number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
-        #encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
-        #contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
+        encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
+        contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
         #r_eff_list = [df['r_eff'] for df in df_dict_list]
         infectivities_at_2_list = [df['infectivities_at_2'] for df in df_dict_list]
         infectivities_at_3_list = [df['infectivities_at_3'] for df in df_dict_list]
@@ -800,7 +807,7 @@ if __name__ == '__main__':
 
         kwargs_plot = {'filename': scenario_and_parameter, 'output_folder': output_folder_plots}
 
-       # save_timecourse(timecourse_list, **kwargs_plot)
+        #save_timecourse(timecourse_list, **kwargs_plot)
         plot_and_save_statii(status_trajectories_list, **kwargs_plot)
         plot_and_save_durations(simulation_trajectory_list, **kwargs_plot)
         plot_flags(flag_trajectories_list, cummulative=False, **kwargs_plot)
@@ -828,9 +835,9 @@ if __name__ == '__main__':
         #                                 used_scenario['modeledWorld'],
         #                                 **kwargs_plot)
         #plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
-        #plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
-        #plot_and_save_contacts(
-        #    contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
+        plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
+        plot_and_save_contacts(
+            contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
         
 
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)

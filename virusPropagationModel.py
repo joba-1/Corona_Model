@@ -459,19 +459,20 @@ class Simulation(object):
             self.number_of_people = len(self.people)
             self.schedule_types = object_to_simulate.schedule_types
             #self.locations = {}
+            for l in self.locations.values():
+                l.people_present = set()
+                for sl in l.special_locations.keys():
+                    for idx,sl_idx in enumerate(l.special_locations[sl]):
+                        l.special_locations[sl][idx]=self.locations[sl_idx.ID]
             for p in self.people:
-                self.locations.update({p.loc.ID: p.loc})
-                self.locations.update({l.ID: l for l in list(p.schedule['locs'])})
-                self.locations.update({l.ID: l for l in list(p.diagnosed_schedule['locs'])})
-                for l in p.schedule['locs']:
-                    for sl in l.special_locations.keys():
-                        self.locations.update(
-                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
-                for l in p.diagnosed_schedule['locs']:
-                    for sl in l.special_locations.keys():
-                        self.locations.update(
-                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
+                for idx,l in enumerate(list(p.schedule['locs'])):
+                    p.schedule['locs'][idx]=self.locations[l.ID]
+                for idx,l in enumerate(list(p.diagnosed_schedule['locs'])):
+                    p.diagnosed_schedule['locs'][idx]=self.locations[l.ID]
+                p.loc.leave(p)
+                p.loc=self.locations[p.loc.ID]
                 self.locations[p.loc.ID].enter(p)
+
 
             self.simulation_timecourse = pd.DataFrame()
             self.infection_information = pd.DataFrame()
