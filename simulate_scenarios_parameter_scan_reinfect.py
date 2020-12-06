@@ -39,7 +39,7 @@ scenarios = [{'run': 0, 'max_time': 3000, 'start_2': 50, 'start_3': 100, 'closed
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 2000, 'start_2': 10, 'start_3': 20, 'closed_locs': [],
+             {'run': 0, 'max_time': 1000, 'start_2': 10, 'start_3': 20, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
@@ -361,7 +361,7 @@ def simulate_scenario(input_dict):
     infectivity = my_dict['infectivity']
     hospital_coeff = my_dict['hospital_coeff']
     name = my_dict['name']+'_inf_'+str(infectivity)
-    modeledWorld = my_dict['world']
+    modeledWorld = copy.deepcopy(my_dict['world'])
     disobedience = my_dict['disobedience']
     reinfection_times = my_dict['reinfection_times']
     reinfections = int(my_dict['reinfections'])
@@ -389,6 +389,8 @@ def simulate_scenario(input_dict):
         times = [start_2, start_3, max_time]
 
     simulation1 = Simulation(modeledWorld, times[0], run_immediately=False)
+
+    del(modeledWorld)
 
     if mix:
         simulation1.set_homogeneous_mixing()
@@ -643,8 +645,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/new_sim_obj/'
-    world_name = 'new_sim_obj_recover_scan_test_'
+    input_folder = 'saved_objects/new_sim_obj_test/'
+    world_name = 'new_sim_obj_noIAR_test_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -670,7 +672,7 @@ if __name__ == '__main__':
     parameter = used_scenario['parameter']
     mu = used_scenario['mu']
     rec_by = used_scenario['recover_by']
-    currentWorld = copy.deepcopy(used_scenario['modeledWorld'])
+    currentWorld = used_scenario['modeledWorld']
 
     if used_scenario['product'] != 0:
         if parameter == 'mu':
@@ -733,9 +735,7 @@ if __name__ == '__main__':
         print(infectees_list)
         used_scenario['infectees'] = infectees_list
         
-        set_interaction_modifier_for_age_range(currentWorld,
-                                               used_scenario['im_age_range'],
-                                               keep_average=True,)
+        #set_interaction_modifier_for_age_range(currentWorld, used_scenario['im_age_range'], keep_average=True,)
 
         if used_scenario['product'] != 0:
             if parameter == 'mu':

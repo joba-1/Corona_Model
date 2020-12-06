@@ -454,24 +454,24 @@ class Simulation(object):
         self.location_types = object_to_simulate.location_types
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
-            self.people = copy.deepcopy(object_to_simulate.people)
-            self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.people = object_to_simulate.people
+            self.locations = object_to_simulate.locations
             self.number_of_people = len(self.people)
             self.schedule_types = object_to_simulate.schedule_types
             #self.locations = {}
-            for l in self.locations.values():
-                l.people_present = set()
-                for sl in l.special_locations.keys():
-                    for idx,sl_idx in enumerate(l.special_locations[sl]):
-                        l.special_locations[sl][idx]=self.locations[sl_idx.ID]
-            for p in self.people:
-                for idx,l in enumerate(list(p.schedule['locs'])):
-                    p.schedule['locs'][idx]=self.locations[l.ID]
-                for idx,l in enumerate(list(p.diagnosed_schedule['locs'])):
-                    p.diagnosed_schedule['locs'][idx]=self.locations[l.ID]
-                p.loc.leave(p)
-                p.loc=self.locations[p.loc.ID]
-                self.locations[p.loc.ID].enter(p)
+            # for l in self.locations.values():
+            #     l.people_present = set()
+            #     for sl in l.special_locations.keys():
+            #         for idx,sl_idx in enumerate(l.special_locations[sl]):
+            #             l.special_locations[sl][idx]=self.locations[sl_idx.ID]
+            # for p in self.people:
+            #     for idx,l in enumerate(list(p.schedule['locs'])):
+            #         p.schedule['locs'][idx]=self.locations[l.ID]
+            #     for idx,l in enumerate(list(p.diagnosed_schedule['locs'])):
+            #         p.diagnosed_schedule['locs'][idx]=self.locations[l.ID]
+            #     p.loc.leave(p)
+            #     p.loc=self.locations[p.loc.ID]
+            #     self.locations[p.loc.ID].enter(p)
 
 
             self.simulation_timecourse = pd.DataFrame()
@@ -580,6 +580,7 @@ class Simulation(object):
         for step in range(first_simulated_step, self.time_steps):
             self.time += 1
             for p in self.people:
+                p.set_stati_from_preliminary()
                 p.update_state(self.time)
             for l in self.locations.values():
                 l.let_agents_interact(mu=self.interaction_frequency,
@@ -587,7 +588,7 @@ class Simulation(object):
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(
                     self.time, keys_list=timecourse_keys).values()))
-                p.set_stati_from_preliminary()
+                #p.set_stati_from_preliminary()
                 p.move(self.time)
         df_timecourse = pd.DataFrame(timecourse, columns=list(
             p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
