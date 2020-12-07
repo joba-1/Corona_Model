@@ -163,7 +163,7 @@ class ModeledPopulatedWorld(object):
 
         if isinstance(diagnosed_schedule, str):
             diag_type = diagnosed_schedule
-            diagnosed_schedule = copy.deepcopy(schedule)
+            diagnosed_schedule = copy.copy(schedule)
             diagnosed_schedule['type'] = diag_type
         else:
             for loc in diagnosed_schedule['locs']:
@@ -441,7 +441,7 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=False, random_seed=None):
 
         self.random_seed = random_seed
         if self.random_seed is not None:
@@ -580,7 +580,7 @@ class Simulation(object):
         for step in range(first_simulated_step, self.time_steps):
             self.time += 1
             for p in self.people:
-                p.set_stati_from_preliminary()
+                #p.set_stati_from_preliminary()
                 p.update_state(self.time)
             for l in self.locations.values():
                 l.let_agents_interact(mu=self.interaction_frequency,
@@ -588,7 +588,7 @@ class Simulation(object):
             for p in self.people:  # don't call if hospitalized
                 timecourse.append(tuple(p.get_information_for_timecourse(
                     self.time, keys_list=timecourse_keys).values()))
-                #p.set_stati_from_preliminary()
+                p.set_stati_from_preliminary()
                 p.move(self.time)
         df_timecourse = pd.DataFrame(timecourse, columns=list(
             p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
