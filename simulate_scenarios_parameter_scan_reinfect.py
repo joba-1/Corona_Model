@@ -165,8 +165,8 @@ def get_previous_infections(world, n,
     #print(folder+world_name + 'previous_infections.csv')
     #folder_name = '/home/basar/corona_simulations_save/simulation_results_20201028/base_scenario_inf_0.15/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF015_None_1.000_ri_1_rx_0/infection_informations/'
     #file_name = 'IAR_1_0_99_parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF015_None_1.000_infection_information_'+str(n)+'.csv'
-    folder_name = '/home/basar/corona_simulations_save/simulation_results_20201028/base_scenario/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_ri_1_rx_0/parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_ri_1_rx_0/infection_informations/'
-    file_name = 'IAR_1_0_99_parralel_HM_V2_recover_scan_Ifreq_2_no_mitigation_IF03_None_1.000_infection_information_'+str(n)+'.csv'
+    folder_name = '/home/basar/corona_simulations_save/outputs/new_sim_obj_Ifreq_2_no_mitigation_IF03_None_ri_1_rx_0/new_sim_obj_Ifreq_2_no_mitigation_IF03_None_1.000_ri_1_rx_0/infection_informations/'
+    file_name = 'new_sim_obj_Ifreq_2_no_mitigation_IF03_None_1.000_infection_information_'+str(n)+'.csv'
 
     try:
         df_inf = pd.read_csv(folder_name+file_name)
@@ -454,10 +454,26 @@ def simulate_scenario(input_dict):
 
         if not simulation1.time+1 == max_time:
             simulation1.time_steps = times[i+1]-t
+            for p in simulation1.people:
+                if p.loc not in simulation1.locations.values():
+                    print('ploc:',p.loc.ID,'; ltype:',p.loc.location_type,'; agent:',p.ID,'; diagnosed:',p.diagnosed,'; was diagnosed:',p.was_diagnosed)
+                    print('times:', p.stati_times)
+                    print(simulation1.locations[p.loc.ID].location_type)
+                    print(id(simulation1.locations[p.loc.ID]), id(p.loc))
+                else:
+                    print('no additional locations found')
             # print(simulation1.time_steps)
             print(simulation1.time)
             simulation1.simulate(timecourse_keys=timecourse_keys)
             # simulation1.simulate()
+        for p in simulation1.people:
+            if p.loc not in simulation1.locations.values():
+                print('ploc:',p.loc.ID,'; ltype:',p.loc.location_type,'; agent:',p.ID,'; diagnosed:',p.diagnosed,'; was diagnosed:',p.was_diagnosed)
+                print('times:', p.stati_times)
+                print(simulation1.locations[p.loc.ID].location_type)
+                print(id(simulation1.locations[p.loc.ID]), id(p.loc))
+            else:
+                print('no additional locations found')
 
     # print(my_dict['name']+'_'+str(my_dict['run']))
     print(name+'_'+str(my_dict['run']))
@@ -490,10 +506,10 @@ def simulate_scenario(input_dict):
         'infection_timecourse': simulation1.get_infection_event_information(),
         'infection_patterns': simulation1.get_age_group_specific_infection_patterns(),
         #'r_eff': simulation1.get_r_eff_trajectory(96),
-        'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
+        #'cumaltive_unique_contacts': simulation1.get_contact_distributions(),
         'infections_per_schedule_type': simulation1.get_infections_per_schedule_type(fraction_most_infectious=1., relative=True),
         'infections_per_location_type': simulation1.get_infections_per_location_type(relative=True),
-        'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
+        #'contact_distribution_per_week': simulation1.get_contact_distributions(min_t=0, max_t=168),
         'infectivities_at_2': infectivities_at_2,
         'infectivities_at_3': infectivities_at_3,
         'transition_times': df_transition_times,
@@ -645,8 +661,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/new_sim_obj_test/'
-    world_name = 'new_sim_obj_noIAR_test_'
+    input_folder = 'saved_objects/new_sim_obj/'
+    world_name = 'new_sim_obj_recover_scan_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -758,11 +774,11 @@ if __name__ == '__main__':
             str(len(used_scenario['reinfection_times'])) + '/'
 
         used_scenarios = generate_scenario_list(used_scenario, input_parameter_dict['number'])
-        scenario_and_parameter = 'IAR_' \
-            + str(used_scenario['im_age_range'][0]) + '_' \
-            + str(used_scenario['im_age_range'][1]+1) + '_' \
-            + str(used_scenario['im_age_range'][2]-1) + '_' \
-            + scenario_and_parameter  
+        # scenario_and_parameter = 'IAR_' \
+        #     + str(used_scenario['im_age_range'][0]) + '_' \
+        #     + str(used_scenario['im_age_range'][1]+1) + '_' \
+        #     + str(used_scenario['im_age_range'][2]-1) + '_' \
+        #     + scenario_and_parameter  
         for sc in used_scenarios:
             sc['world'] = currentWorld
 
@@ -797,8 +813,8 @@ if __name__ == '__main__':
         number_of_infected_households_list = [df['number_of_infected_households'] for df in df_dict_list]
         infection_timecourse_list = [df['infection_timecourse'] for df in df_dict_list]
         infection_patterns_list = [df['infection_patterns'] for df in df_dict_list]
-        encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
-        contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
+        #encounters_number_list = [dfs['contact_distribution_per_week'][0] for dfs in df_dict_list]
+        #contacts_list = [dfs['contact_distribution_per_week'][1] for dfs in df_dict_list]
         #r_eff_list = [df['r_eff'] for df in df_dict_list]
         infectivities_at_2_list = [df['infectivities_at_2'] for df in df_dict_list]
         infectivities_at_3_list = [df['infectivities_at_3'] for df in df_dict_list]
@@ -835,9 +851,8 @@ if __name__ == '__main__':
         #                                 used_scenario['modeledWorld'],
         #                                 **kwargs_plot)
         #plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
-        plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
-        plot_and_save_contacts(
-            contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
+        #plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
+        #plot_and_save_contacts(contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
         
 
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
