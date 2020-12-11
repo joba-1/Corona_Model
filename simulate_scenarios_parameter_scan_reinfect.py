@@ -39,7 +39,7 @@ scenarios = [{'run': 0, 'max_time': 3000, 'start_2': 50, 'start_3': 100, 'closed
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 1000, 'start_2': 10, 'start_3': 20, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 500, 'start_3': 1000, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
