@@ -73,3 +73,6 @@ An example for comparative simulations (close all, reopen all) is already shown 
 See the RUN_CoronaABM.ipynb for the most recent visualization options.
 
 More options are currently continuously added on a daily basis. Please contact us (coronaModel@hu-berlin.de), if the notebook is not working or if the information is oudated.
+
+## Expected run time
+Simulating Gangelt (entire population, using FILE) takes about 30 minutes on a normal desktop computer. For Demo purpose the reduced Gangelt (using FILE) can be used, which takes about 10 minutes on a normal desktop computer.
