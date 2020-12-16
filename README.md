@@ -75,10 +75,12 @@ See the RUN_CoronaABM.ipynb for the most recent visualization options.
 More options are currently continuously added on a daily basis. Please contact us (coronaModel@hu-berlin.de), if the notebook is not working or if the information is oudated.
 
 ## Demo jupyter notebook
-For demo purposes we provide another jupyter notebook for single runs (i.e. not running each simulation 100 times which we did to produce our results in the paper as this requires parallel running on a server) which contains the following cells:
+For personal demo purposes we provide a jupyter notebook for single runs (i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server) which contains the following cells:
 1. importing required libraries
 2. running the baseline scenario for Gangelt (reduced population, using input file FILE)
 3. running the different vaccination scenarios for Gangelt (reduced population, using input file FILE)
+
+For parallel computing on high end memory servers, we provide another script, NAME. Minimum requirements for running this script are IVO, PLEASE ADD SERVER INFO HERE.
 
 ## Expected run time
 Simulating Gangelt (entire population, using FILE) takes about 30 minutes on a normal desktop computer. For Demo purpose the reduced Gangelt (using FILE) can be used, which takes about 10 minutes on a normal desktop computer.
