@@ -24,11 +24,11 @@ Follow these three steps to make use of the virtual environment provided in the 
     ```
     conda update conda
     ```
-    If you don't want to permanently activate the conda base environment, add following code to your ~/.bashrc:
+    If you don't want to permanently activate the conda base environment,
+    run following command (after opening a new shell/relogin):
     ```
-    [ -e "$(which conda)" ] && conda deactivate
+    conda config --set auto_activate_base false
     ```
-    It has to be placed below the "# <<< conda initialize <<<" line
     This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
 
 3. Then run the following pieces of code to set up the local environment:
@@ -59,7 +59,8 @@ For personal demo purposes we provide a jupyter notebook [Demo.ipynb](https://fo
 
 This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt) and to run GERDA simulations, including manual adjustment of parameters for 'infectivity', 'mean interaction frequency', and 'non-compliance probability'.
 
-For parallel computing on high end memory servers, we provide another script, NAME. Minimum requirements for running this script are IVO, PLEASE ADD SERVER INFO HERE.
+For parallel computing on high end memory servers, we provide another script, NAME. In general, you need a lot of RAM, depending on your input data files and other settings. We use AMD-based  servers with 96 cores and 512 GB RAM, but the bottleneck is the RAM. That's why we can use just 24 cores.
+
 
 ##  Advanced usage
 for advanced usage, each user can replace certain input parameters (using [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/development/Demo.ipynb)) by exchanging the desired parameters in the command lines.
