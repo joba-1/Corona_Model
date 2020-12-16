@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import random
 
-scenarios = [{'run': 0, 'max_time': 3000, 'start_2': 50, 'start_3': 100, 'closed_locs': [], 'reopen_locs':[], 'infectivity':0.15, 'name':'no_mitigation_IF015'},
+scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed_locs': [], 'reopen_locs':[], 'infectivity':0.0, 'name':'no_mitigation_IF00'},
 
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
              ],                          'infectivity':0.5, 'name':'no_mitigation_medics_02', 'hospital_coeff': 0.02},
@@ -203,13 +203,13 @@ def get_ordered_ids(world, n, save_folder='', **kwargs):
     return ordered_ids
 
 def get_ids_by_interactions(world, n, save_folder='', **kwargs):
-    #server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    #filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
-    #contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
-    #contacts_mean = contacts.groupby('ID').mean()
-    #contacts_mean.reset_index(inplace=True)
-    #contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
-    contacts_sorted = pd.read_csv(save_folder+'agents_sorted_by_interactions_0.5_0.9.csv')
+    server_data_folder = '/home/basar/corona_simulations_save/outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
+    contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
+    contacts_mean = contacts.groupby('ID').mean()
+    contacts_mean.reset_index(inplace=True)
+    contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
+    #contacts_sorted = pd.read_csv(save_folder+'agents_sorted_by_interactions_0.5_0.9.csv')
     contacts_sorted.to_csv(save_folder+'agents_sorted_by_interactions.csv')
     to_recover_list = list(contacts_sorted['ID'].values)
     return to_recover_list
