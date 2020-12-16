@@ -43,21 +43,21 @@ def getOptions_1(args=sys.argv[1:]):
     options = parser.parse_args(args)
     return options
 
-def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
-    """
-    load simulation file with filename in saved_objects/scenario_output/
-    : return : dict with data frames of 'stat_trajectories', 'durations', 'flag_trajectories',
-    'infections_per_location_type'
-    """
-    print(filename, input_folder)
-    sim = load_simulation_object(filename, folder=input_folder)
+#def get_df_list(filename):#, input_folder='saved_objects/scenario_output/'):
+#    """
+#    load simulation file with filename in saved_objects/scenario_output/
+#    : return : dict with data frames of 'stat_trajectories', 'durations', 'flag_trajectories',
+#    'infections_per_location_type'
+#    """
+#    #print(filename, input_folder)
+#    sim = load_simulation_object(filename, folder=input_folder)
     #sim = load_simulation_object(filename)
     #print(filename)
-    return {'stat_trajectories': sim.get_status_trajectories(),
-            'medic_trajectories': sim.get_status_trajectories(specific_people='medical_professional'),
-                              'durations': sim.get_durations(),
-            'flag_trajectories': sim.get_flag_sums_over_time(),
-            'infections_per_location_type':sim.get_infections_per_location_type()}
+#    return {'stat_trajectories': sim.get_status_trajectories(),
+#            'medic_trajectories': sim.get_status_trajectories(specific_people='medical_professional'),
+#                              'durations': sim.get_durations(),
+#            'flag_trajectories': sim.get_flag_sums_over_time(),
+#            'infections_per_location_type':sim.get_infections_per_location_type()}
 
 def plot_and_save_statii(status_trajectories_list,
                          statii=['I','S','R','D'],
@@ -230,9 +230,9 @@ def plot_and_save_patterns(df_list, save_figure=True,
     #plt.show()
     if save_figure:
         plt.savefig(output_folder+'plots/' + filename +
-                    'age_group_dependent_'+pattern+'_patterns.svg', bbox_inches='tight')
+                    '_age_group_dependent_'+pattern+'_patterns.svg', bbox_inches='tight')
         plt.savefig(output_folder+'plots/' + filename +
-                    'age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
+                    '_age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
     plt.close()                
     Interaction_Patterns.to_csv(
         output_folder+filename + '_' + 'age_group_dependent' + '_' + pattern+'_patterns.csv')
@@ -241,13 +241,27 @@ def plot_and_save_contact_tracing(df_list, filename='scenario', output_folder='o
     '''only save no plotting yet'''
     df = pd.concat(df_list, axis=0)
     df.reset_index(inplace=True)
-    df_mean = df.groupby('aggregated_time').mean()
     df.to_csv(output_folder+filename + '_' + 'contact_tracing.csv')
     
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
     df = pd.concat([number_of_infected_households_list[j].set_index('time') for j in range(len(number_of_infected_households_list))], axis=1)
     df.columns = ['households'+str(i) for i in range(len(number_of_infected_households_list))]         
     df.to_csv(output_folder+filename+'_'+'households'+'.csv')
+
+def save_infectivities(infectivities_list, tp, filename='scenario', output_folder='outputs/'):
+    df = pd.concat([infectivities_list[j].set_index('ID') for j in range(len(infectivities_list))], axis=1)
+    df.columns = ['infectivities'+str(i) for i in range(len(infectivities_list))]         
+    df.to_csv(output_folder+filename+'_'+'infectivities'+tp+'.csv')
+
+def save_transition_times(df_transition_times, filename='scenario', output_folder='outputs/'):
+    df = pd.concat(df_transition_times, axis=0)
+    df.reset_index(inplace=True, drop=True)
+    df.to_csv(output_folder+filename + '_' + 'transition_times.csv')
+
+def save_recovered_lists(df_recovered_lists, filename='scenario', output_folder='outputs/'):
+    df = pd.concat([df_recovered_lists[j] for j in range(len(df_recovered_lists))], axis=1)
+    df.columns = ['recovered'+str(i) for i in range(len(df_recovered_lists))]  
+    df.to_csv(output_folder+filename + '_' + 'recovered_lists.csv')
 
 def plot_infection_per_schedule_type(df_I_list, world,
                                      cutoff_time=100, nr_most_inf_p=800,
@@ -323,7 +337,9 @@ def plot_infection_per_schedule_type(df_I_list, world,
 def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_obj,
                                                     save_figure=True, filename='scenario',
                                                     output_folder='outputs/',
-                                                    relative=False,):
+                                                    relative=False,
+                                                    locs_to_hide=['morgue','mixing_loc'],
+                                                     **kwargs):
     """
     plot differences in infection per location type as fraction and the frequence of location types
     :params: kwargs = cmap_='Set1', ax=None, label_offset=0.09, title='Title', save_figure=save_figure, 
@@ -334,14 +350,10 @@ def plot_and_save_infections_per_location_type_delta(df_list, modeled_pop_world_
     fig, ax = plt.subplots(1, 1, figsize=(6, 4))
     #df_i_std = pd.concat(df_list).std()
     df_loc_types_w = modeled_pop_world_obj.get_distribution_of_location_types(
-        relative=True, locs_to_hide=['morgue'])
+        relative=True, locs_to_hide=locs_to_hide)
     df_loc_types_i = pd.concat(df_list)
     df_delta = get_delta_df(df_loc_types_i, df_loc_types_w, relative=relative)
-    print(df_delta)
-    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax,
-                                   save_figure=False,
-                                   label_offset=0.09,
-                                   title=filename,)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, save_figure=False, **kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -372,7 +384,7 @@ def plot_and_save_infections_per_schedule_type_delta(df_list, modeled_pop_world_
     df_sched_types_i = pd.concat(df_list)
     df_delta = get_delta_df(
         df_sched_types_i, df_sched_types_w, relative=relative)
-    ax = vpm_plt.plot_ratio_change(df_delta, **kwargs)
+    ax = vpm_plt.plot_ratio_change(df_delta, ax=ax, save_figure=False, **kwargs)
     #save plots and data
     if save_figure:
         plt.savefig(output_folder + 'plots/' + filename
@@ -392,6 +404,16 @@ def save_infection_timecourse(df_I_list, filename='scenario', output_folder='out
         df_I.to_csv(output_folder + 'infection_informations/' + filename +
                     '_' + 'infection_information' + '_' + str(i) + '.csv')
 
+def save_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
+    try:
+        os.mkdir(output_folder+'timecourses/')
+    except:
+        pass
+
+    for i, df_I in enumerate(df_I_list):
+        df_I.to_csv(output_folder + 'timecourses/' + filename +
+                    '_' + 'timecourse' + '_' + str(i) + '.csv')
+
 def plot_and_save_r_eff(df_list, save_figure=True,
                         output_folder='output_folder/',
                         filename='scenario',
@@ -399,66 +421,57 @@ def plot_and_save_r_eff(df_list, save_figure=True,
     """just save the mean df for R_eff"""
     df_r_eff_mean = sum(df_list)/len(df_list)
     df_r_eff_mean.to_csv(output_folder+filename+'_r_eff.csv')
+    df = pd.concat(df_list)
 
+    df.to_csv(output_folder+filename+'_r_eff_mean.csv')
+    df.to_csv(output_folder+filename+'_r_eff_std.csv')
 
+def plot_and_save_encounters(df_list, save_figure=True,
+                            output_folder='output_folder/',
+                            filename='scenario',
+                            bins=np.arange(1,20,1)
+                            ):
+    """
+    """
+    df = pd.concat(df_list)
+    df.hist(bins=bins, density=True)
+    if save_figure:
+        plt.savefig(output_folder + 'plots/' + filename + '_' + 'encounters'
+                    + '.png', bbox_inches='tight')
+        plt.savefig(output_folder + 'plots/' + filename + '_' + 'encounters'
+                    + '.svg', bbox_inches='tight')
 
-if __name__=='__main__':
+    df.to_csv(output_folder+filename+'_encounters.csv')
+ 
 
-    options = getOptions_1(sys.argv[1:])
-
-    if options.scenario: # take scenario type as argument or take default
-        scenario = options.scenario   
-    else:
-        scenario = 'default' #no_mitigation'
-
-    if options.input_folder: # take scenario type as argument or take default
-        input_folder = options.input_folder   
-    else:
-        input_folder = 'saved_objects/scenario_output/'
-
-    if options.cores: # used cores
-        cores = options.cores   
-    else:
-        cores = 50     
-        
-    #if options.scenario_type: # take scenario type as argument or take default
-    #    scenario_type = options.scenario_type   
-    #else:
-    #    scenario_type = 0    
-
-
-    output_folder = '/home/basar/corona_simulations_save/outputs/'+scenario+'/'
-
-    try:
-        os.mkdir(output_folder)
-        os.mkdir(output_folder+'/plots')
-    except:
-        pass
-
-    file_list = os.listdir(input_folder)
-    sim_files = [x for x in file_list if x.endswith('pkl')] #and x.startswith('sim')] needs to be sorted if several simualtions in folder
-
-    print(sim_files)
-    start = timeit.default_timer()
-
-    with Pool(cores) as pool:
-        df_dict_list = pool.map(get_df_list, sim_files)
-
-
-    status_trajectories_list = [df['stat_trajectories'] for df in df_dict_list]
-    medic_trajectories_list = [df['medic_trajectories'] for df in df_dict_list]
-    simulation_trajectory_list = [df['durations'] for df in df_dict_list]
-    flag_trajectories_list = [df['flag_trajectories'] for df in df_dict_list]
-    infections_per_location_type_list = [df['infections_per_location_type'] for df in df_dict_list]
-
+def plot_and_save_contacts(df_list,
+                           modeled_pop_world_obj,
+                           relative=False,
+                           save_figure=True,
+                           output_folder='output_folder/',
+                           filename='scenario',
+                           ):
+    """
+    """
+    df_combined = pd.concat(df_list)
+    df_w = modeled_pop_world_obj.get_distribution_of_schedule_types(
+        relative=True)
     
-    plot_and_save_statii(status_trajectories_list, filename=scenario, output_folder=output_folder)
-    plot_and_save_statii(medic_trajectories_list, filename=scenario+'_medical_professionals', output_folder=output_folder) 
-    plot_and_save_durations(simulation_trajectory_list, filename=scenario, output_folder=output_folder)
-    plot_flags(flag_trajectories_list, cummulative=False, filename=scenario, output_folder=output_folder)
-    plot_flags(flag_trajectories_list, cummulative=True, filename=scenario+'_cumulativ', output_folder=output_folder)
-    plot_and_save_infection_per_location(infections_per_location_type_list,filename=scenario, output_folder=output_folder)   
+    for interaction_type in ['interactions', 'unique_interactions']:
+        df_int_dist = df_combined.groupby('schedule_type').sum()[interaction_type]
+        df_int_dist.sum()
+        df_int_ratio = df_int_dist/df_int_dist.sum()
+        df_transposed = df_int_ratio.to_frame().transpose().reset_index(drop=True)
+        df_delta = get_delta_df(df_transposed, df_w, relative=relative)
+        vpm_plt.plot_ratio_change(
+            df_delta, title=interaction_type, save_figure=False, label_offset=0.02)
 
-
-    stop = timeit.default_timer()
+        if save_figure:
+            plt.savefig(output_folder + 'plots/' + filename+'_'+ interaction_type
+                        + '.png', bbox_inches='tight')
+            plt.savefig(output_folder + 'plots/' + filename+'_' + interaction_type
+                        + '.svg', bbox_inches='tight')
+    
+    df_combined.to_csv(output_folder+filename+'_contacts.csv')
+    df_w.to_csv(output_folder+filename+'_schedule_distribution.csv')
 

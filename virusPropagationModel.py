@@ -163,7 +163,7 @@ class ModeledPopulatedWorld(object):
 
         if isinstance(diagnosed_schedule, str):
             diag_type = diagnosed_schedule
-            diagnosed_schedule = copy.deepcopy(schedule)
+            diagnosed_schedule = copy.copy(schedule)
             diagnosed_schedule['type'] = diag_type
         else:
             for loc in diagnosed_schedule['locs']:
@@ -206,6 +206,36 @@ class ModeledPopulatedWorld(object):
             to_infect = [p for p in list(self.people) if p.ID in specific_people_ids]
         for p in to_infect:
             p.set_initially_infected()
+
+    def set_agents_attribute(self, attribute, value, id_list=[]):
+        """
+        Set the attribute of all agents with an ID listed in id_list to the value.
+        IF id_list is empty the attribute value is change for all agents
+        """
+        ##needs to be adjusted to cope with  wrong values
+        if id_list:
+            [setattr(p, attribute, value) for p in self.people
+                if p.ID in id_list]
+        else:        
+            [setattr(p, attribute, value) for p in self.people]
+
+
+    def set_im_for_subset(self, im, id_list, keep_average=True):
+        """
+        set interaction modifier agents with ID in  id_list.
+        if keep_average = True, the interaction modifier of the
+        rest are adjusted such that the average IM remains 1.
+        """
+        self.set_agents_attribute('interaction_modifier', im, id_list=id_list)
+                
+        if keep_average:
+            n_people = self.number_of_people
+            rest = [p.ID for p in self.people if p.ID not in id_list]
+            n_rest = len(rest)
+            if n_rest>0:
+                im_rest = (1 - im) * n_people / n_rest + im
+                self.set_agents_attribute('interaction_modifier', im_rest, id_list=rest)
+
 
     def get_location_types(self):
         location_types = list(self.world.loc_class_dic.keys())
@@ -293,10 +323,16 @@ class ModeledPopulatedWorld(object):
                     raise Exception("Not enough, humans to infect")
             if x not in inif_I_list_new:
                 inif_I_list_new.append(x)
-        if not all(inif_I_list_new == ini_I_list):
+        if not (set(inif_I_list_new) == set(ini_I_list)):
             print('list of initial infected changed from ',
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new
+
+    def get_location_info(self):
+        return(location_info(self))
+
+    def get_agent_info(self):
+        return(agent_info(self))
 
     def plot_distribution_of_location_types(self, **kwargs):
         """
@@ -405,7 +441,7 @@ class Simulation(object):
 
     """
 
-    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=True, random_seed=None):
+    def __init__(self, object_to_simulate, time_steps, run_immediately=True, copy_sim_object=False, random_seed=None):
 
         self.random_seed = random_seed
         if self.random_seed is not None:
@@ -418,24 +454,25 @@ class Simulation(object):
         self.location_types = object_to_simulate.location_types
         if isinstance(object_to_simulate, ModeledPopulatedWorld):
             self.time_steps = time_steps
-            self.people = copy.deepcopy(object_to_simulate.people)
-            #self.locations = copy.deepcopy(object_to_simulate.locations)
+            self.people = object_to_simulate.people
+            self.locations = object_to_simulate.locations
             self.number_of_people = len(self.people)
             self.schedule_types = object_to_simulate.schedule_types
-            self.locations = {}
-            for p in self.people:
-                self.locations.update({p.loc.ID: p.loc})
-                self.locations.update({l.ID: l for l in list(p.schedule['locs'])})
-                self.locations.update({l.ID: l for l in list(p.diagnosed_schedule['locs'])})
-                for l in p.schedule['locs']:
-                    for sl in l.special_locations.keys():
-                        self.locations.update(
-                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
-                for l in p.diagnosed_schedule['locs']:
-                    for sl in l.special_locations.keys():
-                        self.locations.update(
-                            {l.special_locations[sl][0].ID: l.special_locations[sl][0]})
-                self.locations[p.loc.ID].enter(p)
+            #self.locations = {}
+            # for l in self.locations.values():
+            #     l.people_present = set()
+            #     for sl in l.special_locations.keys():
+            #         for idx,sl_idx in enumerate(l.special_locations[sl]):
+            #             l.special_locations[sl][idx]=self.locations[sl_idx.ID]
+            # for p in self.people:
+            #     for idx,l in enumerate(list(p.schedule['locs'])):
+            #         p.schedule['locs'][idx]=self.locations[l.ID]
+            #     for idx,l in enumerate(list(p.diagnosed_schedule['locs'])):
+            #         p.diagnosed_schedule['locs'][idx]=self.locations[l.ID]
+            #     p.loc.leave(p)
+            #     p.loc=self.locations[p.loc.ID]
+            #     self.locations[p.loc.ID].enter(p)
+
 
             self.simulation_timecourse = pd.DataFrame()
             self.infection_information = pd.DataFrame()
@@ -492,6 +529,29 @@ class Simulation(object):
         else:
             save_simulation_object(self, filename, date_suffix, **kwargs)
 
+    def set_homogeneous_mixing(self, mixing_loc_type='mixing_loc', home_quarantine=True):
+        """
+        set all location in schedules to the mixing location
+        """
+        for loc in self.locations:
+            if self.locations[loc].location_type == mixing_loc_type:
+                mixing_location = self.locations[loc]
+                
+                break
+        for p in self.people:
+            n_of_locs = len(list(p.original_schedule['locs']))
+            p.loc.leave(p)
+            p.loc = mixing_location
+            p.loc.enter(p)
+            p.schedule['locs'] = [mixing_location] * len(list(p.schedule['locs']))
+            p.original_schedule['locs'] = [mixing_location] * len(list(p.original_schedule['locs']))
+            p.specific_schedule['locs'] = [mixing_location] * len(list(p.specific_schedule['locs']))
+            if len([l.location_type for l in p.diagnosed_schedule['locs'] if l.location_type != 'home']) != 0:
+                p.diagnosed_schedule['locs'] = [mixing_location]*len(list(p.diagnosed_schedule['locs']))
+            if not home_quarantine:
+                p.diagnosed_schedule['locs'] = [
+                    mixing_location]*len(list(p.diagnosed_schedule['locs']))
+
     def simulate(self, timecourse_keys='all'):
         df_timecourse = self.run_simulation(timecourse_keys=timecourse_keys)
         df_infections = get_infection_event_information(df_timecourse)
@@ -520,6 +580,7 @@ class Simulation(object):
         for step in range(first_simulated_step, self.time_steps):
             self.time += 1
             for p in self.people:
+                #p.set_stati_from_preliminary()
                 p.update_state(self.time)
             for l in self.locations.values():
                 l.let_agents_interact(mu=self.interaction_frequency,
@@ -734,6 +795,11 @@ class Simulation(object):
         out['diagnosis_to_death'] = df['death_time'] - df['diagnosis_time']
         return out
 
+    def get_agent_specific_duration_info(self):
+        df = pd.DataFrame([p.get_infection_info() for p in self.people if not pd.isna(p.stati_times['infection_time'])], columns=[
+                          'h_ID', 'infection_time', 'diagnosis_time', 'recover_time', 'death_time', 'hospitalization_time', 'icu_time'])
+        return(df)
+
     # DF ## changed. should be used in other functions ?
     def get_infection_event_information(self):
         """
@@ -748,7 +814,7 @@ class Simulation(object):
         #    'h_ID', 'place_of_infection', 'infection_time', 'infected_by', 'infected_in_contact_with'])
         # df.sort_values('infection_time').reset_index(drop=True)
         df = self.simulation_timecourse
-        df_I = df[df['Infection_event'] > 1].copy()
+        df_I = df[df['Infection_event'] > 0].copy()
         cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags',
                                     'Interaction_partner', 'status'] if x in list(df_I.columns)]
         df_I.drop(columns=cols_to_drop, inplace=True)
@@ -789,13 +855,19 @@ class Simulation(object):
         closed_spreaders_with_r['reproduction_nr'] = closed_spreaders_with_r['reproduction_nr'].fillna(
             0.0).astype(int)
 
-        assert sliding_window_size <= np.max(
-            closed_spreaders_with_r.time), "the sliding window size it more then the time of the last infection in the time course  ! "
-        times = np.arange(sliding_window_size, np.max(
-            closed_spreaders_with_r.time) + 1, sliding_step_size)
+        if sliding_window_size > np.max(closed_spreaders_with_r.time):
+            times=[]
+            r_effs=[]
+            stds_r_eff=[]
 
-        r_effs = np.zeros(len(times))
-        stds_r_eff = np.zeros(len(times))
+        #assert sliding_window_size <= np.max(
+         #   closed_spreaders_with_r.time), "the sliding window size it more then the time of the last infection in the time course  ! "
+        else:
+            times = np.arange(sliding_window_size, np.max(
+                closed_spreaders_with_r.time) + 1, sliding_step_size)
+
+            r_effs = np.zeros(len(times))
+            stds_r_eff = np.zeros(len(times))
 
         for i, t in enumerate(times):
             time_window_reproduction_nrs = closed_spreaders_with_r.loc[(
@@ -864,14 +936,15 @@ class Simulation(object):
         ID_Type_dict = {l.ID: l.location_type for l in self.locations.values()
                         if l.ID in infection_locations}
         n_locs_inf = len(infection_events)
-        if relative:
-            inf_loc_ratio_dict = {t: sum(
-                [1 for x in infection_locations if ID_Type_dict[x] == t])/n_locs_inf for t in self.location_types}
-        else:
-            inf_loc_ratio_dict = {t: sum(
-                [1 for x in infection_locations if ID_Type_dict[x] == t]) for t in self.location_types}
+        if n_locs_inf>0:
+            if relative:
+                inf_loc_ratio_dict = {t: sum(
+                    [1 for x in infection_locations if ID_Type_dict[x] == t])/n_locs_inf for t in self.location_types}
+            else:
+                inf_loc_ratio_dict = {t: sum(
+                    [1 for x in infection_locations if ID_Type_dict[x] == t]) for t in self.location_types}
 
-        loc_infection_dict_0.update(inf_loc_ratio_dict)
+            loc_infection_dict_0.update(inf_loc_ratio_dict)
         if 'morgue' in loc_infection_dict_0:
             del loc_infection_dict_0['morgue']
         return pd.DataFrame([loc_infection_dict_0])
@@ -888,14 +961,15 @@ class Simulation(object):
             fraction_most_infect_p=fraction_most_infectious)
         ID_Type_dict = {p.ID: p.type for p in self.people if p.ID in infectees}
         n_infectees = len(infectees)
-        if relative:
-            inf_schedule_ratio_dict = {t: sum(
-                [1 for x in infectees if ID_Type_dict[x] == t])/n_infectees for t in self.schedule_types}
-        else:
-            inf_schedule_ratio_dict = {t: sum(
-                [1 for x in infectees if ID_Type_dict[x] == t]) for t in self.schedule_types}
+        if n_infectees>0:
+            if relative:
+                inf_schedule_ratio_dict = {t: sum(
+                    [1 for x in infectees if ID_Type_dict[x] == t])/n_infectees for t in self.schedule_types}
+            else:
+                inf_schedule_ratio_dict = {t: sum(
+                    [1 for x in infectees if ID_Type_dict[x] == t]) for t in self.schedule_types}
 
-        people_infection_dict_0.update(inf_schedule_ratio_dict)
+            people_infection_dict_0.update(inf_schedule_ratio_dict)
 
         return pd.DataFrame([people_infection_dict_0])
 
@@ -929,32 +1003,14 @@ class Simulation(object):
         sub_df = parsed_df.loc[:, cols_of_interest]
         gdf = sub_df.groupby('time')
         flag_sums = gdf.sum()
-        simulation_timepoints = list(gdf.groups.keys())
+        #simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
 
     def get_location_info(self):
-        locations = list(self.locations.values())
-        Location_Types = {str(l.ID): l.location_type for l in locations}
-        Location_Areas = {str(l.ID): l.area for l in locations}
-        Location_Neighbourhood = {str(l.ID): l.neighbourhood_ID for l in locations}
-        Location_Info = pd.DataFrame()
-        Location_Info['ID'] = [int(i) for i in list(Location_Types.keys())]
-        Location_Info['Type'] = list(Location_Types.values())
-        Location_Info['Area'] = list(Location_Areas.values())
-        Location_Info['Neighbourhood'] = list(Location_Neighbourhood.values())
-        return(Location_Info)
+        return(location_info(self))
 
     def get_agent_info(self):
-        people = list(self.people)
-        Agents_Ages = {str(p.ID): p.age for p in people}
-        Agents_Homes = {str(p.ID): p.home.ID for p in people}
-        Agents_Types = {str(p.ID): p.type for p in people}
-        Agent_Info = pd.DataFrame()
-        Agent_Info['ID'] = [int(i) for i in list(Agents_Ages.keys())]
-        Agent_Info['Age'] = list(Agents_Ages.values())
-        Agent_Info['Home'] = list(Agents_Homes.values())
-        Agent_Info['Type'] = list(Agents_Types.values())
-        return(Agent_Info)
+        return(agent_info(self))
 
     def get_number_of_infected_households(self, time_span=[0, None], total=False):
         if time_span[1] is None:
@@ -1038,7 +1094,7 @@ class Simulation(object):
 
         Node_count_DF = pd.DataFrame()
         Node_count_DF['Pairs'] = [','.join([str(i[0]), str(i[1])]) for i in sorted_interactions]
-        Node_count_DF['Count'] = [1]*len(sorted_interactions)
+        Node_count_DF['Count'] = [0.5]*len(sorted_interactions) ## 0.5 since all interactions are doubled in timecourse
         encounters_number = pd.DataFrame(Node_count_DF.groupby('Pairs').sum())
         encounters_number.reset_index(inplace=True, drop=True)
         #interaction_abundances.drop(interaction_abundances[interaction_abundances['Count'] == 0], inplace=True)
@@ -1232,6 +1288,16 @@ class Simulation(object):
 
     # def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
     #    return vpm_neta.get_r_eff_timecourse_from_human_timecourse(self, sliding_window_size, sliding_step_size=1)
+
+    def get_infectivities(self):
+    	IDs = []
+    	infectivities = []
+    	for p in self.people:
+    		IDs.append(p.ID)
+    		infectivities.append(p.get_infectivity())
+    	pd_dict = {'ID': IDs, 'infectivity': infectivities}
+    	df = pd.DataFrame(pd_dict)
+    	return(df)
 
     def export_time_courses_as_csvs(self, identifier="output"):
         """
@@ -1435,6 +1501,11 @@ def build_agegroup_aggregated_infection_matrix(Infection_matrix, Agent_Info, n_t
         agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
         CMgroup.loc['AgeGroup_subject', i] = agePerson
     Out = CMgroup.transpose().groupby(['AgeGroup_subject']).sum()
+    ##add zeros for missing agegroups
+    for missing_age_group in list(set(age_groups)-set(Out.columns)): 
+        Out[missing_age_group] = [0.0]*len(Out)
+        Out.loc[95,:] = [0.0]*len(Out.iloc[0])
+    ####
     perday = Out/n_time_aggregates
     perday.index = age_groups
     perday.columns = age_groups
@@ -1475,7 +1546,13 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
     return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
 
 
-def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info, n_time_aggregates=5, age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]):
+def build_agegroup_aggregated_interaction_matrix(Interaction_matrix,
+                                                 Agent_Info,
+                                                 n_time_aggregates=5,
+                                                 age_groups=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+                                                 ):
+    """
+    """                                                
     Agent_Info['AgeGroup'] = [-1]*Agent_Info.shape[0]
     for i in age_groups:
         age_index = age_groups.index(i)
@@ -1500,7 +1577,12 @@ def build_agegroup_aggregated_interaction_matrix(Interaction_matrix, Agent_Info,
     for i in list(CMgroup.columns):
         agePerson = Agent_Info.loc[Agent_Info['ID'] == int(i), 'AgeGroup'].values[0]
         CMgroup.loc['AgeGroup_object', i] = agePerson
-    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()
+    Out = CMgroup.transpose().groupby(['AgeGroup_object']).sum()    
+    ##add zeros for missing agegroups
+    for missing_age_group in list(set(age_groups)-set(Out.columns)): 
+        Out[missing_age_group] = [0.0] * len(Out)
+        Out.loc[95,:] = [0.0] * len(Out.iloc[0])
+    ##    
     perday = Out/n_time_aggregates
     perday.index = age_groups
     perday.columns = age_groups
@@ -1582,3 +1664,25 @@ def get_delta_df(df_data, df_world, relative=True):
     df['positive'] = df > 0
     df.sort_index(inplace=True)
     return df
+
+def location_info(world_sim_obj):
+    """object can either be world or simulation"""
+    locations = list(world_sim_obj.locations.values())
+    location_info_list  = [{'ID': l.ID ,
+                            'Type': l.location_type,
+                            'Area': l.area,
+                            'Coordinates': l.coordinates,
+                            'Neighbourhood': l.neighbourhood_ID}
+                            for l in locations]
+    return(pd.DataFrame(location_info_list))
+
+def agent_info(world_sim_obj):
+    """object can either be world or simulation"""
+    people = list(world_sim_obj.people)
+    agent_info_list  = [{'ID': p.ID ,
+                        'Age': p.age ,
+                        'Home': p.home.ID,
+                        'Type': p.type,
+                        'Interaction Modifier': p.interaction_modifier}
+                        for p in people]
+    return(pd.DataFrame(agent_info_list))

@@ -365,7 +365,10 @@ def plot_status_at_location(simulation_object, save_figure=False):
                                right_index=True, suffixes=('', '_zeros'), how='right').fillna(0)
         col = k % 2
         row = int(k/2)
-        ax = axes[col, row]
+        try:
+            ax = axes[col, row]
+        except IndexError:
+            ax = axes[k]
         cols_to_plot = ['D', 'I', 'R', 'S']
         merged_df.plot(y=cols_to_plot, ax=ax, color=[
                        statusAndFlagsColors[st] for st in cols_to_plot])

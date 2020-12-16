@@ -87,16 +87,27 @@ class World(object):
         loc_class_dic['morgue'] = ['morgue']
         loc_class_dic['mixing_loc'] = ['mixing_loc']
 
-        loc_class_dic['work'] = ['industrial', 'greenhouse', 'cowshed', 'shed', 'commercial', 'warehouse', 'office', 'farm', 'fire_station', 'farm_auxiliary', 'retail']\
+        cols = ['amenity', 'shop', 'leisure', 'sport','building']
+        for col in cols:
+            try:
+                list(self.df_buildings[col].unique())
+            except:
+                self.df_buildings[col] = [np.nan]*len(self.df_buildings)
+       
+        loc_class_dic['work'] = ['civic', 'commercial', 'company', 'construction', 'cowshed', 'farm', 'farm_auxiliary', 'fire_station', 'greenhouse', 'industrial',\
+                                 'manufacture', 'office', 'retail', 'service', 'shed', 'stable', 'transformer_tower', 'warehouse']\
             + list(self.df_buildings['amenity'].unique())\
             + list(self.df_buildings['shop'].unique())
+            
 
         # What is a public place or just work place e.g. restaurante, cafe...
 
-        loc_class_dic['public'] = ['public', 'chapel', 'church', 'parish_hall', 'townhall', 'restaurant', 'grocery_store', 'cafe', 'sports_centre']\
+        loc_class_dic['public'] = ['bank', 'cabin', 'cafe', 'car_wash', 'chapel', 'church', 'doctors', 'fast_food', 'grocery_store', 'hotel',\
+                                   'hut', 'parish_hall', 'place_of_worship', 'police', 'pub', 'public', 'restaurant', 'ruins', 'service', 'shelter',\
+                                   'social_facility', 'sports_centre', 'sports_hall', 'supermarket', 'temple', 'toilets', 'townhall', 'train_station']\
             + list(self.df_buildings['leisure'].unique())\
             + list(self.df_buildings['sport'].unique())
-
+            
         loc_class_dic['school'] = ['school', 'university', 'kindergarten']
         # Cleaning the list public place of nan
         loc_class_dic['public'] = [x for x in loc_class_dic['public'] if ~pd.isnull(x)]
@@ -116,7 +127,7 @@ class World(object):
 
         loc_class_dic = self.assign_location_classifier()
         # Columns important to classify building type and therefore which location type it is
-        col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
+        # col_names = ['building', 'amenity', 'shop', 'leisure', 'sport', 'healthcare']
         # start of boolcheck to see if at least one hospital in dataframe
         hospital_bool = False
         morgue_bool = False
