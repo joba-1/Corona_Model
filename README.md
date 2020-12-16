@@ -59,7 +59,8 @@ For personal demo purposes we provide a jupyter notebook [Demo.ipynb](https://fo
 
 This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt) and to run GERDA simulations, including manual adjustment of parameters for 'infectivity', 'mean interaction frequency', and 'non-compliance probability'.
 
-For parallel computing on high end memory servers, we provide another script, NAME. Minimum requirements for running this script are IVO, PLEASE ADD SERVER INFO HERE.
+For parallel computing on high end memory servers, we provide another script, NAME. In general, you need a lot of RAM, depending on your input data files and other settings. We use AMD-based  servers with 96 cores and 512 GB RAM, but the bottleneck is the RAM. That's why we can use just 24 cores.
+
 
 ##  Advanced usage
 for advanced usage, each user can replace certain input parameters (using [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/development/Demo.ipynb)) by exchanging the desired parameters in the command lines.
