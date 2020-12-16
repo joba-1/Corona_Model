@@ -24,11 +24,11 @@ Follow these three steps to make use of the virtual environment provided in the 
     ```
     conda update conda
     ```
-    If you don't want to permanently activate the conda base environment, add following code to your ~/.bashrc:
+    If you don't want to permanently activate the conda base environment,
+    run following command (after opening a new shell/relogin):
     ```
-    [ -e "$(which conda)" ] && conda deactivate
+    conda config --set auto_activate_base false
     ```
-    It has to be placed below the "# <<< conda initialize <<<" line
     This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
 
 3. Then run the following pieces of code to set up the local environment:
