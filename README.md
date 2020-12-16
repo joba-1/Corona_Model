@@ -83,3 +83,6 @@ Files with geo-information on each world to be modelled to initiate world is fou
 
 Schedule Definition:\
 The schedules, which define agent-routines are provided as csv in the directory 'inputs'.
+
+## Disclaimer
+Files not mentioned in this README are required but can be ignored by any non-developer. We still have to update our folder structure and apologize for any resulting confusion.
