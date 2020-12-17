@@ -11,6 +11,7 @@ Terminal commands are shown in separate boxes.
 The code in this repository was implemented using python 3.7.\
 Only this version or newer versions of python are supported.\
 For code checkout, you need git.
+We are developing on linux and on mac, currently we are working on windows compatibility as well.
 
 ### Quick setup using conda
 Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup.
@@ -46,7 +47,7 @@ Follow these three steps to make use of the virtual environment provided in the 
     conda activate gerdaenv
     ```
 
-In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command 
+In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
 ```
 python3 testrunner.py
 ```
@@ -63,6 +64,8 @@ This notebook contains the following code blocks:
 "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)\
 "Info on world" - plot of age distribution + information on infected agents\
 "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
+
+To use it, start jupyter notebook (e.g. in the terminal with the activated gerdaenv type "jupyter notebook"), navigate to the corona_model directory and select "Demo.ipynb". To run the full simulation, click on "Cell --> Run All".
 
 For parallel computing on high end memory servers, we provide different other scripts, simulate_scenarios*.py (* = wildcard character). In general, you need a lot of RAM, depending on your input data files and other settings. We use AMD-based servers with 96 cores and 512 GB RAM, but the bottleneck is the RAM. That's why we can use just 24 cores.
 
