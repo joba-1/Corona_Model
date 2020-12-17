@@ -32,6 +32,7 @@ dependencies:
     - fiona==1.8.17
     - geopandas==0.8.1
     - idna==2.10
+    - jupyter==1.0.0
     - kiwisolver==1.2.0
     - matplotlib==3.3.2
     - munch==2.5.0
