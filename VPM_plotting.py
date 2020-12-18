@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import matplotlib.cm as cm
+import seaborn as sns
 
 from collections import OrderedDict as ordered_dict
 
@@ -51,6 +52,68 @@ scheduleTypeColors = {
     'teacher': defaultCmap(4),
     'under_age': defaultCmap(5),
 }
+
+
+def plot_contact_distributions_as_violins(Contact_DF, specific_agent_types=None, timesteps_per_aggregate=168, ScheduleType_name_map=None, ax=None):
+
+    if specific_agent_types == None:
+        agent_types_forplot = list(Contact_DF['schedule_type'].unique())
+    else:
+        if type(specific_agent_types) is list:
+            agent_types_forplot = specific_agent_types
+        elif type(specific_agent_types) is str:
+            agent_types_forplot = [specific_agent_types]
+
+    if ScheduleType_name_map == None:
+        dict(zip(agent_types_forplot, agent_types_forplot))
+
+    DF_interactions = pd.DataFrame()
+    DF_unique = pd.DataFrame()
+    DF_interactions['all'] = Contact_DF['interactions']/timesteps_per_aggregate
+    DF_unique['all'] = Contact_DF['unique_interactions']/timesteps_per_aggregate
+
+    for t in agent_types_forplot:
+        DF_interactions[t] = Contact_DF.loc[Contact_DF['schedule_type']
+                                            == t, 'interactions']/timesteps_per_aggregate
+        DF_unique[t] = Contact_DF.loc[Contact_DF['schedule_type']
+                                      == t, 'unique_interactions']/timesteps_per_aggregate
+
+    DF_interactions['Type'] = ['Total']*DF_interactions.shape[0]
+    DF_unique['Type'] = ['Unique']*DF_unique.shape[0]
+
+    df_type_i = pd.concat([DF_interactions['all'], DF_interactions['Type']], axis=1)
+    df_type_i.columns = ['N', 'Type']
+    df_type_i['schedule_type'] = ['All']*df_type_i.shape[0]
+
+    df_type_u = pd.concat([DF_unique['all'], DF_unique['Type']], axis=1)
+    df_type_u.columns = ['N', 'Type']
+    df_type_u['schedule_type'] = ['All']*df_type_u.shape[0]
+
+    out = pd.concat([df_type_i, df_type_u], axis=0)
+    for i in agent_types_forplot:
+        df_type_i = pd.concat([DF_interactions[i], DF_interactions['Type']], axis=1)
+        df_type_i.columns = ['N', 'Type']
+        df_type_i['schedule_type'] = [ScheduleType_name_map[i]]*df_type_i.shape[0]
+
+        df_type_u = pd.concat([DF_unique[i], DF_unique['Type']], axis=1)
+        df_type_u.columns = ['N', 'Type']
+        df_type_u['schedule_type'] = [ScheduleType_name_map[i]]*df_type_u.shape[0]
+
+        df_to_append = pd.concat([df_type_i, df_type_u], axis=0)
+        out = pd.concat([out, df_to_append], axis=0)
+
+    if not ax:
+        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+
+    # v = seaborn.violinplot(data=outDF,hue='Type',split=True,x='schedule_type',y='N', inner=None,scale='area',scale_hue=True,linewidth=1,palette=['teal','cornflowerblue'])
+    ax = sns.violinplot(data=out, hue='Type', split=True, x='schedule_type', y='N', inner=None,
+                        scale='area', scale_hue=True, linewidth=1, palette=['royalblue', 'lightblue'])
+
+    ax.set_title('Total and unique interactions')
+    ax.set_xlabel('')
+    ax.set_ylabel('Interactions per hour')
+    ax.legend(loc='upper right', frameon=False)
+    return ax
 
 
 def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figure=False):
@@ -489,7 +552,7 @@ def plot_interaction_timecourse(simulation_object, save_figure=False, log=False,
     fig, ax = plt.subplots()
     simulation_object.get_interaction_timecourse(
         diagnosed_contact=diagnosed_contact).plot(ax=ax, logy=log)
-    #simulation_object.get_interaction_timecourse(diagnosed_contact=True).plot(ax=ax, logy=log)
+    # simulation_object.get_interaction_timecourse(diagnosed_contact=True).plot(ax=ax, logy=log)
     ax.legend(['safe contact', 'possible infectious event', 'infection event',
                'safe contact_d', 'possible infectious event_d', 'infection event_d'], loc=(1.1, 0))
     ax.set_title('Interaction Timcourse'), ax.set_ylabel('counts'), ax.set_xlabel('time, h')
