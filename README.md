@@ -71,6 +71,23 @@ For parallel computing on high end memory servers, we provide different other sc
 
 For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
 
+
+## Demo_Vaccination jupyter notebook
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to get familiar with the Demo notebook first, in order to get an intuition for our model and its basic application and characteristics. 
+This notebook contains the following code blocks:
+1. importing required libraries and initializing a dictionary for the real world communities that can be used) "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+2. Running an initial infection-wave to be used in defining one of the tested strategies
+	—> Be aware that here exists a checkpoint for the user 
+3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies.
+4. Running simulations with different vaccination-fractions of the population, for the different strategies.
+5. Generating a plot, resembling figure 3 in our manuscript.
+
+Please be aware, that we set the default world to be used to the small version, in order to avoid excessive runtimes for this demonstration. 
+Since this world is not fully representative to the large world, we used for the manuscript; the infection-dynamics differ and thus the results of the vaccintion-screens do too.
+Furthermore we have set the vaccination-fraction increments to 20% (where we used 5%-steps in the manuscript), also to reduce runtime.
+
+The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
+
 ## Expected run time
 Simulating large Gangelt (100% of population and buildings) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purposes, we recommend the small Gangelt (10% of population and buildings), which takes about 10 minutes on a personal desktop computer.
 
