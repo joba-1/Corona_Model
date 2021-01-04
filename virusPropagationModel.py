@@ -629,7 +629,7 @@ class Simulation(object):
                             setattr(p, attribute, input_all[attribute]['value'])
                         elif input_all[attribute]['type'] == 'multiplicative_factor':
                             setattr(p, attribute, getattr(p, attribute) *
-                                    input_all[attribute]['multiplicative_factor'])
+                                    input_all[attribute]['value'])
             else:
                 id = list(input.keys())[0]
                 respective_person = [p for p in self.people if str(p.ID) == id]
@@ -640,7 +640,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                'multiplicative_factor'])
+                                'value'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
         else:
@@ -653,7 +653,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                'multiplicative_factor'])
+                                'value'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
