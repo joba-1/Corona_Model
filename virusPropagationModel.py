@@ -301,19 +301,21 @@ class ModeledPopulatedWorld(object):
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
-    def get_remaining_possible_initial_infections(self, ini_I_list):
+    def get_remaining_possible_initial_infections(self, ini_I_list, exclude_list):
         """
         Compares list of agent IDs to initally infect with IDs of initially recovered agents.
         Rewrites a list of possible agents.
         :return: list of agent IDs
         """
         recovered_people = [p.ID for p in self.people if p.status == 'R']
-        print('amount of initially recovered agents:', len(recovered_people))
+        excluded_people = list(set(recovered_people + exclude_list))
+
+        print('amount of initially recovered agents:', len(excluded_people))
         inif_I_list_new = []
 
         for i in ini_I_list:
             x = i
-            while x in recovered_people or x in inif_I_list_new:
+            while x in excluded_people or x in inif_I_list_new:
                 x += 1
                 if x < self.number_of_people:
                     pass

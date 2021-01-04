@@ -145,6 +145,10 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-iar", "--im_age_range", nargs='+', type=float,
                         help="""choose the interaction modifier for a specific age range 
                         in order : IM min_age max_age (default 1 -1 100)""")
+    parser.add_argument("-part_imnty", "--partial_immunity", type=float,
+                        help="""choose value (0-1) for partial immunity""")
+    parser.add_argument("-imnty_mode", "--immunity_mode", type=str,
+                        help="""choose if partial immunity is as susceptible ('sus') or infected ('inf') or both ('both') """)
     options = parser.parse_args(args)
     return options
 
@@ -188,8 +192,8 @@ def get_previous_infections(world, n,
     return all_agents
 
 
-def infect_world(world, IDs=[1]):
-    ID_list = world.get_remaining_possible_initial_infections(IDs)
+def infect_world(world, IDs=[1], exclude_list=[]):
+    ID_list = world.get_remaining_possible_initial_infections(IDs, exclude_list)
     world.initialize_infection(specific_people_ids=ID_list)
 
 def get_ordered_ids(world, n, save_folder='', **kwargs):
@@ -323,6 +327,19 @@ def recover_world(world, frac, recover_id_list):
             p.set_initially_recovered()
     return ps_to_recover
 
+def partially_immunise_world(world, frac, recover_id_list, immunity_factor, imnty_mode='sus'):
+
+    ps_to_recover = recover_id_list[:int(frac*len(recover_id_list))]
+
+    # recover agents
+    for p in world.people:
+        if p.ID in ps_to_recover:
+            if imnty_mode=='sus' or imnty_mode=='both':  
+                p.behaviour_as_susceptible *= immunity_factor
+            if imnty_mode=='inf' or imnty_mode=='both':  
+                p.behaviour_as_infected *= immunity_factor
+    return ps_to_recover
+
 
 def set_interaction_modifier_for_age_range(world, iar_list, keep_average=True,):
     """
@@ -375,9 +392,14 @@ def simulate_scenario(input_dict):
     recover_lists = my_dict['recover_lists']
     infectees = my_dict['infectees']
     recover_fraction = my_dict['recover_fraction']
+    part_imnty = my_dict['part_imnty']
+    imnty_mode = my_dict['imnty_mode']
 
-    recover_list = recover_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']])
-    infect_world(modeledWorld, IDs=infectees)
+    if part_imnty:
+        recover_list = partially_immunise_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']], part_imnty, mode=imnty_mode)
+    else:
+        recover_list = recover_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']])
+    infect_world(modeledWorld, IDs=infectees, exclude_list=recover_list)
 
     # print(type(modeledWorld))
     if len(reinfection_times) > 0:
@@ -397,12 +419,13 @@ def simulate_scenario(input_dict):
 
     if product != 0:
         simulation1.change_agent_attributes(
-            {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'replacement'}}})
+            {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'multiplicative_factor'}}})
     else:
         simulation1.change_agent_attributes(
-            {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
+            {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'multiplicative_factor'}}})
     simulation1.change_agent_attributes(
-        {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
+        {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'multiplicative_factor'}}}) 
+
     # simulation1.set_seed(3)
     simulation1.interaction_frequency = mu
     #simulation1.interaction_matrix = False
@@ -556,8 +579,8 @@ def get_simualtion_settings(options):
         else:
             input_parameter_dict['output_folder'] = options.folder + '/'
     else:
-        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
-        #input_parameter_dict['output_folder'] = 'parallel_test/'
+        #input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
+        input_parameter_dict['output_folder'] = 'partial_immunity_test/'
 
     if options.parameter:  # number of simulations
         input_parameter_dict['parameter'] = options.parameter
@@ -643,6 +666,16 @@ def get_simualtion_settings(options):
     else:
         input_parameter_dict['im_age_range'] = [1,-1,100] # nothing changes IM 1 -1<age<100
 
+    if options.partial_immunity:
+        input_parameter_dict['part_imnty'] = options.partial_immunity
+    else:
+        input_parameter_dict['part_imnty'] = None 
+
+    if options.immunity_mode:
+        input_parameter_dict['imnty_mode'] = options.immunity_mode
+    else:
+        input_parameter_dict['imnty_mode'] = 'sus' 
+
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
@@ -661,8 +694,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/new_sim_obj/'
-    world_name = 'new_sim_obj_recover_scan_'
+    input_folder = 'saved_objects/new_sim_obj_test/'
+    world_name = 'new_sim_obj_partial_imnty_test_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -712,7 +745,10 @@ if __name__ == '__main__':
 
     try:
         os.mkdir(collector_folder)
+        os.makedirs(collector_folder)
+        print('created '+collector_folder)
     except:
+        print('could not create '+collector_folder)
         pass
 
     used_scenario['recover_lists'] = get_ids_for_recovery(currentWorld, rec_by, input_parameter_dict['number'],
