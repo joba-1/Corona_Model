@@ -1,0 +1,33 @@
+run,0
+max_time,2000
+start_2,50
+start_3,100
+closed_locs,[]
+reopen_locs,[]
+infectivity,0.0
+name,no_mitigation_IF00
+scenario_type,0
+cores,25
+number,100
+modeledWorld,<virusPropagationModel.ModeledPopulatedWorld object at 0x7f9f9241a240>
+output_folder,/home/basar/corona_simulations_save/
+parameter,
+p_range,[1]
+disobedience,0
+reinfections,1
+reinfection_times,[]
+product,0
+mu,2
+max_houshold_time,
+recover_fraction,0.0
+rec_schedule,
+recover_by,
+mix,False
+im_age_range,"[1, -1, 100]"
+input_folder,saved_objects/new_sim_obj/
+world_files,['Gangelt_MA_1_schedules_v2_0_worldObj.pkl']
+world_name,new_sim_obj_no_infections_
+timecourse_keys,"['time', 'h_ID', 'status', 'Temporary_Flags', 'Cumulative_Flags', 'loc', 'Infection_event', 'Interaction_partner']"
+recover_lists,"[[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]"
+,1
+infectees,"[1, 2, 3, 4]"

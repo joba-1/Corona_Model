@@ -39,7 +39,7 @@ scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 1000, 'start_2': 200, 'start_3': 300, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 300, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
@@ -207,7 +207,7 @@ def get_ordered_ids(world, n, save_folder='', **kwargs):
     return ordered_ids
 
 def get_ids_by_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = 'outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    server_data_folder = 'saved_objects/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
     filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
@@ -694,8 +694,8 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/new_sim_obj_test/'
-    world_name = 'new_sim_obj_partial_imnty_test_sus_inf_'
+    input_folder = 'saved_objects/new_sim_obj/'
+    world_name = 'new_sim_obj_partial_imnty_sus_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
