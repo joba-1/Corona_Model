@@ -207,7 +207,7 @@ def get_ordered_ids(world, n, save_folder='', **kwargs):
     return ordered_ids
 
 def get_ids_by_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    server_data_folder = 'outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
     filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
@@ -219,9 +219,9 @@ def get_ids_by_interactions(world, n, save_folder='', **kwargs):
     return to_recover_list
 
 def get_ids_by_households(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
-    ai = pd.read_csv(server_data_folder+filename+'agent_infos.csv')
+    #server_data_folder = 'outputs/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
+    #filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    ai = world.get_agent_infos()
     home_count_dict = dict(zip(list(ai.groupby('Home').count().index), list(ai.groupby('Home').count()['ID'])))
     ai['Home_size']=ai['Home'].map(home_count_dict)
 
@@ -265,8 +265,8 @@ def get_ids_by_age(world, n, save_folder='', **kwargs):
     return ids_only
 
 def get_ids_by_age_and_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    server_data_folder = 'outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
     contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
@@ -579,8 +579,8 @@ def get_simualtion_settings(options):
         else:
             input_parameter_dict['output_folder'] = options.folder + '/'
     else:
-        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
-        #input_parameter_dict['output_folder'] = 'partial_immunity_test/'
+        #input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
+        input_parameter_dict['output_folder'] = ''
 
     if options.parameter:  # number of simulations
         input_parameter_dict['parameter'] = options.parameter
