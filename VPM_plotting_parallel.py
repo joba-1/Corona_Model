@@ -30,11 +30,20 @@ def plot_stat_para(ax, folder_scenario, server_data_folder, statii=['S', 'I', 'R
         else:
             df_stat.plot(legend=False, alpha=0.1,
                          c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
+        ax.set_ylabel('People')
+        if per_day:
+                a=24
+                xlabel='Time [days]'
+        else:
+            a=1
+            xlabel = 'Time [hours]'
+        ax.plot(df_stat_m.index/a, df_stat_m.values,
+                color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
+                label=stat.split('_')[-1])
     ax.set_ylabel('People')
-    ax.set_xlabel('Time [hours]')
+    ax.set_xlabel(xlabel)
     if log:
         ax.set_yscale('log')
-
 
 def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
                               statii=['S', 'I', 'R', 'D'],
@@ -84,7 +93,7 @@ def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
         #    df_stat.plot(legend=False, alpha=0.1,
         #                 c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
     ax.set_ylabel('People')
-    ax.set_xlabel('Time [hours]')
+    ax.set_xlabel(xlabel)
     if log:
         ax.set_yscale('log')
 
