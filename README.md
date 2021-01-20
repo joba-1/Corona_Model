@@ -5,15 +5,20 @@ The information regarding the data used in this model as well as its documentati
 
 This model is maintained by the [Klipp lab for theoretical biophysics](https://rumo.biologie.hu-berlin.de/tbp/index.php/en/) at the Humboldt Universität zu Berlin.
 
-Python commands are highlighted by green color throughout this document.
+Terminal commands are shown in separate boxes.
 
 ## Setup
-The code in this repository was implemented using python 3.7 \
-Only this version or newer versions of python are supported.
+The code in this repository was implemented using python 3.7.\
+Only this version or newer versions of python are supported.\
+For code checkout, you need git.
+We are developing on linux and on mac, currently we are working on windows compatibility as well.
 
 ### Quick setup using conda
 Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup.
 1. First, clone this repository to your local machine if you have not done so yet.
+    ```
+    git clone https://ford.biologie.hu-berlin.de/jwodke/corona_model.git
+    ```
 
 2. Then, make sure you have Anaconda/Miniconda3 installed by running the following code in your terminal
     ```
@@ -24,11 +29,11 @@ Follow these three steps to make use of the virtual environment provided in the 
     ```
     conda update conda
     ```
-    If you don't want to permanently activate the conda base environment, add following code to your ~/.bashrc:
+    If you don't want to permanently activate the conda base environment,
+    run following command (after opening a new shell/relogin):
     ```
-    [ -e "$(which conda)" ] && conda deactivate
+    conda config --set auto_activate_base false
     ```
-    It has to be placed below the "# <<< conda initialize <<<" line
     This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
 
 3. Then run the following pieces of code to set up the local environment:
@@ -42,7 +47,7 @@ Follow these three steps to make use of the virtual environment provided in the 
     conda activate gerdaenv
     ```
 
-In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command 
+In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
 ```
 python3 testrunner.py
 ```
@@ -51,25 +56,53 @@ Note: this could take a few minutes and might result in figures popping up, whic
 That was it. You can now proceed to the 'Usage' part. Make sure to activate the 'gerdaenv' environment again if it is no longer activated before moving on.
 
 
-## Usage
-To run the model, the jupyter notebook [RUN_CoronaABM.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/development/RUN_CoronaABM.ipynb) is provided.
+## Demo jupyter notebook
+For personal demo purposes we provide a jupyter notebook [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb) for single runs (i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server). This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'. 
 
-This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt) and to run GERDA simulations, including manual adjustment of parameters for 'infectivity', 'mean interaction frequency', and 'non-compliance probability'.
+This notebook contains the following code blocks:
+1. importing required libraries and initializing a dictionary for the real world communities that can be used)\
+"Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)\
+"Info on world" - plot of age distribution + information on infected agents\
+"Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
-General commands:
-\textbullet a world is initialized by:
-\textcolor{blue}{COMMAND}
-\textbullet a simulation is run by:
-COMMAND
+To use it, start jupyter notebook (e.g. in the terminal with the activated gerdaenv type "jupyter notebook"), navigate to the corona_model directory and select "Demo.ipynb". To run the full simulation, click on "Cell --> Run All"; or run cells individually.
 
-For comparative simulations, the same initialized world has to be used for the initial simulations. If non-pharmaceutical interventions shall be testet, the simulation has to be split into consecutive runs. The first simulation, simulation1, (using the modeled world as input and starting at time T=0) is run until the time point the intervention starts. For the consecutive simulation, the intervention has to be defined, e.g. for 'close all locations' (to represent a full lockdown) the location closure has to be incorporated by the following loop:
-for loc in simulation1.locations:
-    loc.close()
-The second simulation, simulation2, (using simulation1 as input and starting at T=finalTime of simulation1) sebsequently is run until the end time of the tested intervention. For the third simulation, simulation3, (using simulation2 as input and starting at T=finalTime of simulation2) the closure of locations has to be reset:
-for loc in simulation2. locations:
-    loc.reset()
+For parallel computing on high end memory servers, we provide different other scripts, simulate_scenarios*.py (* = wildcard character). In general, you need a lot of RAM, depending on your input data files and other settings. We use AMD-based servers with 96 cores and 512 GB RAM, but the bottleneck is the RAM. That's why we can use just 24 cores.
 
-An example for comparative simulations (close all, reopen all) is already shown in cells XXX.
-See the RUN_CoronaABM.ipynb for the most recent visualization options.
+For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
 
-More options are currently continuously added on a daily basis. Please contact us (coronaModel@hu-berlin.de), if the notebook is not working or if the information is oudated.
+
+## Demo_Vaccination jupyter notebook
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to get familiar with the Demo notebook first, in order to get an intuition for our model and its basic application and characteristics. 
+This notebook contains the following code blocks:
+1. importing required libraries and initializing a dictionary for the real world communities that can be used) "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+2. Running an initial infection-wave to be used in defining one of the tested strategies
+	—> Be aware that here exists a checkpoint for the user 
+3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies.
+4. Running simulations with different vaccination-fractions of the population, for the different strategies.
+5. Generating a plot, resembling figure 3 in our manuscript.
+
+Please be aware, that we set the default world to be used to the small version, in order to avoid excessive runtimes for this demonstration. 
+Since this world is not fully representative to the large world, we used for the manuscript; the infection-dynamics differ and thus the results of the vaccintion-screens do too.
+Furthermore we have set the vaccination-fraction increments to 20% (where we used 5%-steps in the manuscript), also to reduce runtime.
+
+The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
+
+## Expected run time
+Simulating large Gangelt (100% of population and buildings) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purposes, we recommend the small Gangelt (10% of population and buildings), which takes about 10 minutes on a personal desktop computer.
+
+## Integration of external data
+Transition probabilities and time-dependent infectiousness:\
+Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file simulation_configuration.csv defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific.
+
+Location factors:\
+File with relative infectivities for different location-types (Currently default-factor 1 for all location-types).
+
+Geodata:\
+Files with geo-information on each world to be modelled to initiate world is found as csv-files in the directory 'datafiles'.
+
+Schedule Definition:\
+The schedules, which define agent-routines are provided as csv in the directory 'inputs'.
+
+## Disclaimer
+Files not mentioned in this README are required but can be ignored by any non-developer. We still have to update our folder structure and apologize for any resulting confusion.

@@ -10,14 +10,14 @@ from functools import partial
 
 
 
-def ini_and_save_world(i, output_folder='saved_objects/', size=1, schedule='schedules_v2', **kwargs):
+def ini_and_save_world(i, output_folder='saved_objects/', size='1', schedule='schedules_v2', town='Gangelt', **kwargs):
     world = ModeledPopulatedWorld(1000, 10, world_from_file=True,
-            geofile_name='datafiles/Buildings_Gangelt_MA_'+str(size)+'.csv',
+            geofile_name='datafiles/Buildings_'+town+'_MA_'+size+'.csv',
                                      agent_agent_infection=True,
                              automatic_initial_infections=False,
                                   input_schedules=schedule)
-    world.save('Gangelt_MA_'+str(size)+'_'+schedule+'_'+str(i), date_suffix=False, folder=output_folder, **kwargs)#'/home/basar/corona_simulations/saved_objects/worlds/')
-    print('worlds/Gangelt_MA_'+str(size)+'_'+schedule+'_'+str(i)+' created')
+    world.save(town+'_MA_'+size+'_'+schedule+'_'+str(i), date_suffix=False, folder=output_folder, **kwargs)#'/home/basar/corona_simulations/saved_objects/worlds/')
+    print('worlds/'+town+'_MA_'+size+'_'+schedule+'_'+str(i)+' created')
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
@@ -27,10 +27,12 @@ def getOptions(args=sys.argv[1:]):
                         help="number of worlds")
     parser.add_argument("-c", "--cores", type=int, 
                         help="number of used cores")
-    parser.add_argument("-s", "--size", type=int, 
+    parser.add_argument("-s", "--size", type=str, 
                         help="1 or 3 -> min area for buildings")
     parser.add_argument("-t", "--town", type=str,
                         help="choose town in datafiles/: default Gangelt")
+    parser.add_argument("-sc", "--schedule", type=str,
+                        help="choose schedule in inputs/: default schedules_v2")
     options = parser.parse_args(args)
     return options    
 
@@ -65,13 +67,24 @@ if __name__ == '__main__':
     if options.size:
         size = options.size
     else:
-        size = 1
+        size = '1'
     options_dict['size'] = size
 
+    if options.town:
+        assert options.town in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations','Gangelt_plus_10_public_locations'],"town must be in ['Gangelt','Heinsberg','Simbach_a.Inn','Oranienbaum-Wörlitz','Linsengericht','Hessisch_Lichtenau','Grünheide','Bockhorn','Gangelt_plus_10_work_locations','Gangelt_plus_10_public_locations']"
+        town = options.town
+    else:
+        town = 'Gangelt'
+    options_dict['town'] = town
 
-    schedule = 'schedules_v2'    
+    if options.schedule:
+        assert options.schedule in ['schedules_v2','schedules_v2_different_school_times'],"schedule must be in ['schedules_v2','schedules_v2_different_school_times']"
+        schedule = options.schedule
+    else:
+        schedule = 'schedules_v2'
+    options_dict['schedule'] = schedule     
 
-    mapfunc = partial(ini_and_save_world, output_folder=output_folder, size=size, schedule=schedule)
+    mapfunc = partial(ini_and_save_world, output_folder=output_folder, size=size, schedule=schedule, town=town)
     with Pool(cores) as pool:
         pool.map(mapfunc, [i for i in range(number)])
 

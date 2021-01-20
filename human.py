@@ -402,11 +402,11 @@ class Human(object):
         if not self.status == 'D' and not self.hospitalized and not self.icu and not self.diagnosed:
             ## if alive and not diagnosed, hospitalized or ICUed##
             ## follow own regular schedule ##
-            current_schedule = self.schedule
+            current_schedule = copy.copy(self.schedule)
         else:
             ## if dead, diagnosed, hospitalized or ICUed##
             ## follow schedule, specific to condition##
-            current_schedule = self.specific_schedule
+            current_schedule = copy.copy(self.specific_schedule)
         ## move according to relevant schedule ##
         if time % (24*7) in current_schedule['times']:  # here i check for a 24h cycling schedule
             self.loc.leave(self)  # leave old location
@@ -414,6 +414,9 @@ class Human(object):
                 time % (24*7))]  # find new location in  schedule#
             self.loc = new_loc  # set own location to new location#
             new_loc.enter(self)  # enter new location
+            #if self not in new_loc.people_present:
+             #   print('agent:', self.ID, 'time:', time, 'loc:', new_loc.ID)
+        del(current_schedule)
 
     def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
         """
@@ -568,7 +571,7 @@ class Human(object):
             if probability >= randomval():
                 self.preliminary_diagnosed = True
                 self.stati_times['diagnosis_time'] = time
-                self.specific_schedule = self.diagnosed_schedule
+                self.specific_schedule = copy.copy(self.diagnosed_schedule)
                 self.preliminary_was_diagnosed = True
 
     def recover(self, time):
@@ -639,8 +642,8 @@ class Human(object):
             self.preliminary_was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
-                self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \
-                    len(list(self.specific_schedule['times']))
+                #self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \len(list(self.specific_schedule['times']))
+                self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * len(list(self.specific_schedule['times']))
 
     def die(self, time):
         """

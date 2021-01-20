@@ -241,7 +241,6 @@ def plot_and_save_contact_tracing(df_list, filename='scenario', output_folder='o
     '''only save no plotting yet'''
     df = pd.concat(df_list, axis=0)
     df.reset_index(inplace=True)
-    df_mean = df.groupby('aggregated_time').mean()
     df.to_csv(output_folder+filename + '_' + 'contact_tracing.csv')
     
 def save_number_of_infected_households(number_of_infected_households_list, filename='scenario', output_folder='outputs/'):
@@ -253,6 +252,16 @@ def save_infectivities(infectivities_list, tp, filename='scenario', output_folde
     df = pd.concat([infectivities_list[j].set_index('ID') for j in range(len(infectivities_list))], axis=1)
     df.columns = ['infectivities'+str(i) for i in range(len(infectivities_list))]         
     df.to_csv(output_folder+filename+'_'+'infectivities'+tp+'.csv')
+
+def save_transition_times(df_transition_times, filename='scenario', output_folder='outputs/'):
+    df = pd.concat(df_transition_times, axis=0)
+    df.reset_index(inplace=True, drop=True)
+    df.to_csv(output_folder+filename + '_' + 'transition_times.csv')
+
+def save_recovered_lists(df_recovered_lists, filename='scenario', output_folder='outputs/'):
+    df = pd.concat([df_recovered_lists[j] for j in range(len(df_recovered_lists))], axis=1)
+    df.columns = ['recovered'+str(i) for i in range(len(df_recovered_lists))]  
+    df.to_csv(output_folder+filename + '_' + 'recovered_lists.csv')
 
 def plot_infection_per_schedule_type(df_I_list, world,
                                      cutoff_time=100, nr_most_inf_p=800,
@@ -394,6 +403,16 @@ def save_infection_timecourse(df_I_list, filename='scenario', output_folder='out
     for i, df_I in enumerate(df_I_list):
         df_I.to_csv(output_folder + 'infection_informations/' + filename +
                     '_' + 'infection_information' + '_' + str(i) + '.csv')
+
+def save_timecourse(df_I_list, filename='scenario', output_folder='outputs/'):
+    try:
+        os.mkdir(output_folder+'timecourses/')
+    except:
+        pass
+
+    for i, df_I in enumerate(df_I_list):
+        df_I.to_csv(output_folder + 'timecourses/' + filename +
+                    '_' + 'timecourse' + '_' + str(i) + '.csv')
 
 def plot_and_save_r_eff(df_list, save_figure=True,
                         output_folder='output_folder/',
