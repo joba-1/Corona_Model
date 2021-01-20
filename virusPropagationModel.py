@@ -241,7 +241,6 @@ class ModeledPopulatedWorld(object):
         location_types.append('home')
         return location_types
 
-
     def get_schedule_types(self):
         return set([p.type for p in self.people])
 
@@ -263,7 +262,6 @@ class ModeledPopulatedWorld(object):
         df = pd.DataFrame([loc_ratio_dict])
         df.drop(columns=locs_to_hide, inplace=True)
         return df
-
 
     def get_distribution_of_schedule_types(self, relative=False, sched_to_hide=[]):
         """
@@ -330,15 +328,11 @@ class ModeledPopulatedWorld(object):
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new
 
-
     def get_location_info(self):
         return(location_info(self))
 
-
     def get_agent_info(self):
         return(agent_info(self))
-
-
 
     def plot_distribution_of_location_types(self, **kwargs):
         """
@@ -349,8 +343,6 @@ class ModeledPopulatedWorld(object):
         ax, df = vpm_plt.plot_distribution_of_location_types(self, **kwargs)
         return ax, df
 
-
-
     def plot_locations_and_schedules(self, **kwargs):
         """
         plots the distribution of the location and schedule types that were initialized
@@ -358,8 +350,6 @@ class ModeledPopulatedWorld(object):
         :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
         """
         vpm_plt.plot_locations_and_schedules(self, **kwargs)
-
-
 
     def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
@@ -562,8 +552,9 @@ class Simulation(object):
                 p.diagnosed_schedule['locs'] = [
                     mixing_location]*len(list(p.diagnosed_schedule['locs']))
 
-    def simulate(self, timecourse_keys='all'):
-        df_timecourse = self.run_simulation(timecourse_keys=timecourse_keys)
+    def simulate(self, timecourse_keys='all', incidence_threshold=None, incidence_aggregate=168):
+        df_timecourse = self.run_simulation(
+            timecourse_keys=timecourse_keys, incidence_threshold=incidence_threshold, incidence_aggregate=incidence_aggregate)
         df_infections = get_infection_event_information(df_timecourse)
         self.simulation_timecourse = pd.concat(
             [self.simulation_timecourse, df_timecourse], ignore_index=True)
@@ -572,7 +563,7 @@ class Simulation(object):
 
         # self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
-    def run_simulation(self, timecourse_keys='all'):
+    def run_simulation(self, timecourse_keys='all', incidence_threshold=None, incidence_aggregate=168):
         """
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
@@ -580,6 +571,9 @@ class Simulation(object):
         # population_size = len(self.people)
         # print(population_size)
         timecourse = []
+        if incidence_threshold is not None:
+            diagnosis_count_history = {}
+            diagnosis_count = 0
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
                 timecourse.append(tuple(p.get_information_for_timecourse(
@@ -600,6 +594,17 @@ class Simulation(object):
                     self.time, keys_list=timecourse_keys).values()))
                 p.set_stati_from_preliminary()
                 p.move(self.time)
+            if incidence_threshold is not None:
+                diagnosis_count += len([1 for p in self.people if p.get_infection_info()
+                                        ['diagnosis_time'] == self.time])
+                diagnosis_count_history[self.time] = diagnosis_count
+                past_aggregate_time = self.time-incidence_aggregate
+                if past_aggregate_time <= 0:
+                    aggregate_diff = diagnosis_count
+                else:
+                    aggregate_diff = (diagnosis_count-diagnosis_count_history[past_aggregate_time])
+                if 100000*aggregate_diff/self.number_of_people >= incidence_threshold:
+                    break
         df_timecourse = pd.DataFrame(timecourse, columns=list(
             p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
         return df_timecourse
