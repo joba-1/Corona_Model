@@ -241,6 +241,7 @@ class ModeledPopulatedWorld(object):
         location_types.append('home')
         return location_types
 
+
     def get_schedule_types(self):
         return set([p.type for p in self.people])
 
@@ -262,6 +263,7 @@ class ModeledPopulatedWorld(object):
         df = pd.DataFrame([loc_ratio_dict])
         df.drop(columns=locs_to_hide, inplace=True)
         return df
+
 
     def get_distribution_of_schedule_types(self, relative=False, sched_to_hide=[]):
         """
@@ -328,11 +330,15 @@ class ModeledPopulatedWorld(object):
                   ini_I_list, ' to ', inif_I_list_new)
         return inif_I_list_new
 
+
     def get_location_info(self):
         return(location_info(self))
 
+
     def get_agent_info(self):
         return(agent_info(self))
+
+
 
     def plot_distribution_of_location_types(self, **kwargs):
         """
@@ -343,6 +349,8 @@ class ModeledPopulatedWorld(object):
         ax, df = vpm_plt.plot_distribution_of_location_types(self, **kwargs)
         return ax, df
 
+
+
     def plot_locations_and_schedules(self, **kwargs):
         """
         plots the distribution of the location and schedule types that were initialized
@@ -350,6 +358,8 @@ class ModeledPopulatedWorld(object):
         :param modeled_pop_world_obj: obj of ModeledPopulatedWorld Class
         """
         vpm_plt.plot_locations_and_schedules(self, **kwargs)
+
+
 
     def plot_initial_distribution_of_ages_and_infected(self, age_groups_step=10, **kwargs):
         """
