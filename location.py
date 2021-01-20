@@ -247,7 +247,7 @@ class World(object):
 
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
-                 location_factor=0.002):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
+                 location_factor=1):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
         self.ID = ID
         self.people_present = set()
         self.location_factor = location_factor
@@ -370,7 +370,7 @@ class Location(object):
             human_objects_present = {p.ID: p for p in list(self.people_present)}
             if len(list(human_objects_present.keys())) > 1:
                 pairs = self.determine_interacting_pairs(
-                    mu=mu, interaction_matrix=interaction_matrix)
+                    mu=mu*self.location_factor, interaction_matrix=interaction_matrix)
                 for p in pairs:
                     human_objects_present[p[0]].contact_persons.append(str(p[1]))
                     human_objects_present[p[1]].contact_persons.append(str(p[0]))
