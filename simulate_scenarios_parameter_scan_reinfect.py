@@ -39,7 +39,7 @@ scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 3000, 'start_2': 500, 'start_3': 1000, 'closed_locs': [],
+             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 300, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
@@ -145,6 +145,10 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-iar", "--im_age_range", nargs='+', type=float,
                         help="""choose the interaction modifier for a specific age range 
                         in order : IM min_age max_age (default 1 -1 100)""")
+    parser.add_argument("-part_imnty", "--partial_immunity", type=float,
+                        help="""choose value (0-1) for partial immunity""")
+    parser.add_argument("-imnty_mode", "--immunity_mode", type=str,
+                        help="""choose if partial immunity is as susceptible ('sus') or infected ('inf') or both ('both') """)
     options = parser.parse_args(args)
     return options
 
@@ -188,8 +192,8 @@ def get_previous_infections(world, n,
     return all_agents
 
 
-def infect_world(world, IDs=[1]):
-    ID_list = world.get_remaining_possible_initial_infections(IDs)
+def infect_world(world, IDs=[1], exclude_list=[]):
+    ID_list = world.get_remaining_possible_initial_infections(IDs, exclude_list)
     world.initialize_infection(specific_people_ids=ID_list)
 
 def get_ordered_ids(world, n, save_folder='', **kwargs):
@@ -203,7 +207,7 @@ def get_ordered_ids(world, n, save_folder='', **kwargs):
     return ordered_ids
 
 def get_ids_by_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    server_data_folder = 'saved_objects/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
     filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
@@ -215,9 +219,9 @@ def get_ids_by_interactions(world, n, save_folder='', **kwargs):
     return to_recover_list
 
 def get_ids_by_households(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
-    ai = pd.read_csv(server_data_folder+filename+'agent_infos.csv')
+    #server_data_folder = 'outputs/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
+    #filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    ai = world.get_agent_infos()
     home_count_dict = dict(zip(list(ai.groupby('Home').count().index), list(ai.groupby('Home').count()['ID'])))
     ai['Home_size']=ai['Home'].map(home_count_dict)
 
@@ -261,8 +265,8 @@ def get_ids_by_age(world, n, save_folder='', **kwargs):
     return ids_only
 
 def get_ids_by_age_and_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = '/home/basar/corona_simulations_save/simulation_results_20201028/no_infections/parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_ri_1_rx_0/'
-    filename = 'IAR_1_0_99_parralel_HM_V2_no_inf_mix_Ifreq_2.0_no_mitigation_IF06_None_1.000_'
+    server_data_folder = 'outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
     contacts_sorted = contacts_mean.sort_values('interactions', axis=0, ascending=False)
@@ -323,6 +327,19 @@ def recover_world(world, frac, recover_id_list):
             p.set_initially_recovered()
     return ps_to_recover
 
+def partially_immunise_world(world, frac, recover_id_list, immunity_factor, imnty_mode='sus'):
+
+    ps_to_recover = recover_id_list[:int(frac*len(recover_id_list))]
+
+    # recover agents
+    for p in world.people:
+        if p.ID in ps_to_recover:
+            if imnty_mode=='sus' or imnty_mode=='both':  
+                p.behaviour_as_susceptible *= immunity_factor
+            if imnty_mode=='inf' or imnty_mode=='both':  
+                p.behaviour_as_infected *= immunity_factor
+    return ps_to_recover
+
 
 def set_interaction_modifier_for_age_range(world, iar_list, keep_average=True,):
     """
@@ -375,9 +392,14 @@ def simulate_scenario(input_dict):
     recover_lists = my_dict['recover_lists']
     infectees = my_dict['infectees']
     recover_fraction = my_dict['recover_fraction']
+    part_imnty = my_dict['part_imnty']
+    imnty_mode = my_dict['imnty_mode']
 
-    recover_list = recover_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']])
-    infect_world(modeledWorld, IDs=infectees)
+    if part_imnty:
+        recover_list = partially_immunise_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']], part_imnty, imnty_mode=imnty_mode)
+    else:
+        recover_list = recover_world(modeledWorld, recover_fraction, recover_lists[my_dict['run']])
+    infect_world(modeledWorld, IDs=infectees, exclude_list=recover_list)
 
     # print(type(modeledWorld))
     if len(reinfection_times) > 0:
@@ -397,12 +419,13 @@ def simulate_scenario(input_dict):
 
     if product != 0:
         simulation1.change_agent_attributes(
-            {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'replacement'}}})
+            {'all': {'behaviour_as_infected': {'value': float(product)/float(mu), 'type': 'multiplicative_factor'}}})
     else:
         simulation1.change_agent_attributes(
-            {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'replacement'}}})
-    simulation1.change_agent_attributes(
-        {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'replacement'}}})
+            {'all': {'behaviour_as_infected': {'value': infectivity, 'type': 'multiplicative_factor'}}})
+    #simulation1.change_agent_attributes(
+     #   {'all': {'hospital_coeff': {'value': hospital_coeff, 'type': 'multiplicative_factor'}}}) 
+
     # simulation1.set_seed(3)
     simulation1.interaction_frequency = mu
     #simulation1.interaction_matrix = False
@@ -556,8 +579,8 @@ def get_simualtion_settings(options):
         else:
             input_parameter_dict['output_folder'] = options.folder + '/'
     else:
-        input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
-        #input_parameter_dict['output_folder'] = 'parallel_test/'
+        #input_parameter_dict['output_folder'] = '/home/basar/corona_simulations_save/'
+        input_parameter_dict['output_folder'] = ''
 
     if options.parameter:  # number of simulations
         input_parameter_dict['parameter'] = options.parameter
@@ -643,6 +666,16 @@ def get_simualtion_settings(options):
     else:
         input_parameter_dict['im_age_range'] = [1,-1,100] # nothing changes IM 1 -1<age<100
 
+    if options.partial_immunity:
+        input_parameter_dict['part_imnty'] = options.partial_immunity
+    else:
+        input_parameter_dict['part_imnty'] = None 
+
+    if options.immunity_mode:
+        input_parameter_dict['imnty_mode'] = options.immunity_mode
+    else:
+        input_parameter_dict['imnty_mode'] = 'sus' 
+
     return input_parameter_dict
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
 
@@ -662,7 +695,7 @@ if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
     input_folder = 'saved_objects/new_sim_obj/'
-    world_name = 'new_sim_obj_recover_scan_'
+    world_name = 'new_sim_obj_partial_imnty_sus_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
@@ -712,7 +745,10 @@ if __name__ == '__main__':
 
     try:
         os.mkdir(collector_folder)
+        #os.makedirs(collector_folder)
+        print('created '+collector_folder)
     except:
+        print('could not create '+collector_folder)
         pass
 
     used_scenario['recover_lists'] = get_ids_for_recovery(currentWorld, rec_by, input_parameter_dict['number'],
