@@ -11,7 +11,21 @@ confi_z_dict = {99: 2.576,
                 95: 1.96,
                 90: 1.645, }
 
-def plot_stat_para(ax, folder_scenario, server_data_folder, statii=['S', 'I', 'R', 'D'], log=False, suffix=0, prefix=0):
+def plot_stat_para(ax, 
+                   folder_scenario, 
+                   server_data_folder, 
+                   statii=['S', 'I', 'R', 'D'], 
+                   log=False, 
+                   suffix=0, 
+                   prefix=0, 
+                   per_day=True):
+    if per_day:
+        a=24
+        xlabel='Time [days]'
+    else:
+        a=1
+        xlabel = 'Time [hours]'
+            
     for stat in statii:
         try:
             df_stat = pd.read_csv(server_data_folder + folder_scenario +
@@ -24,22 +38,21 @@ def plot_stat_para(ax, folder_scenario, server_data_folder, statii=['S', 'I', 'R
                 print("can't read ", server_data_folder + folder_scenario +
                       '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
         df_stat.drop('time', axis=1, inplace=True)
-        if not stat.startswith('c'):    
-            df_stat.plot(legend=False, alpha=0.1,
-                         c=vpm_plot.statusAndFlagsColors[stat], ax=ax)
-        else:
-            df_stat.plot(legend=False, alpha=0.1,
-                         c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
-        ax.set_ylabel('People')
-        if per_day:
-                a=24
-                xlabel='Time [days]'
-        else:
-            a=1
-            xlabel = 'Time [hours]'
-        ax.plot(df_stat_m.index/a, df_stat_m.values,
+        #if not stat.startswith('c'):
+        ax.plot(df_stat.index/a, df_stat.values,
                 color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
-                label=stat.split('_')[-1])
+                label=stat.split('_')[-1],
+                alpha=0.1,)
+            
+        #    df_stat.plot(legend=False, alpha=0.1,
+        #                 c=vpm_plot.statusAndFlagsColors[stat], ax=ax)
+        #else:    
+        #    df_stat.plot(legend=False, alpha=0.1,
+        #                 c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
+        #ax.set_ylabel('People')
+        #ax.plot(df_stat.index/a, df_stat.values,
+        #        color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
+        #        label=stat.split('_')[-1])
     ax.set_ylabel('People')
     ax.set_xlabel(xlabel)
     if log:
