@@ -11,6 +11,7 @@ Terminal commands are shown in separate boxes.
 The code in this repository was implemented using python 3.7.\
 Only this version or newer versions of python are supported.\
 For code checkout, you need git.
+We are developing on linux and on mac, currently we are working on windows compatibility as well.
 
 ### Quick setup using conda
 Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup.
@@ -46,7 +47,7 @@ Follow these three steps to make use of the virtual environment provided in the 
     conda activate gerdaenv
     ```
 
-In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command 
+In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
 ```
 python3 testrunner.py
 ```
@@ -64,9 +65,28 @@ This notebook contains the following code blocks:
 "Info on world" - plot of age distribution + information on infected agents\
 "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
+To use it, start jupyter notebook (e.g. in the terminal with the activated gerdaenv type "jupyter notebook"), navigate to the corona_model directory and select "Demo.ipynb". To run the full simulation, click on "Cell --> Run All"; or run cells individually.
+
 For parallel computing on high end memory servers, we provide different other scripts, simulate_scenarios*.py (* = wildcard character). In general, you need a lot of RAM, depending on your input data files and other settings. We use AMD-based servers with 96 cores and 512 GB RAM, but the bottleneck is the RAM. That's why we can use just 24 cores.
 
 For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
+
+
+## Demo_Vaccination jupyter notebook
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to get familiar with the Demo notebook first, in order to get an intuition for our model and its basic application and characteristics. 
+This notebook contains the following code blocks:
+1. importing required libraries and initializing a dictionary for the real world communities that can be used) "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+2. Running an initial infection-wave to be used in defining one of the tested strategies
+	—> Be aware that here exists a checkpoint for the user 
+3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies.
+4. Running simulations with different vaccination-fractions of the population, for the different strategies.
+5. Generating a plot, resembling figure 3 in our manuscript.
+
+Please be aware, that we set the default world to be used to the small version, in order to avoid excessive runtimes for this demonstration. 
+Since this world is not fully representative to the large world, we used for the manuscript; the infection-dynamics differ and thus the results of the vaccintion-screens do too.
+Furthermore we have set the vaccination-fraction increments to 20% (where we used 5%-steps in the manuscript), also to reduce runtime.
+
+The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
 
 ## Expected run time
 Simulating large Gangelt (100% of population and buildings) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purposes, we recommend the small Gangelt (10% of population and buildings), which takes about 10 minutes on a personal desktop computer.
@@ -83,3 +103,6 @@ Files with geo-information on each world to be modelled to initiate world is fou
 
 Schedule Definition:\
 The schedules, which define agent-routines are provided as csv in the directory 'inputs'.
+
+## Disclaimer
+Files not mentioned in this README are required but can be ignored by any non-developer. We still have to update our folder structure and apologize for any resulting confusion.
