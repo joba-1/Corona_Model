@@ -6,6 +6,7 @@ from random import random as randomval
 import copy
 from collections import OrderedDict as ordered_dict
 from configure_simulation import location_coefficients as location_coefficient_dict
+from configure_simulation import strain_infectivity_factors as strain_infectivity_factors_dict
 
 
 class Human(object):
@@ -247,9 +248,10 @@ class Human(object):
         self.infected_by = -1
         self.current_time = 0
 
+        self.infection_strain = ''
+
 
 # NOTE: we have to think about where to add additional information about age-dependent transition parameters, mobility profiles, etc.
-
 
     def update_state(self, time):
         """
@@ -311,6 +313,7 @@ class Human(object):
         out['Cumulative_Flags'] = self.encode_cumulative_flags()
         out['Interaction_partner'] = ','.join(self.contact_persons)
         out['Infection_event'] = numpy.int32(self.infected_by)
+        out['Strain'] = self.infection_strain
         if keys_list == 'all':
             return(out)
         else:
@@ -414,8 +417,8 @@ class Human(object):
                 time % (24*7))]  # find new location in  schedule#
             self.loc = new_loc  # set own location to new location#
             new_loc.enter(self)  # enter new location
-            #if self not in new_loc.people_present:
-             #   print('agent:', self.ID, 'time:', time, 'loc:', new_loc.ID)
+            # if self not in new_loc.people_present:
+            #   print('agent:', self.ID, 'time:', time, 'loc:', new_loc.ID)
         del(current_schedule)
 
     def stay_home_instead_of_going_to(self, location_type, excluded_human_types=[]):
@@ -496,12 +499,13 @@ class Human(object):
             risk = dp._undiagnosed_death_risk(self.stati_durations, self.age)
         return(risk)  # TODO change in exel sheet - compare with gangelt data
 
-    def set_initially_infected(self):
+    def set_initially_infected(self, strain='WT'):
         """
         Set status of agent initially to 'I'. The statii  'preliminary_is_infected', 'preliminary_was_infected'
         'was_infected' and 'is_infected' are set accordingly to True. Agents considered to be infected by patient
         zero, who is not an agent of the world.
         """
+        self.infection_strain = strain
         self.preliminary_status = 'I'
         self.preliminary_is_infected = True
         self.preliminary_was_infected = True
@@ -551,12 +555,19 @@ class Human(object):
         out = -1
         if self.loc.location_type in location_coefficient_dict.keys():
             coeff = location_coefficient_dict[self.loc.location_type]
-        infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
+        try:
+            infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff * \
+                strain_infectivity_factors_dict[contact_person.infection_strain]
+        except:
+            print('WARNING: Infectivity scaling-factor of strain {} not provided in file strain_infectivity_factors.csv'.format(
+                contact_person.infection_strain))
+            infection_probability = contact_person.get_infectivity()*self.behaviour_as_susceptible*coeff
         if infection_probability >= randomval():
             self.preliminary_status = 'I'  # set owns preliminary status to infected ##
             self.preliminary_was_infected = True  # set own was_infected argument to True##
             self.preliminary_is_infected = True  # set own is_infected argument to True##
             self.stati_times['infection_time'] = self.current_time
+            self.infection_strain = contact_person.infection_strain
             out = 1
         return(out)
 
@@ -642,8 +653,9 @@ class Human(object):
             self.preliminary_was_hospitalized = True
             ## set locations in schedule to next hospital 24/7#
             if self.loc.special_locations['hospital']:
-                #self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \len(list(self.specific_schedule['times']))
-                self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * len(list(self.specific_schedule['times']))
+                # self.specific_schedule['locs'] = [self.loc.special_locations['hospital'][0]] * \len(list(self.specific_schedule['times']))
+                self.specific_schedule['locs'] = [
+                    self.loc.special_locations['hospital'][0]] * len(list(self.specific_schedule['times']))
 
     def die(self, time):
         """
