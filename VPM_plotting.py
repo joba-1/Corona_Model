@@ -347,6 +347,20 @@ def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, sav
         plt.savefig('outputs/age_groups_status_plot.png')
 
 
+def plot_strains_timecourse(simulation_object, type='cumulative'):
+    strain_sums = simulation_object.get_strain_sums_over_time(type=type)
+    count = 0
+    for strain in strain_sums.columns:
+        plt.plot(strain_sums.index, strain_sums[strain],
+                 label=str(strain), color=mainModelCmap(count))
+        count += 1
+    plt.title('Cumulative strain-abundance trajectories')
+    plt.xlabel('Time [hours]')
+    plt.ylabel('# People')
+    plt.legend()
+    plt.show()
+
+
 def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=False):
     """
     plots the time course for the selected flags

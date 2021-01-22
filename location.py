@@ -82,7 +82,11 @@ class World(object):
         '''
         loc_class_dic = {}
 
-        loc_class_dic['excluded_buildings'] = ['garage', 'roof', 'shed', 'bungalow', 'barn', 'silo']
+        loc_class_dic['excluded_buildings'] = ['garage', 
+                                               'roof',
+                                               'shed', 
+                                               'bungalow', 
+                                               'silo',]
         loc_class_dic['hospital'] = ['hospital']
         loc_class_dic['morgue'] = ['morgue']
         loc_class_dic['mixing_loc'] = ['mixing_loc']
@@ -100,7 +104,6 @@ class World(object):
             + list(self.df_buildings['shop'].unique())
             
 
-        # What is a public place or just work place e.g. restaurante, cafe...
 
         loc_class_dic['public'] = ['bank', 'cabin', 'cafe', 'car_wash', 'chapel', 'church', 'doctors', 'fast_food', 'grocery_store', 'hotel',\
                                    'hut', 'parish_hall', 'place_of_worship', 'police', 'pub', 'public', 'restaurant', 'ruins', 'service', 'shelter',\
@@ -244,7 +247,7 @@ class World(object):
 
 class Location(object):
     def __init__(self, ID, coordinates, location_type, neighbourhood, area,
-                 location_factor=0.002):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
+                 location_factor=1):  # runs good with 50 people and 10 infected and 5 location, add Neighbouhood_ID
         self.ID = ID
         self.people_present = set()
         self.location_factor = location_factor
@@ -345,14 +348,14 @@ class Location(object):
             # create vector of interaction modifier
             v = np.array([interaction_modifier])
             # set interaction probability threshold
-            interaction_probability = mu/(n-1)
+            interaction_probability = mu / (n - 1)
             # Create triangle matrix from v  on top of diagonal (rest zeros)
             M = v.transpose().dot(v)
-            C = np.triu(M)-np.eye(n)*v**2
+            C = np.triu(M) - np.eye(n) * v ** 2
             # generate array of random numbers with dimension n times n
             P = np.random.random((n, n))
             # build logical array, showing where drawn probabilities are smaller than mu
-            I = P < C*interaction_probability
+            I = P < C * interaction_probability
             # build list of interacting-ids (as tuples)
             cp1, cp2 = np.where(I)
             pairs = list(zip([human_ids[i]
@@ -367,7 +370,7 @@ class Location(object):
             human_objects_present = {p.ID: p for p in list(self.people_present)}
             if len(list(human_objects_present.keys())) > 1:
                 pairs = self.determine_interacting_pairs(
-                    mu=mu, interaction_matrix=interaction_matrix)
+                    mu=mu*self.location_factor, interaction_matrix=interaction_matrix)
                 for p in pairs:
                     human_objects_present[p[0]].contact_persons.append(str(p[1]))
                     human_objects_present[p[1]].contact_persons.append(str(p[0]))

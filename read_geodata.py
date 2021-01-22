@@ -8,7 +8,16 @@ import sys
 
 def getOptions(args=sys.argv[1:]):
 	parser = argparse.ArgumentParser(description="Parses command.")
-	parser.add_argument("-l", "--location", type=int, help="Choose your location (1) Heinsberg (2) Gerangel")
+	parser.add_argument("-l", "--location", type=int, help= """Choose your location 
+		1: Heinsberg, 
+		2: Gangelt,
+		3: Penkridge,
+		4: Epping,
+		5: Stratford-upon-Avon,  
+		6: Charlottenlund,
+		7: Helsingör,
+		8: Bornholms Regionskommune,
+		9: Bad Feilnbach,""")
 	parser.add_argument("-ma", "--min_area", type=float, help="default 3  (*1e-8) to reduce locations")
 	parser.add_argument("-fa", "--from_adress", type=bool, help=" uses osmnx footprints_from_address with 2000 m")
 	#parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")

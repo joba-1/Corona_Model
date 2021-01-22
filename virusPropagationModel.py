@@ -195,7 +195,7 @@ class ModeledPopulatedWorld(object):
 
         return schedule, diagnosed_schedule
 
-    def initialize_infection(self, amount=1, specific_people_ids=None):
+    def initialize_infection(self, amount=1, specific_people_ids=None, strain='WT'):
         """
         infects people (list of humans) initially
         :param amount: int. amount of people to initially infect
@@ -205,7 +205,7 @@ class ModeledPopulatedWorld(object):
         else:
             to_infect = [p for p in list(self.people) if p.ID in specific_people_ids]
         for p in to_infect:
-            p.set_initially_infected()
+            p.set_initially_infected(strain=strain)
 
     def set_agents_attribute(self, attribute, value, id_list=[]):
         """
@@ -301,19 +301,21 @@ class ModeledPopulatedWorld(object):
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
-    def get_remaining_possible_initial_infections(self, ini_I_list):
+    def get_remaining_possible_initial_infections(self, ini_I_list, exclude_list):
         """
         Compares list of agent IDs to initally infect with IDs of initially recovered agents.
         Rewrites a list of possible agents.
         :return: list of agent IDs
         """
         recovered_people = [p.ID for p in self.people if p.status == 'R']
-        print('amount of initially recovered agents:', len(recovered_people))
+        excluded_people = list(set(recovered_people + exclude_list))
+
+        print('amount of initially recovered agents:', len(excluded_people))
         inif_I_list_new = []
 
         for i in ini_I_list:
             x = i
-            while x in recovered_people or x in inif_I_list_new:
+            while x in excluded_people or x in inif_I_list_new:
                 x += 1
                 if x < self.number_of_people:
                     pass
@@ -456,7 +458,7 @@ class Simulation(object):
             self.locations = object_to_simulate.locations
             self.number_of_people = len(self.people)
             self.schedule_types = object_to_simulate.schedule_types
-            #self.locations = {}
+            # self.locations = {}
             # for l in self.locations.values():
             #     l.people_present = set()
             #     for sl in l.special_locations.keys():
@@ -478,8 +480,8 @@ class Simulation(object):
             self.time_steps = time_steps
             if copy_sim_object:
                 self.people = copy.deepcopy(object_to_simulate.people)
-                #self.locations = copy.deepcopy(object_to_simulate.locations)
-                #self.locations = {p.loc.ID: p.loc for p in self.people}
+                # self.locations = copy.deepcopy(object_to_simulate.locations)
+                # self.locations = {p.loc.ID: p.loc for p in self.people}
                 self.locations = {}
                 for p in self.people:
                     self.locations.update({p.loc.ID: p.loc})
@@ -550,24 +552,28 @@ class Simulation(object):
                 p.diagnosed_schedule['locs'] = [
                     mixing_location]*len(list(p.diagnosed_schedule['locs']))
 
-    def simulate(self, timecourse_keys='all'):
-        df_timecourse = self.run_simulation(timecourse_keys=timecourse_keys)
+    def simulate(self, timecourse_keys='all', incidence_threshold=None, incidence_aggregate=168):
+        df_timecourse = self.run_simulation(
+            timecourse_keys=timecourse_keys, incidence_threshold=incidence_threshold, incidence_aggregate=incidence_aggregate)
         df_infections = get_infection_event_information(df_timecourse)
         self.simulation_timecourse = pd.concat(
             [self.simulation_timecourse, df_timecourse], ignore_index=True)
         self.infection_information = pd.concat(
             [self.infection_information, df_infections])
 
-        #self.statuses_in_timecourse = self.get_statuses_in_timecourse()
+        # self.statuses_in_timecourse = self.get_statuses_in_timecourse()
 
-    def run_simulation(self, timecourse_keys='all'):
+    def run_simulation(self, timecourse_keys='all', incidence_threshold=None, incidence_aggregate=168):
         """
         simulates the trajectories of all the attributes of the population
         :return: DataFrame which contains the time course of the simulation
         """
-        #population_size = len(self.people)
+        # population_size = len(self.people)
         # print(population_size)
         timecourse = []
+        if incidence_threshold is not None:
+            diagnosis_count_history = {}
+            diagnosis_count = 0
         if self.time == 0:
             for p in self.people:  # makes sure he initial conditions are t=0 of the time course
                 timecourse.append(tuple(p.get_information_for_timecourse(
@@ -588,6 +594,17 @@ class Simulation(object):
                     self.time, keys_list=timecourse_keys).values()))
                 p.set_stati_from_preliminary()
                 p.move(self.time)
+            if incidence_threshold is not None:
+                diagnosis_count += len([1 for p in self.people if p.get_infection_info()
+                                        ['diagnosis_time'] == self.time])
+                diagnosis_count_history[self.time] = diagnosis_count
+                past_aggregate_time = self.time-incidence_aggregate
+                if past_aggregate_time <= 0:
+                    aggregate_diff = diagnosis_count
+                else:
+                    aggregate_diff = (diagnosis_count-diagnosis_count_history[past_aggregate_time])
+                if 100000*aggregate_diff/self.number_of_people >= incidence_threshold:
+                    break
         df_timecourse = pd.DataFrame(timecourse, columns=list(
             p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
         return df_timecourse
@@ -627,7 +644,7 @@ class Simulation(object):
                             setattr(p, attribute, input_all[attribute]['value'])
                         elif input_all[attribute]['type'] == 'multiplicative_factor':
                             setattr(p, attribute, getattr(p, attribute) *
-                                    input_all[attribute]['multiplicative_factor'])
+                                    input_all[attribute]['value'])
             else:
                 id = list(input.keys())[0]
                 respective_person = [p for p in self.people if str(p.ID) == id]
@@ -638,7 +655,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                'multiplicative_factor'])
+                                'value'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
         else:
@@ -651,7 +668,7 @@ class Simulation(object):
                         elif input[id][attribute]['type'] == 'multiplicative_factor':
                             setattr(respective_person, attribute, getattr(respective_person,
                                                                           attribute) * input[id][attribute][
-                                'multiplicative_factor'])
+                                'value'])
                 else:
                     print('Error: No agent with ID "{}"'.format(id))
 
@@ -777,8 +794,8 @@ class Simulation(object):
          """
         df = self.get_agent_specific_duration_info()
         out = pd.DataFrame()
-        #out['infection_to_death'] = df['death_time'] - df['infection_time']
-        #out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
+        # out['infection_to_death'] = df['death_time'] - df['infection_time']
+        # out['infection_to_hospital'] = df['hospitalization_time'] - df['infection_time']
         out['hospital_to_recovery'] = df['recover_time'] - df['hospitalization_time']
         out['hospital_to_death'] = df['death_time'] - df['hospitalization_time']
         out['hospital_to_icu'] = df['icu_time'] - df['hospitalization_time']
@@ -814,7 +831,7 @@ class Simulation(object):
         df = self.simulation_timecourse
         df_I = df[df['Infection_event'] > 0].copy()
         cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags',
-                                    'Interaction_partner', 'status'] if x in list(df_I.columns)]
+                                    'Interaction_partner', 'status', 'Strain'] if x in list(df_I.columns)]
         df_I.drop(columns=cols_to_drop, inplace=True)
         df_I.set_index('time', inplace=True)
         df_I.columns = ['h_ID', 'infection_loc_ID', 'infected_by_ID']
@@ -971,6 +988,22 @@ class Simulation(object):
 
         return pd.DataFrame([people_infection_dict_0])
 
+    def get_strain_sums_over_time(self, type='cumulative'):
+        parsed_df = pd.DataFrame(index=self.simulation_timecourse.index, columns=['Strain', 'time'])
+        parsed_df['time'] = self.simulation_timecourse['time']
+        parsed_df['Strain'] = self.simulation_timecourse['Strain']
+
+        unique_strains = list(parsed_df['Strain'].unique())
+        unique_strains.remove('')
+        for us in unique_strains:
+            parsed_df[us] = [numpy.nan]*parsed_df.shape[0]
+            parsed_df.loc[parsed_df['Strain'] == us, us] = 1
+
+        sub_df = parsed_df[unique_strains+['time']]
+        if type == 'cumulative':
+            strain_sums = sub_df.groupby('time').sum()
+        return(strain_sums)
+
     def get_flag_sums_over_time(self, specific_flags=None):
         """
         :return: DataFrame. The number of true flags over time
@@ -1001,7 +1034,7 @@ class Simulation(object):
         sub_df = parsed_df.loc[:, cols_of_interest]
         gdf = sub_df.groupby('time')
         flag_sums = gdf.sum()
-        #simulation_timepoints = list(gdf.groups.keys())
+        # simulation_timepoints = list(gdf.groups.keys())
         return(flag_sums)
 
     def get_location_info(self):
@@ -1096,7 +1129,7 @@ class Simulation(object):
         Node_count_DF['Count'] = [0.5]*len(sorted_interactions)
         encounters_number = pd.DataFrame(Node_count_DF.groupby('Pairs').sum())
         encounters_number.reset_index(inplace=True, drop=True)
-        #interaction_abundances.drop(interaction_abundances[interaction_abundances['Count'] == 0], inplace=True)
+        # interaction_abundances.drop(interaction_abundances[interaction_abundances['Count'] == 0], inplace=True)
         return(encounters_number, out)
         # return(interaction_abundances.loc[interaction_abundances['Count'] != 0], out)
 
@@ -1117,7 +1150,7 @@ class Simulation(object):
             n_contacts, n_same_loc_time = zip(
                 *[trace_contacts_with_loctime(i, time_course, t_diagnosis, t_tracing_period_start) for i in diagnosed_individuals])
         else:
-            #n_contacts = [trace_contacts(i, time_course, t_diagnosis,t_tracing_period_start) for i in diagnosed_individuals]
+            # n_contacts = [trace_contacts(i, time_course, t_diagnosis,t_tracing_period_start) for i in diagnosed_individuals]
             n_same_loc_time = [numpy.nan]*len(diagnosed_individuals)
             traced_contacts_time_dict = {}
             for di in diagnosed_individuals:
@@ -1207,7 +1240,7 @@ class Simulation(object):
         out['traced_secondary_infections'] = traced_secondary_infectees
         out['traced_all_downstream_infections'] = traced_downstream_infectees_unpreventable
         out['traced_preventable_downstream_infections'] = traced_downstream_infectees
-        #out['traced_contacts'] = n_contacts
+        # out['traced_contacts'] = n_contacts
         out['loc_time_overlap'] = n_same_loc_time
         out['aggregated_time'] = [int(i/timesteps_per_aggregate) for i in out['time']]
         out2 = out.groupby(['aggregated_time']).sum()
@@ -1282,7 +1315,7 @@ class Simulation(object):
             df_p = df_diag_contact
         # count events
         df_pivot = pd.pivot_table(df_p, values='h_ID', index=['time'], columns=[
-                                  'Infection_event'], aggfunc='count')
+            'Infection_event'], aggfunc='count')
         return df_pivot
 
     # def get_r_eff_timecourse(self, sliding_window_size, sliding_step_size=1):
@@ -1378,6 +1411,9 @@ class Simulation(object):
         subset  of statuses. if not specified, will plot all available statuses
         """
         vpm_plt.plot_status_timecourse(self, specific_statuses, specific_people, save_figure)
+
+    def plot_strains_timecourse(self, type='cumulative'):
+        vpm_plt.plot_strains_timecourse(self, type=type)
 
     def plot_flags_timecourse(self, specific_flags=None, save_figure=False):
         """
@@ -1536,10 +1572,10 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
     interaction_matrix = sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
     for d in list(Interactions['aggregated_time'].unique()):
         DayFrame = Interactions[Interactions['aggregated_time'] == d]
-        #person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])
+        # person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])
         contact_indices = [individual_dict[int(j)] for i in list(
             DayFrame['Interaction_partner']) for j in i.split(',')]
-        #contact_indices=[individuals.index(int(j)) for i in list(DayFrame.index) for j in DayFrame.loc[i,'Interaction_partner'].split(',')]
+        # contact_indices=[individuals.index(int(j)) for i in list(DayFrame.index) for j in DayFrame.loc[i,'Interaction_partner'].split(',')]
         person_indices = [individual_dict[int(i)] for i in list(DayFrame['h_ID'])]
         person_indices = []
         for i in DayFrame.index:
@@ -1547,7 +1583,7 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
                 len(DayFrame.loc[i, 'Interaction_partner'].split(','))
             person_indices += appendix_list
         # person_indices=[for j in [[individual_dict[int(DayFrame.loc[i,'h_ID'])]]*len(DayFrame.loc[i,'Interaction_partner'].split(',')) for i in DayFrame.index] for k in j]
-        #person_indices=[individuals.index(DayFrame.loc[i,'h_ID']) for i in list(DayFrame.index)]
+        # person_indices=[individuals.index(DayFrame.loc[i,'h_ID']) for i in list(DayFrame.index)]
         interaction_matrix[contact_indices, person_indices] += 1
     # cols=subject rows=object
     return(pd.DataFrame(interaction_matrix.toarray(), index=individuals, columns=individuals))
@@ -1603,7 +1639,7 @@ def trace_contacts_with_loctime(person, time_course, t_diagnosis, t_tracing_peri
         time_course['time'] <= t_diagnosis[person]) & (time_course['time'] >= t_tracing_period_start[person])]
     contacts = list(
         resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
-    #contact_number = list(set(','.join(contacts).split(',')))
+    # contact_number = list(set(','.join(contacts).split(',')))
     time_places = list(zip(list(resp_Timesteps['time']), list(resp_Timesteps['loc'])))
     # time_place_overlap_ids = [j for i in time_places for j in list(
     #    set(time_course.loc[(time_course['time'] == i[0]) & (time_course['loc'] == i[1]), 'h_ID']))]
@@ -1622,7 +1658,7 @@ def trace_contacts(person, time_course, t_diagnosis, t_tracing_period_start):
     contacts = list(
         resp_Timesteps.loc[resp_Timesteps['Interaction_partner'] != '', 'Interaction_partner'])
     return(list(set(','.join(contacts).split(','))))
-    #contact_number = len(list(set(','.join(contacts).split(','))))
+    # contact_number = len(list(set(','.join(contacts).split(','))))
     # return(contact_number)
 
 
@@ -1648,10 +1684,10 @@ def get_infection_event_information(df_timecourse, dropped_columns=['Temporary_F
     df = df_timecourse
     df_I = df[df['Infection_event'] > 1].copy()
     cols_to_drop = [x for x in ['Temporary_Flags', 'Cumulative_Flags',
-                                'Interaction_partner', 'status'] if x in list(df_I.columns)]
+                                'Interaction_partner', 'status', 'Strain'] if x in list(df_I.columns)]
     df_I.drop(columns=cols_to_drop, inplace=True)
     df_I.columns = ['time', 'h_ID', 'infection_loc_ID', 'infected_by_ID']
-    #df_I.set_index('time', inplace=True)
+    # df_I.set_index('time', inplace=True)
     return df_I.set_index('time')
 
 

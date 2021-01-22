@@ -3,6 +3,11 @@ import pandas
 loc_coeff_df = pandas.read_csv('location_coefficients.csv', sep=',')
 location_coefficients = dict(zip(list(loc_coeff_df['Location']), list(loc_coeff_df['Coeff'])))
 
+strain_infectivity_df = pandas.read_csv('strain_infectivity_factors.csv', sep=',')
+strain_infectivity_factors = dict(
+    zip(list(strain_infectivity_df['Strain']), list(strain_infectivity_df['Factor'])))
+strain_infectivity_factors.update({'WT': 1})
+
 
 class Simulation_Configuration(object):
     def __init__(self):
