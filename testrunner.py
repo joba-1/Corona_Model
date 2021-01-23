@@ -1,5 +1,5 @@
 import unittest
-from gerda.main.virusPropagationModel import *
+from gerda.core.virusPropagationModel import *
 import glob
 import os
 
