@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-berlin_df = pd.read_csv('datafiles/berlinbrandenburgpopulation.csv')
-germany_df = pd.read_csv('datafiles/germanypopulation.csv')
-heinsberg_df = pd.read_csv('datafiles/heinsbergpopulation.csv')
+berlin_df = pd.read_csv('input_data/demographics/berlinbrandenburgpopulation.csv')
+germany_df = pd.read_csv('input_data/demographics/germanypopulation.csv')
+heinsberg_df = pd.read_csv('input_data/demographics/heinsbergpopulation.csv')
 
 
 def empirical_cumulative_distribution(df):

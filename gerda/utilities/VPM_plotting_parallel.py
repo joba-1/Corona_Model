@@ -1,56 +1,57 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import os 
+import os
 from functools import partial
-from virusPropagationModel import *
-import VPM_plotting as vpm_plot
+import gerda.utilities.VPM_plotting as vpm_plot
+from gerda.core.virusPropagationModel import *
 
 confi_z_dict = {99: 2.576,
                 98: 2.326,
                 95: 1.96,
                 90: 1.645, }
 
-def plot_stat_para(ax, 
-                   folder_scenario, 
-                   server_data_folder, 
-                   statii=['S', 'I', 'R', 'D'], 
-                   log=False, 
-                   suffix=0, 
-                   prefix=0, 
+
+def plot_stat_para(ax,
+                   folder_scenario,
+                   server_data_folder,
+                   statii=['S', 'I', 'R', 'D'],
+                   log=False,
+                   suffix=0,
+                   prefix=0,
                    per_day=True):
     if per_day:
-        a=24
-        xlabel='Time [days]'
+        a = 24
+        xlabel = 'Time [days]'
     else:
-        a=1
+        a = 1
         xlabel = 'Time [hours]'
-            
+
     for stat in statii:
         try:
             df_stat = pd.read_csv(server_data_folder + folder_scenario +
-                             '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
+                                  '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
         except:
             try:
                 df_stat = pd.read_csv(server_data_folder + folder_scenario +
-                                 '/IAR_1_0_99_'+folder_scenario[:-10]+'_'+stat+'.csv')
+                                      '/IAR_1_0_99_'+folder_scenario[:-10]+'_'+stat+'.csv')
             except:
                 print("can't read ", server_data_folder + folder_scenario +
                       '/'+folder_scenario[prefix:-suffix]+'_'+stat+'.csv')
         df_stat.drop('time', axis=1, inplace=True)
-        #if not stat.startswith('c'):
+        # if not stat.startswith('c'):
         ax.plot(df_stat.index/a, df_stat.values,
                 color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
                 label=stat.split('_')[-1],
                 alpha=0.1,)
-            
+
         #    df_stat.plot(legend=False, alpha=0.1,
         #                 c=vpm_plot.statusAndFlagsColors[stat], ax=ax)
-        #else:    
+        # else:
         #    df_stat.plot(legend=False, alpha=0.1,
         #                 c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
-        #ax.set_ylabel('People')
-        #ax.plot(df_stat.index/a, df_stat.values,
+        # ax.set_ylabel('People')
+        # ax.plot(df_stat.index/a, df_stat.values,
         #        color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
         #        label=stat.split('_')[-1])
     ax.set_ylabel('People')
@@ -58,10 +59,11 @@ def plot_stat_para(ax,
     if log:
         ax.set_yscale('log')
 
+
 def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
                               statii=['S', 'I', 'R', 'D'],
-                              error_type = 'std', 
-                              ci = 95,
+                              error_type='std',
+                              ci=95,
                               log=False,
                               nr_of_agents=1,
                               per_day=False,):
@@ -80,17 +82,17 @@ def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
 
         df_stat_m = df_stat.mean(axis=1)/nr_of_agents
         df_stat_std = df_stat.std(axis=1)/nr_of_agents
-        
+
         if error_type == 'std':
             error = df_stat_std
-        elif error_type == 'CI' :
+        elif error_type == 'CI':
             error = confi_z_dict[ci]*df_stat_std.values / \
                 np.sqrt(len(df_stat.columns))
         if per_day:
-            a=24
-            xlabel='Time [days]'
+            a = 24
+            xlabel = 'Time [days]'
         else:
-            a=1
+            a = 1
             xlabel = 'Time [hours]'
         ax.plot(df_stat_m.index/a, df_stat_m.values,
                 color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
@@ -99,10 +101,10 @@ def plot_stat_para_mean_error(ax, folder_scenario, server_data_folder,
                         df_stat_m.values+error, color=vpm_plot.statusAndFlagsColors[stat.split('_')[-1]],
                         alpha=0.3)
 
-        #if not stat.startswith('c'):
+        # if not stat.startswith('c'):
         #    df_stat.plot(legend=False, alpha=0.1,
         #                 c=vpm_plot.statusAndFlagsColors[stat], ax=ax)
-        #else:
+        # else:
         #    df_stat.plot(legend=False, alpha=0.1,
         #                 c=vpm_plot.statusAndFlagsColors[stat[10:]], ax=ax)
     ax.set_ylabel('People')
@@ -126,9 +128,9 @@ def get_df_total_status(files_folder, server_data_folder, status='I', digits=5, 
             try:
                 df = pd.read_csv(server_data_folder + folder_scenario +
                                  '/IAR_1_0_99_'+folder_scenario[:-10]+'_'+stat+'.csv')
-            except:                     
+            except:
                 df = pd.read_csv(server_data_folder + folder_scenario +
-                             '/'+folder_scenario[:-10]+'_'+stat+'.csv')
+                                 '/'+folder_scenario[:-10]+'_'+stat+'.csv')
         df.drop('time', axis=1, inplace=True)
         param_value = float(folder_scenario.split('_')[-digits])
         files_dict[param_value] = df.iloc[time_loc].values
@@ -189,8 +191,9 @@ def plot_frac_of_Inf_waves_vs_recover_frac(ax, filenames, scenarios,
     elif status == 'D':
         ax.set_ylabel('Fraction of infection wave with deceased people')
     ax.set_xlabel('Recover Fraction')
-    if  legend:
+    if legend:
         ax.legend(markerscale=1, frameon=False)
+
 
 def get_total_infections(data_set_name, scenarios, server_data_folder):
     filename = scenarios[data_set_name][:-10]+'_cumulativ_WasInfected.csv'
@@ -201,10 +204,12 @@ def get_total_infections(data_set_name, scenarios, server_data_folder):
     I_tot = df_I_tot.iloc[-1]
     return I_tot
 
+
 def get_sw_dict(data_set_name, scenarios, server_data_folder, threshold=3000):
     a = get_total_infections(data_set_name, scenarios,
                              server_data_folder) > threshold
     return a.to_dict()
+
 
 def get_infectivities_at_T(data_set_name, scenarios, server_data_folder, threshold=3000,):
     I_tot = get_total_infections(data_set_name, scenarios, server_data_folder)
@@ -222,11 +227,12 @@ def get_infectivities_at_T(data_set_name, scenarios, server_data_folder, thresho
         df_inf_long['run'] = [int(x[13:]) for x in df_inf_long['name'].values]
         df_inf_long['sw'] = df_inf_long['run'].map(sw_dict)
         df_new = df_inf_long.groupby('run').mean()
-        #plt.figure(inf_t)
+        # plt.figure(inf_t)
         #sns.swarmplot(data=df_new, x='sw', y=inf_t)
         inf_t_df_list.append(df_inf_long)
     df_inf_all = pd.concat(inf_t_df_list)
     return(df_inf_all)
+
 
 def assign_types(agent_id_type_dict, location_id_type_dict, df):
     df.sort_values(by='time', inplace=True)
@@ -234,11 +240,13 @@ def assign_types(agent_id_type_dict, location_id_type_dict, df):
     df['agent_type'] = df['infected_by_ID'].map(agent_id_type_dict)
     return(df)
 
+
 def get_delta_ds(ds1, ds2, relative=False):
     if relative:
         return((ds1-ds2)/ds2)
     else:
         return(ds1-ds2)
+
 
 def get_ID_Type_dicts(scenario, server_data_folder):
     df_ai = pd.read_csv(server_data_folder+scenario+'/' +
