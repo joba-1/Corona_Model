@@ -1,5 +1,5 @@
 import unittest
-from virusPropagationModel import *
+from gerda.main.virusPropagationModel import *
 import glob
 import os
 
@@ -7,9 +7,9 @@ import os
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000,10,
-         world_from_file=True, geofile_name='datafiles/Buildings_Gangelt_MA_3.csv',
-          agent_agent_infection=True)
+        self.modeledWorld1 = ModeledPopulatedWorld(1000, 10,
+                                                   world_from_file=True, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv',
+                                                   agent_agent_infection=True)
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_modeled_pop_world_plotting(self):
@@ -44,7 +44,6 @@ class TestVPM(unittest.TestCase):
         self.sim_1_2.plot_location_type_occupancy_timecourse()
         self.sim_1_2.plot_distributions_of_durations()
 
-
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
         self.assertTrue(len(glob.glob("outputs/testing*")) != 0, "No CSVs exported!")
@@ -75,11 +74,12 @@ class TestVPM(unittest.TestCase):
     def test_r_eff_get_from_obj_and_plot(self):
         self.simulation2 = Simulation(self.modeledWorld1, 500)
         self.simulation2.plot_r_eff(4*24)
-        #self.simulation2.export_r_eff_time_course_as_csv(2*24,saved_csv_identifier='testing_stepsize1')
+        # self.simulation2.export_r_eff_time_course_as_csv(2*24,saved_csv_identifier='testing_stepsize1')
         #self.simulation2.export_r_eff_time_course_as_csv(4*24, saved_csv_identifier='testing_stepsize2')
-        #vpm_neta.plot_r_eff_from_csvs_or_sim_object(['testing_stepsize1','testing_stepsize2'])
+        # vpm_neta.plot_r_eff_from_csvs_or_sim_object(['testing_stepsize1','testing_stepsize2'])
         for file in glob.glob("outputs/testing*"):
             os.remove(file)  # files cleanup
+
 
 if __name__ == '__main__':
     unittest.main()
