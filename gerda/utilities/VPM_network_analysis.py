@@ -20,7 +20,7 @@ def export_r_eff_timecourse_as_csv(time_course_source, sliding_window_size, slid
     times, r_effs, stds_r_eff = get_r_eff_timecourse_from_human_timecourse(
         time_course_source, sliding_window_size, sliding_step_size=sliding_step_size)
     output_df = pd.DataFrame({'time': times, 'r_eff': r_effs, 'stds_r_eff': stds_r_eff})
-    output_df.to_csv('outputs/simulation_results/' + saved_csv_identifier +
+    output_df.to_csv('output/simulation_results/' + saved_csv_identifier +
                      '-r_eff_timecourse(WSIZE{}_WSTEP{}).csv'.format(sliding_window_size, sliding_step_size))
 
 
@@ -67,4 +67,4 @@ def plot_r_eff_from_sim_object(sim_obj, sliding_window_size=None, sliding_step_s
 
     if save_fig:
         timestr = '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
-        plt.savefig('outputs/plots/r_eff_timecourse'+timestr+'.png', dpi=200)
+        plt.savefig('output/plots/r_eff_timecourse'+timestr+'.png', dpi=200)

@@ -1352,16 +1352,16 @@ class Simulation(object):
         for i in range(len(stati_list)):
             df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
-        df.set_index('time').to_csv('outputs/simulation_results/' +
+        df.set_index('time').to_csv('output/simulation_results/' +
                                     identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
-        concat_trajectory_df.to_csv('outputs/simulation_results/' +
+        concat_trajectory_df.to_csv('output/simulation_results/' +
                                     identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.set_index('time').to_csv(
-            'outputs/simulation_results/' + identifier + '-locations_time_course.csv')
+            'output/simulation_results/' + identifier + '-locations_time_course.csv')
 
     # def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
     #    vpm_neta.export_r_eff_timecourse_as_csv(

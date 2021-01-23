@@ -46,9 +46,9 @@ class TestVPM(unittest.TestCase):
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
-        self.assertTrue(len(glob.glob("outputs/simulation_results/testing*"))
+        self.assertTrue(len(glob.glob("output/simulation_results/testing*"))
                         != 0, "No CSVs exported!")
-        for file in glob.glob("outputs/simulation_results/testing*"):
+        for file in glob.glob("output/simulation_results/testing*"):
             self.assertTrue(os.path.exists(file) and os.path.getsize(
                 file) > 0, "CSV is saved_simulation_objects_go_here!")
             os.remove(file)  # files cleanup
@@ -78,7 +78,7 @@ class TestVPM(unittest.TestCase):
         # self.simulation2.export_r_eff_time_course_as_csv(2*24,saved_csv_identifier='testing_stepsize1')
         #self.simulation2.export_r_eff_time_course_as_csv(4*24, saved_csv_identifier='testing_stepsize2')
         # vpm_neta.plot_r_eff_from_csvs_or_sim_object(['testing_stepsize1','testing_stepsize2'])
-        for file in glob.glob("outputs/plots/testing*"):
+        for file in glob.glob("output/plots/testing*"):
             os.remove(file)  # files cleanup
 
 
