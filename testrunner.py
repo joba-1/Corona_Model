@@ -46,8 +46,9 @@ class TestVPM(unittest.TestCase):
 
     def test_export_simulation_csvs(self):
         self.simulation1.export_time_courses_as_csvs(identifier='testing')
-        self.assertTrue(len(glob.glob("outputs/testing*")) != 0, "No CSVs exported!")
-        for file in glob.glob("outputs/testing*"):
+        self.assertTrue(len(glob.glob("outputs/simulation_results/testing*"))
+                        != 0, "No CSVs exported!")
+        for file in glob.glob("outputs/simulation_results/testing*"):
             self.assertTrue(os.path.exists(file) and os.path.getsize(
                 file) > 0, "CSV is saved_simulation_objects_go_here!")
             os.remove(file)  # files cleanup

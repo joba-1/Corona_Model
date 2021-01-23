@@ -1352,8 +1352,8 @@ class Simulation(object):
         for i in range(len(stati_list)):
             df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
-        df.set_index('time').to_csv(
-            'outputs/simulation_results/' + identifier + '-humans_time_course.csv')
+        df.set_index('time').to_csv('outputs/simulation_results/' +
+                                    identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
