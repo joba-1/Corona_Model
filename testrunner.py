@@ -78,7 +78,7 @@ class TestVPM(unittest.TestCase):
         # self.simulation2.export_r_eff_time_course_as_csv(2*24,saved_csv_identifier='testing_stepsize1')
         #self.simulation2.export_r_eff_time_course_as_csv(4*24, saved_csv_identifier='testing_stepsize2')
         # vpm_neta.plot_r_eff_from_csvs_or_sim_object(['testing_stepsize1','testing_stepsize2'])
-        for file in glob.glob("outputs/testing*"):
+        for file in glob.glob("outputs/plots/testing*"):
             os.remove(file)  # files cleanup
 
 
