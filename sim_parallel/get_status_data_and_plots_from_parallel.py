@@ -1,18 +1,20 @@
-from virusPropagationModel import *
+
 import glob
-import matplotlib.pyplot as plt
-import pandas as pd
-from argparse import ArgumentParser
 import sys
-import matplotlib.cm as cm
-from multiprocessing import Pool
-import timeit
-import numpy as np
 import os
-os.environ['QT_QPA_PLATFORM']='offscreen'
+import timeit
+
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import pandas as pd
-import VPM_plotting as vpm_plt
+import gerda.utilities.VPM_plotting as vpm_plt
+
+from multiprocessing import Pool
+from argparse import ArgumentParser
+from gerda.core.virusPropagationModel import *
+
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 #colors = vpm_plt.statusAndFlagsColors
 
 mainModelCmap = cm.get_cmap('Set1')  # for our statuses and flags

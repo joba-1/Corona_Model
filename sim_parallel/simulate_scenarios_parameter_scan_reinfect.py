@@ -1,16 +1,19 @@
-from virusPropagationModel import *
-from get_status_data_and_plots_from_parallel import *
 import glob
 import os
-from multiprocessing import Pool
 import copy
 import timeit
 import argparse
 import sys
 import csv
 import pickle
-import numpy as np
 import random
+
+import numpy as np
+
+from multiprocessing import Pool
+from gerda.core.virusPropagationModel import *
+from sim_parallel.get_status_data_and_plots_from_parallel import *
+
 
 scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed_locs': [], 'reopen_locs':[], 'infectivity':0.0, 'name':'no_mitigation_IF00'},
 
