@@ -1,9 +1,10 @@
 import pandas
 
-loc_coeff_df = pandas.read_csv('location_coefficients.csv', sep=',')
+loc_coeff_df = pandas.read_csv('input_data/coefficients/location_coefficients.csv', sep=',')
 location_coefficients = dict(zip(list(loc_coeff_df['Location']), list(loc_coeff_df['Coeff'])))
 
-strain_infectivity_df = pandas.read_csv('strain_infectivity_factors.csv', sep=',')
+strain_infectivity_df = pandas.read_csv(
+    'input_data/coefficients/strain_infectivity_factors.csv', sep=',')
 strain_infectivity_factors = dict(
     zip(list(strain_infectivity_df['Strain']), list(strain_infectivity_df['Factor'])))
 strain_infectivity_factors.update({'WT': 1})
@@ -11,7 +12,8 @@ strain_infectivity_factors.update({'WT': 1})
 
 class Simulation_Configuration(object):
     def __init__(self):
-        config_file = pandas.read_csv('simulation_configuration.csv', sep=',', index_col=0)
+        config_file = pandas.read_csv(
+            'input_data/simulation_configuration.csv', sep=',', index_col=0)
         self.immunity_loss_df = config_file.loc['immunity_loss_df', 'File']
         self.infectivity_df = config_file.loc['infectivity_df', 'File']
         self.recovery_from_undiagnosed_df = config_file.loc['recovery_from_undiagnosed_df', 'File']

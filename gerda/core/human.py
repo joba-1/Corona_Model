@@ -1,12 +1,12 @@
 # from numpy.random import choice as choosing  # numpy.random for generating random numbers
 from random import choice as choosing_one
 import numpy
-import dataProcessing as dp
 from random import random as randomval
 import copy
+import gerda.core.dataProcessing as dp
 from collections import OrderedDict as ordered_dict
-from configure_simulation import location_coefficients as location_coefficient_dict
-from configure_simulation import strain_infectivity_factors as strain_infectivity_factors_dict
+from gerda.core.configure_simulation import location_coefficients as location_coefficient_dict
+from gerda.core.configure_simulation import strain_infectivity_factors as strain_infectivity_factors_dict
 
 
 class Human(object):

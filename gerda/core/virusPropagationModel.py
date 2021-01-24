@@ -1,10 +1,3 @@
-from human import *
-from location import *
-from initialize_households import initialize_household
-from VPM_save_and_load import *
-import VPM_plotting as vpm_plt
-import VPM_network_analysis as vpm_neta
-from parse_schedule import parse_schedule
 import random
 import pandas as pd
 import numpy as np
@@ -13,6 +6,13 @@ import numpy.random as npr
 import glob
 from scipy import sparse
 from collections import OrderedDict as ordered_dict
+import gerda.utilities.VPM_plotting as vpm_plt
+import gerda.utilities.VPM_network_analysis as vpm_neta
+from gerda.utilities.VPM_save_and_load import *
+from gerda.pre.initialize_households import initialize_household
+from gerda.pre.parse_schedule import parse_schedule
+from gerda.core.world import World
+from gerda.core.human import Human
 
 
 class ModeledPopulatedWorld(object):
@@ -60,7 +60,7 @@ class ModeledPopulatedWorld(object):
     """
 
     def __init__(self, number_of_locs, initial_infections=1, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='datafiles/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
+                 geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
         self.world_from_file = world_from_file
         self.agent_agent_infection = agent_agent_infection
         self.number_of_locs = number_of_locs
@@ -996,7 +996,7 @@ class Simulation(object):
         unique_strains = list(parsed_df['Strain'].unique())
         unique_strains.remove('')
         for us in unique_strains:
-            parsed_df[us] = [numpy.nan]*parsed_df.shape[0]
+            parsed_df[us] = [np.nan]*parsed_df.shape[0]
             parsed_df.loc[parsed_df['Strain'] == us, us] = 1
 
         sub_df = parsed_df[unique_strains+['time']]
@@ -1072,9 +1072,20 @@ class Simulation(object):
 
         timecourse = self.simulation_timecourse.loc[(self.simulation_timecourse['time'] <= t_max) & (
             self.simulation_timecourse['time'] >= min_t) & (self.simulation_timecourse['Interaction_partner'] != '')].copy()
-        timecourse.drop(columns=['time', 'loc', 'status', 'Temporary_Flags',
-                                 'Cumulative_Flags', 'Infection_event'], inplace=True)
-
+        if 'time' in list(timecourse.columns):
+            timecourse.drop(columns=['time'], inplace=True)
+        if 'loc' in list(timecourse.columns):
+            timecourse.drop(columns=['loc'], inplace=True)
+        if 'status' in list(timecourse.columns):
+            timecourse.drop(columns=['status'], inplace=True)
+        if 'Temporary_Flags' in list(timecourse.columns):
+            timecourse.drop(columns=['Temporary_Flags'], inplace=True)
+        if 'Cumulative_Flags' in list(timecourse.columns):
+            timecourse.drop(columns=['Cumulative_Flags'], inplace=True)
+        if 'Infection_event' in list(timecourse.columns):
+            timecourse.drop(columns=['Infection_event'], inplace=True)
+        if 'Strain' in list(timecourse.columns):
+            timecourse.drop(columns=['Strain'], inplace=True)
         # expand interaction partner string to extra columns and drop it
         df = timecourse.join(timecourse.pop('Interaction_partner').str.split(',', expand=True))
         df.set_index('h_ID', inplace=True)
@@ -1151,7 +1162,7 @@ class Simulation(object):
                 *[trace_contacts_with_loctime(i, time_course, t_diagnosis, t_tracing_period_start) for i in diagnosed_individuals])
         else:
             # n_contacts = [trace_contacts(i, time_course, t_diagnosis,t_tracing_period_start) for i in diagnosed_individuals]
-            n_same_loc_time = [numpy.nan]*len(diagnosed_individuals)
+            n_same_loc_time = [np.nan]*len(diagnosed_individuals)
             traced_contacts_time_dict = {}
             for di in diagnosed_individuals:
                 if t_diagnosis[di] in traced_contacts_time_dict.keys():
@@ -1187,7 +1198,7 @@ class Simulation(object):
                         time_course['time'] >= t_diagnosis[i])].shape[0]
                 traced_secondary_infectees.append(n_secondary_infectees)
         else:
-            traced_secondary_infectees = [numpy.nan]*len(diagnosed_individuals)
+            traced_secondary_infectees = [np.nan]*len(diagnosed_individuals)
 
         if trace_all_following_infections:
             # finds all infections, along the infection chains originating from diagnosees, which would be prevend by cutting the infection chain
@@ -1230,8 +1241,8 @@ class Simulation(object):
                     last_infection_number-int(only_infection_TC.shape[0]))
                 last_infection_number = int(only_infection_TC.shape[0])
         else:
-            traced_downstream_infectees = [numpy.nan]*len(diagnosed_individuals)
-            traced_downstream_infectees_unpreventable = [numpy.nan]*len(diagnosed_individuals)
+            traced_downstream_infectees = [np.nan]*len(diagnosed_individuals)
+            traced_downstream_infectees_unpreventable = [np.nan]*len(diagnosed_individuals)
 
         out = pd.DataFrame()
         out['time'] = [t_diagnosis[i] for i in diagnosed_individuals]
@@ -1341,15 +1352,16 @@ class Simulation(object):
         for i in range(len(stati_list)):
             df.loc[self.simulation_timecourse['status'] == i, 'status'] = stati_list[i]
 
-        df.set_index('time').to_csv(
-            'outputs/' + identifier + '-humans_time_course.csv')
+        df.set_index('time').to_csv('output/simulation_results/' +
+                                    identifier + '-humans_time_course.csv')
         statuses_trajectories = self.get_status_trajectories().values()
         dfs = [df.set_index('time') for df in statuses_trajectories]
         concat_trajectory_df = pd.concat(dfs, axis=1)
-        concat_trajectory_df.to_csv('outputs/' + identifier + '-commutative_status_time_course.csv')
+        concat_trajectory_df.to_csv('output/simulation_results/' +
+                                    identifier + '-commutative_status_time_course.csv')
         locations_traj = self.get_location_with_type_trajectory()
         locations_traj.set_index('time').to_csv(
-            'outputs/' + identifier + '-locations_time_course.csv')
+            'output/simulation_results/' + identifier + '-locations_time_course.csv')
 
     # def export_r_eff_time_course_as_csv(self, sliding_window_size, sliding_step_size=1, saved_csv_identifier='unnamed_output'):
     #    vpm_neta.export_r_eff_timecourse_as_csv(
@@ -1504,10 +1516,10 @@ def build_infection_matrix(simulation, lowest_timestep=0, highest_timestep=None,
     Infections['aggregated_time'] = Days
     individuals = list(Timecourse['h_ID'].unique())
     # out={}
-    infection_matrix = numpy.zeros((len(individuals), len(individuals)))
+    infection_matrix = np.zeros((len(individuals), len(individuals)))
     for d in list(Infections['aggregated_time'].unique()):
         DayFrame = Infections.loc[Infections['aggregated_time'] == d, ]
-        did_infect_array = numpy.zeros((len(individuals), len(individuals)))
+        did_infect_array = np.zeros((len(individuals), len(individuals)))
         for i in list(DayFrame.index):
             if DayFrame.loc[i, 'h_ID'] in individuals:
                 if DayFrame.loc[i, 'Infection_event'] in individuals:
@@ -1569,7 +1581,7 @@ def build_interaction_matrix(simulation, lowest_timestep=0, highest_timestep=Non
     individuals = [int(i) for i in list(Timecourse['h_ID'].unique())]
     individual_dict = dict(zip(individuals, list(range(len(individuals)))))
     # out={}
-    interaction_matrix = sparse.csr_matrix(numpy.zeros((len(individuals), len(individuals))))
+    interaction_matrix = sparse.csr_matrix(np.zeros((len(individuals), len(individuals))))
     for d in list(Interactions['aggregated_time'].unique()):
         DayFrame = Interactions[Interactions['aggregated_time'] == d]
         # person_indices,contact_indices=zip(*[(individual_dict[int(DayFrame.loc[i,'h_ID'])],individual_dict[int(k)]) for j in [DayFrame.loc[i,'Interaction_partner'].split(',') for i in DayFrame.index] for k in j])

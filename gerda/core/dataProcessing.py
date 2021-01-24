@@ -1,5 +1,5 @@
 import pandas as pd
-from configure_simulation import Simulation_Configuration
+from gerda.core.configure_simulation import Simulation_Configuration
 
 Configurator = Simulation_Configuration()
 

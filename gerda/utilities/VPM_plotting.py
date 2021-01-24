@@ -131,7 +131,7 @@ def plot_infections_per_location_type_over_time(modeled_pop_world_obj, save_figu
     plt.show()
 
     if save_figure:
-        plt.savefig('outputs/infections_per_time_per_loc_type.png')
+        plt.savefig('output/plots/infections_per_time_per_loc_type.png')
 
 
 def plot_infections_per_location_type(sim_obj, save_figure=False, relative=False, ax=None):
@@ -204,7 +204,7 @@ def plot_distribution_of_location_types(modeled_pop_world_obj,
     elif kind == 'pie':
         pass  # todo
     if save_fig:
-        plt.savefig('plots/location_distribution.png', bbox_inches='tight')
+        plt.savefig('output/plots/location_distribution.png', bbox_inches='tight')
     return ax, df
 
 
@@ -240,7 +240,7 @@ def plot_locations_and_schedules(modeled_pop_world_obj,
     axes[1].pie(values, labels=schedule_types, radius=1, colors=colors,
                 wedgeprops=dict(width=0.7, edgecolor='w'), explode=[0., 0.0, 0.0, 0.0, 0.0, 0.0], )
     if save_figure:
-        plt.savefig('plots/location_schedules_pie.png', bbox_inches='tight')
+        plt.savefig('output/plots/location_schedules_pie.png', bbox_inches='tight')
 
 
 def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_groups_step=10, save_figure=False):
@@ -266,7 +266,7 @@ def plot_initial_distribution_of_ages_and_infected(modeled_pop_world_obj, age_gr
     plt.tight_layout()
 
     if save_figure:
-        fig.savefig('outputs/initial_distribution_of_ages_and_infected.png')
+        fig.savefig('output/plots/initial_distribution_of_ages_and_infected.png')
     plt.show()
 
 
@@ -319,7 +319,7 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
     plt.legend()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/status_plot.png')
+        plt.savefig('output/plots/status_plot.png')
 
 
 def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, save_figure=False):
@@ -344,7 +344,7 @@ def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, sav
     plt.tight_layout()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/age_groups_status_plot.png')
+        plt.savefig('output/plots/age_groups_status_plot.png')
 
 
 def plot_strains_timecourse(simulation_object, type='cumulative'):
@@ -378,7 +378,7 @@ def plot_flags_timecourse(simulation_object, specific_flags=None, save_figure=Fa
     plt.legend()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/flags_plot.png')
+        plt.savefig('output/plots/flags_plot.png')
 
 
 def plot_location_type_occupancy_timecourse(simulation_object, specific_types=None, save_figure=False):
@@ -415,7 +415,7 @@ def plot_location_type_occupancy_timecourse(simulation_object, specific_types=No
     plt.legend()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/loc_types_occupancy_plot.png')
+        plt.savefig('output/plots/loc_types_occupancy_plot.png')
 
 
 def plot_status_at_location(simulation_object, save_figure=False):
@@ -472,7 +472,7 @@ def plot_status_at_location(simulation_object, save_figure=False):
     # plt.tight_layout()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/loc_types_occupancy_plot.png')
+        plt.savefig('output/plots/loc_types_occupancy_plot.png')
 
 
 def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
@@ -493,7 +493,7 @@ def map_status_at_loc(simulation_object, save_figure=False, time_steps=2):
         plt.legend()
 
         if save_figure:
-            plt.savefig('plots/loc_t_'+str(time)+'.png')
+            plt.savefig('output/plots/loc_t_'+str(time)+'.png')
 
 
 def plot_distributions_of_durations(simulation_object, save_figure=False, log=False):
@@ -508,7 +508,7 @@ def plot_distributions_of_durations(simulation_object, save_figure=False, log=Fa
     plt.tight_layout()
     plt.show()
     if save_figure:
-        plt.savefig('outputs/duration_distributions.png')
+        plt.savefig('output/plots/duration_distributions.png')
 
 
 def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
@@ -532,7 +532,7 @@ def plot_interaction_patterns(simulation_object, lowest_timestep, highest_timest
     plt.ylabel('Interaction object (age-groups)')
     plt.show()
     if save_figure:
-        plt.savefig('outputs/age_group_dependent_interaction_patterns.png')
+        plt.savefig('output/plots/age_group_dependent_interaction_patterns.png')
 
 
 def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep, timesteps_per_aggregate, age_groups, save_figure):
@@ -555,7 +555,7 @@ def plot_infection_patterns(simulation_object, lowest_timestep, highest_timestep
     plt.ylabel('Infection acceptor (age-groups)')
     plt.show()
     if save_figure:
-        plt.savefig('outputs/age_group_dependent_infection_patterns.png')
+        plt.savefig('output/plots/age_group_dependent_infection_patterns.png')
 
 
 def plot_interaction_timecourse(simulation_object, save_figure=False, log=False, diagnosed_contact=False):
@@ -571,7 +571,7 @@ def plot_interaction_timecourse(simulation_object, save_figure=False, log=False,
                'safe contact_d', 'possible infectious event_d', 'infection event_d'], loc=(1.1, 0))
     ax.set_title('Interaction Timcourse'), ax.set_ylabel('counts'), ax.set_xlabel('time, h')
     if save_figure:
-        plt.savefig('outputs/interaction_timecourse.png')
+        plt.savefig('output/plots/interaction_timecourse.png')
 
 
 def plot_r_eff_trajectory(simulation_object,
@@ -621,7 +621,7 @@ def plot_r_eff_trajectory(simulation_object,
 
     if save_fig:
         timestr = '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
-        plt.savefig('outputs/r_eff_timecourse'+timestr+'.png', dpi=200)
+        plt.savefig('output/plots/r_eff_timecourse'+timestr+'.png', dpi=200)
 
 
 def plot_ratio_change(df, cmap_='Set1',
@@ -629,7 +629,7 @@ def plot_ratio_change(df, cmap_='Set1',
                       label_offset=0.09,
                       title='Title',
                       save_figure=True,
-                      output_folder='plots/',
+                      output_folder='output/plots/',
                       y_axis=True,
                       ):
     """
