@@ -1,8 +1,11 @@
-from virusPropagationModel import *
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
 import pickle as pkl
+
+from gerda.core.virusPropagationModel import *
+
 
 def main():
 

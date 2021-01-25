@@ -5,19 +5,18 @@ import os
 import glob
 from multiprocessing import Pool
 from functools import partial
-from gerda.utilities.VPM_save_and_load import *
 from gerda.core.virusPropagationModel import *
 
 
-def ini_and_save_world(i, output_folder='saved_objects/', size='1', schedule='schedules_v2', town='Gangelt', **kwargs):
+def ini_and_save_world(i, output_folder='models/worlds/', size='1', schedule='schedules_v2', town='Gangelt', **kwargs):
     world = ModeledPopulatedWorld(1000, 10, world_from_file=True,
-                                  geofile_name='datafiles/Buildings_'+town+'_MA_'+size+'.csv',
+                                  geofile_name='input_data/geo/Buildings_'+town+'_MA_'+size+'.csv',
                                   agent_agent_infection=True,
                                   automatic_initial_infections=False,
                                   input_schedules=schedule)
     # '/home/basar/corona_simulations/saved_objects/worlds/')
     world.save(town+'_MA_'+size+'_'+schedule+'_'+str(i),
-               date_suffix=False, folder=output_folder, **kwargs)
+               date_suffix=False, folder=output_folder)
     print('worlds/'+town+'_MA_'+size+'_'+schedule+'_'+str(i)+' created')
 
 
@@ -47,7 +46,7 @@ if __name__ == '__main__':
     if options.folder:
         output_folder = options.folder
     else:
-        output_folder = '/home/basar/corona_simulations_save/saved_objects/worlds/V2_RPM2_Gangelt/'
+        output_folder = 'models/worlds/'
     options_dict['output_folder'] = output_folder
     try:
         os.mkdir(output_folder)

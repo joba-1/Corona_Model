@@ -4,11 +4,13 @@ import numpy as np
 import copy
 import numpy.random as npr
 import glob
-from scipy import sparse
-from collections import OrderedDict as ordered_dict
+
 import gerda.utilities.VPM_plotting as vpm_plt
 import gerda.utilities.VPM_network_analysis as vpm_neta
-from gerda.utilities.VPM_save_and_load import *
+import gerda.utilities.VPM_save_and_load as vpm_save_load
+
+from scipy import sparse
+from collections import OrderedDict as ordered_dict
 from gerda.pre.initialize_households import initialize_household
 from gerda.pre.parse_schedule import parse_schedule
 from gerda.core.world import World
@@ -77,8 +79,7 @@ class ModeledPopulatedWorld(object):
         self.location_types = self.get_location_types()
         self.schedule_types = self.get_schedule_types()
 
-    # folder='saved_objects/'):
-    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
+    def save(self, filename, obj_type_suffix=True, date_suffix=False, folder='models/worlds/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -86,9 +87,9 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_worldObj', date_suffix, **kwargs)
+            vpm_save_load.save_simulation_object(self, filename + '_worldObj', date_suffix, folder=folder)
         else:
-            save_simulation_object(self, filename, date_suffix, **kwargs)
+            vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
     def initialize_people(self, agent_agent_infection):
         """
@@ -516,7 +517,7 @@ class Simulation(object):
         random.seed(self.random_seed)
         npr.seed(self.random_seed)
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True, **kwargs):
+    def save(self, filename, obj_type_suffix=True,  date_suffix=False, folder='models/simulations/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -524,9 +525,9 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_simulationObj', date_suffix, **kwargs)
+            vpm_save_load.save_simulation_object(self, filename + '_simulationObj', date_suffix, folder=folder)
         else:
-            save_simulation_object(self, filename, date_suffix, **kwargs)
+            vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
     def set_homogeneous_mixing(self, mixing_loc_type='mixing_loc', home_quarantine=True):
         """

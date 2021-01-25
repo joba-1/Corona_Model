@@ -28,7 +28,7 @@ def wait_for_write(file_path):
         time.sleep(1)
 
 
-def save_simulation_object(saving_object, filename, date_suffix=False, folder='saved_objects/'):
+def save_simulation_object(saving_object, filename, date_suffix=False, folder='models/simulations/'):
     """
     pickles passed object to saved_objects/filename+date+time+'.pkl'
     :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
@@ -44,7 +44,7 @@ def save_simulation_object(saving_object, filename, date_suffix=False, folder='s
         pickle.dump(saving_object, f)
 
 
-def load_simulation_object(filename, folder='saved_objects/'):
+def load_simulation_object(filename, folder='models/simulations/'):
     """
     :param filename: string of filename in saved_objects directory
     :return: object deserialised from pickle
@@ -59,6 +59,29 @@ def load_simulation_object(filename, folder='saved_objects/'):
         time.sleep(10)
         filepath = glob.glob(folder + filename + '*')
         assert len(filepath) == 1, 'The file {} could not be found'.format(filename)
+    wait_for_write(filepath)
+    with open(filepath, 'rb') as f:
+        loaded_object = pickle.load(f)
+    return loaded_object
+
+
+def load_world_object(filename, folder='models/worlds/'):
+    """
+    :param filename: string of filename in saved_objects directory
+    :return: object deserialised from pickle
+    """
+
+    filepath = glob.glob(folder + filename + '*')
+    assert len(
+        filepath) <= 1, 'More than one pickle file found for the given filename \'{}\''.format(filename)
+    if len(filepath) == 1:
+        filepath = filepath[0]
+    else:
+        print('The specified .pkl is file not yet available or could not be found. Waiting shortly before retrying...')
+        time.sleep(10)
+        filepath = glob.glob(folder + filename + '*')
+        assert len(filepath) == 1, 'The file {} could not be found'.format(
+            filename)
     wait_for_write(filepath)
     with open(filepath, 'rb') as f:
         loaded_object = pickle.load(f)
