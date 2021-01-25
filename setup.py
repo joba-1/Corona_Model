@@ -1,7 +1,7 @@
 import os
 import io
 #import sys
-from setuptools import find_package, setup
+from setuptools import find_packages, setup
 
 ## define setup variables
 NAME='gerda'
@@ -21,17 +21,16 @@ AUTHOR=['Björn Goldenbogen',
 EMAIL=['bjoern.goldenbogen@hu-berlin.de','edda.klipp@hu-berlin.de']
 URL='https://tbp-klipp.science/GERDA/code/'
 REQUIRES_PYTHON='>=3.6.9' ## with this version everything got tested
-REQUIRED=['gdal==1.9.2', 
-          'geopandas==0.8.1', 
-          'jupyter==1.0.0', 
-          'matplotlib==3.3.2', 
-          'numpy==1.19.2', 
-          'osmnx==0.16.2', 
-          'pandas==1.1.2', 
-          'rtree==0.9.4', 
-          'seaborn==0.11.0', 
-          'scipy==1.5.2',
-          'shapely==1.7.1'] ## external packages as dependencies (versions have been tested, might also work with more recent versions)
+REQUIRED=['geopandas>=0.8.1', 
+          'jupyter>=1.0.0', 
+          'matplotlib>=3.3.2', 
+          'numpy>=1.19.2', 
+          'osmnx>=0.16.2', 
+          'pandas>=1.1.2', 
+          'rtree>=0.9.4', 
+          'seaborn>=0.11.0', 
+          'scipy>=1.5.2',
+          'shapely>=1.7.1'] ## external packages as dependencies (versions have been tested, might also work with more recent versions)
 LICENSE='GNU GPL v3.0'
 
 ## check for readme file, otherwise use description as long_description
