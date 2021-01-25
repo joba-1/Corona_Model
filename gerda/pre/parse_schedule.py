@@ -4,7 +4,7 @@ import numpy.random as npr
 def parse_schedule(file_name):
     schedules = {}  # {age (upper_bound): [[schedule1,schedule2],[p1,p2]]}
     input_file = None
-    with open('data/schedules/'+file_name+'.csv', 'r') as f:
+    with open('input_data/schedules/'+file_name+'.csv', 'r') as f:
         input_file = f.readlines()
     del(input_file[0])
 
