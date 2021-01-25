@@ -570,11 +570,11 @@ def get_simualtion_settings(options):
         input_parameter_dict['number'] = 100
 
     if options.world:
-        input_parameter_dict['modeledWorld'] = vpm_save_load.load_simulation_object(
+        input_parameter_dict['modeledWorld'] = vpm_save_load.load_world_object(
             world_files[options.world], folder=input_folder)
     else:
         # '/home/basar/corona_simulations/saved_objects/worlds')
-        input_parameter_dict['modeledWorld'] = vpm_save_load.load_simulation_object(
+        input_parameter_dict['modeledWorld'] = vpm_save_load.load_world_object(
             world_files[0], folder=input_folder)
 
     if options.folder:  # number of simulations
