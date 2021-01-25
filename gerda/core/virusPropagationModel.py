@@ -79,7 +79,7 @@ class ModeledPopulatedWorld(object):
         self.location_types = self.get_location_types()
         self.schedule_types = self.get_schedule_types()
 
-    def save(self, filename, obj_type_suffix=True, date_suffix=True, folder='models/simulations/'):
+    def save(self, filename, obj_type_suffix=True, date_suffix=False, folder='models/worlds/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -517,7 +517,7 @@ class Simulation(object):
         random.seed(self.random_seed)
         npr.seed(self.random_seed)
 
-    def save(self, filename, date_suffix=True, folder='models/simulations/'):
+    def save(self, filename, obj_type_suffix=True,  date_suffix=False, folder='models/simulations/'):
         """
         wrapper for VPM_save_and_load.save_simulation_object
         :param obj_type_suffix: flag for saving the type of the object in the name of the file
@@ -525,9 +525,9 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            save_simulation_object(self, filename + '_simulationObj', date_suffix, folder=folder)
+            vpm_save_load.save_simulation_object(self, filename + '_simulationObj', date_suffix, folder=folder)
         else:
-            save_simulation_object(self, filename, date_suffix, folder=folder)
+            vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
     def set_homogeneous_mixing(self, mixing_loc_type='mixing_loc', home_quarantine=True):
         """
