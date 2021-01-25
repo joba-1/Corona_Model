@@ -60,7 +60,8 @@ class TestVPM(unittest.TestCase):
             'testingsavemw')
         self.sim1_from_loaded_world1 = Simulation(self.loaded_mod_world1, 100)
         self.sim1_from_loaded_world1.save('testingsavesim', date_suffix=False)
-        self.loaded_sim1 = load_simulation_object('testingsavesim')
+        self.loaded_sim1 = vpm_save_load.load_simulation_object(
+            'testingsavesim')
         self.simulation1.plot_status_timecourse()
         self.sim1_from_loaded_world1.plot_status_timecourse()
         self.loaded_sim1.plot_status_timecourse()
