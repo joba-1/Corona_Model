@@ -28,7 +28,7 @@ def wait_for_write(file_path):
         time.sleep(1)
 
 
-def save_simulation_object(saving_object, filename, date_suffix=False, folder='saved_objects/'):
+def save_simulation_object(saving_object, filename, date_suffix=False, folder='models/simulations/'):
     """
     pickles passed object to saved_objects/filename+date+time+'.pkl'
     :param saving_object: object(modeledPopulatedWorld or Simulation) to be saved
@@ -44,7 +44,7 @@ def save_simulation_object(saving_object, filename, date_suffix=False, folder='s
         pickle.dump(saving_object, f)
 
 
-def load_simulation_object(filename, folder='saved_objects/'):
+def load_simulation_object(filename, folder='models/simulations/'):
     """
     :param filename: string of filename in saved_objects directory
     :return: object deserialised from pickle

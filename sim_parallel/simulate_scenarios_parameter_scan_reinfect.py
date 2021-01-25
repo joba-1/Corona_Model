@@ -9,6 +9,7 @@ import pickle
 import random
 
 import numpy as np
+import gerda.utilities.VPM_save_and_load as vpm_save_load
 
 from multiprocessing import Pool
 from gerda.core.virusPropagationModel import *
@@ -569,11 +570,11 @@ def get_simualtion_settings(options):
         input_parameter_dict['number'] = 100
 
     if options.world:
-        input_parameter_dict['modeledWorld'] = load_simulation_object(
+        input_parameter_dict['modeledWorld'] = vpm_save_load.load_simulation_object(
             world_files[options.world], folder=input_folder)
     else:
         # '/home/basar/corona_simulations/saved_objects/worlds')
-        input_parameter_dict['modeledWorld'] = load_simulation_object(
+        input_parameter_dict['modeledWorld'] = vpm_save_load.load_simulation_object(
             world_files[0], folder=input_folder)
 
     if options.folder:  # number of simulations
@@ -697,7 +698,7 @@ def generate_scenario_list(used_scenario, number):
 if __name__ == '__main__':
 
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'saved_objects/new_sim_obj/'
+    input_folder = 'models/new_sim_obj/'
     world_name = 'new_sim_obj_partial_imnty_sus_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
