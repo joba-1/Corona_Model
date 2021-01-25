@@ -1,8 +1,9 @@
 import unittest
-from gerda.core.virusPropagationModel import *
 import glob
 import os
+import gerda.utilities.VPM_save_and_load as vpm_save_load
 
+from gerda.core.virusPropagationModel import *
 
 class TestVPM(unittest.TestCase):
 
@@ -55,7 +56,8 @@ class TestVPM(unittest.TestCase):
 
     def test_import_export_objects(self):
         self.modeledWorld1.save('testingsavemw', date_suffix=False)
-        self.loaded_mod_world1 = load_simulation_object('testingsavemw')
+        self.loaded_mod_world1 = vpm_save_load.load_simulation_object(
+            'testingsavemw')
         self.sim1_from_loaded_world1 = Simulation(self.loaded_mod_world1, 100)
         self.sim1_from_loaded_world1.save('testingsavesim', date_suffix=False)
         self.loaded_sim1 = load_simulation_object('testingsavesim')
