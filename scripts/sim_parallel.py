@@ -699,6 +699,7 @@ def generate_scenario_list(used_scenario, number):
 
 if __name__ == '__main__':
 
+    options = getOptions(sys.argv[1:])
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
     input_folder = 'models/new_sim_obj/'
     world_name = 'new_sim_obj_partial_imnty_sus_'
@@ -706,7 +707,6 @@ if __name__ == '__main__':
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder
     world_files = [x for x in world_list if x.endswith('pkl')]
-    options = getOptions(sys.argv[1:])
     #scenario_type, cores, number, modeledWorld, output_folder, parameter, p_range, disobedience, reinfections, reinfection_times, product, mu
     input_parameter_dict = get_simualtion_settings(options)
     used_scenario = scenarios[input_parameter_dict['scenario_type']]
