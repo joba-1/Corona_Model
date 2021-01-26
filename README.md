@@ -13,33 +13,20 @@ Only this version or newer versions of python are supported. However, if you run
 For code checkout, you need git.
 We are developing on linux and on mac, currently we are working on windows compatibility as well.
 
-### Quick setup using conda
-Follow these three steps to make use of the virtual environment provided in the repository for a quick and optimal setup.
+### Quick setup using pip
+
 1. First, clone this repository to your local machine if you have not done so yet.
     ```
     git clone https://ford.biologie.hu-berlin.de/jwodke/corona_model.git
     ```
 
-2. Then, make sure you have Anaconda/Miniconda3 installed by running the following code in your terminal
+2. To allow running of the different notebooks (compare section 'Usage') and other parts of the GERDA code, please install the gerda package via pip by going to the main folder of your cloned repository and using the following command in the terminal/command line:
     ```
-    conda --v
+    pip install -e .
     ```
-    This should return something like `conda 4.X.X`. If it doesn't, [install the latest Miniconda3](https://docs.conda.io/en/latest/miniconda.html). \
-    To make sure you have the latest version, run
-    ```
-    conda update conda
-    ```
-    If you don't want to permanently activate the conda base environment,
-    run following command (after opening a new shell/relogin):
-    ```
-    conda config --set auto_activate_base false
-    ```
-    This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
 
-3. Then run the following pieces of code to set up the local environment:
-    ```
-    cd /path/to/this/repository
-    ```
+
+Alternatively, you can use Anaconda/Miniconda3 to use the provided virtual environment (gerdaenv.yml) by typing the following two lines in you terminal/comman line (provided that Anaconda/Miniconda3 is already installed on your machine):
     ```
     conda env create --file gerdaenv.yml
     ```
@@ -47,11 +34,6 @@ Follow these three steps to make use of the virtual environment provided in the 
     conda activate gerdaenv
     ```
 
-### pip installation of gerda package
-To allow running of the different notebooks (compare section 'Usage') and other parts of the GERDA code, please install the gerda package via pip by going to the main folder of your cloned repository and using the following command in the terminal/command line:
-```
-pip install -e .
-```
 
 ### Testing the successful cloning of the repository and the setup of environment and installation of the gerda package
 In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
