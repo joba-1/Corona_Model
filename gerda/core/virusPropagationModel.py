@@ -87,7 +87,8 @@ class ModeledPopulatedWorld(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            vpm_save_load.save_simulation_object(self, filename + '_worldObj', date_suffix, folder=folder)
+            vpm_save_load.save_simulation_object(
+                self, filename + '_worldObj', date_suffix, folder=folder)
         else:
             vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
@@ -525,7 +526,8 @@ class Simulation(object):
         :param date_suffix: bool, whether to add date and time to filename
         """
         if obj_type_suffix:
-            vpm_save_load.save_simulation_object(self, filename + '_simulationObj', date_suffix, folder=folder)
+            vpm_save_load.save_simulation_object(
+                self, filename + '_simulationObj', date_suffix, folder=folder)
         else:
             vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
@@ -596,19 +598,27 @@ class Simulation(object):
                 p.set_stati_from_preliminary()
                 p.move(self.time)
             if incidence_threshold is not None:
-                diagnosis_count += len([1 for p in self.people if p.get_infection_info()
-                                        ['diagnosis_time'] == self.time])
-                diagnosis_count_history[self.time] = diagnosis_count
-                past_aggregate_time = self.time-incidence_aggregate
-                if past_aggregate_time <= 0:
-                    aggregate_diff = diagnosis_count
-                else:
-                    aggregate_diff = (diagnosis_count-diagnosis_count_history[past_aggregate_time])
-                if 100000*aggregate_diff/self.number_of_people >= incidence_threshold:
+                if self.determine_incidence_per100K(incidence_aggregate=incidence_aggregate, type='diagnosis') >= incidence_threshold:
                     break
         df_timecourse = pd.DataFrame(timecourse, columns=list(
             p.get_information_for_timecourse(self.time, keys_list=timecourse_keys).keys()))
         return df_timecourse
+
+    def determine_incidence_per100K(self, incidence_aggregate=168, type='diagnosis'):
+        if type == 'diagnosis':
+            infection_info_key = 'diagnosis_time'
+        elif type == 'infection':
+            infection_info_key = 'infection_time'
+
+        count += len([1 for p in self.people if p.get_infection_info()
+                      [infection_info_key] == self.time])
+        count_history[self.time] = count
+        past_aggregate_time = self.time-incidence_aggregate
+        if past_aggregate_time <= 0:
+            aggregate_diff = count
+        else:
+            aggregate_diff = (count-count_history[past_aggregate_time])
+        return(100000*aggregate_diff/self.number_of_people)
 
     def change_agent_attributes(self, input):
         """
