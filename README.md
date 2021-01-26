@@ -62,7 +62,7 @@ Note: this could take a few minutes and might result in figures popping up, whic
 
 That was it. You can now proceed to the 'Usage' part. Make sure to activate the 'gerdaenv' environment again if it is no longer activated before moving on.
 
-### Usage
+# Usage
 ## Demo jupyter notebook
 For personal demo purposes we provide a jupyter notebook [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb) for single runs (i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server). This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'. 
 
@@ -97,7 +97,7 @@ The (default) reduced version of the vaccination screens has a runtime of around
 ## Demo_new_strain jupyter notebook
 
 
-### Technical details
+# Technical details
 ## Expected run time
 Simulating large Gangelt (100% of population and buildings) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purposes, we recommend the small Gangelt (10% of population and buildings), which takes about 10 minutes on a personal desktop computer.
 
