@@ -58,6 +58,7 @@ setup(
    #include_package_data=True,
    license=LICENSE,
    url=URL,
+   scripts=['scripts/generate_worlds.py','scripts/sim_parallel.py','scripts/read_geodata.py']
    )
 
 """
