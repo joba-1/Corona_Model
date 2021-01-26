@@ -50,7 +50,7 @@ Follow these three steps to make use of the virtual environment provided in the 
 ### pip installation of gerda package
 To allow running of the different notebooks (compare section 'Usage') and other parts of the GERDA code, please install the gerda package via pip by going to the main folder of your cloned repository and using the following command in the terminal/command line:
 ```
-pip install .
+pip install -e .
 ```
 
 ### Testing the successful cloning of the repository and the setup of environment and installation of the gerda package
