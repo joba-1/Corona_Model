@@ -3,6 +3,8 @@ import glob
 import sys
 import os
 import timeit
+import matplotlib
+matplotlib.use("Agg")
 
 import numpy as np
 import matplotlib.pyplot as plt
