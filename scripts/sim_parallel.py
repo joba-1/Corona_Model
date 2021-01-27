@@ -45,7 +45,7 @@ scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed
              {'run': 0, 'max_time': 2000, 'start_2': 200, 'start_3': 500, 'closed_locs': [
                  'work', 'school'],          'reopen_locs':[],                          'infectivity':0.5, 'name':'close_work_school'},
 
-             {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 300, 'closed_locs': [],
+             {'run': 0, 'max_time': 301, 'start_2': 200, 'start_3': 300, 'closed_locs': [],
                  'reopen_locs':[],                          'infectivity':0.3, 'name':'no_mitigation_IF03'},
 
              {'run': 0, 'max_time': 3000, 'start_2': 200, 'start_3': 500, 'closed_locs': [],                         'reopen_locs':[
@@ -271,7 +271,7 @@ def get_ids_by_age(world, n, save_folder='', **kwargs):
     return ids_only
 
 def get_ids_by_age_and_interactions(world, n, save_folder='', **kwargs):
-    server_data_folder = 'outputs/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
+    server_data_folder = 'output/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_ri_1_rx_0/new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_ri_1_rx_0/'
     filename = 'new_sim_obj_no_infections_Ifreq_2_no_mitigation_IF00_None_1.000_'
     contacts = pd.read_csv(server_data_folder+filename+'contacts.csv')
     contacts_mean = contacts.groupby('ID').mean()
@@ -701,7 +701,7 @@ if __name__ == '__main__':
 
     options = getOptions(sys.argv[1:])
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
-    input_folder = 'models/new_sim_obj/'
+    input_folder = 'models/worlds/'
     world_name = 'new_sim_obj_partial_imnty_sus_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
@@ -745,13 +745,13 @@ if __name__ == '__main__':
     if used_scenario['mix']:
         scenario_and_parameter = 'mix_'+ scenario_and_parameter
 
-    collector_folder = output_folder + 'outputs/' + scenario_and_parameter + '_ri_' + \
+    collector_folder = 'output/' + output_folder + scenario_and_parameter + '_ri_' + \
         str(used_scenario['reinfections']) + '_rx_' + \
         str(len(used_scenario['reinfection_times'])) + '/'
 
     try:
-        os.mkdir(collector_folder)
-        #os.makedirs(collector_folder)
+        #os.mkdir(collector_folder)
+        os.makedirs(collector_folder)
         print('created '+collector_folder)
     except:
         print('could not create '+collector_folder)
