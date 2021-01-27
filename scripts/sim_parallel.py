@@ -895,7 +895,7 @@ if __name__ == '__main__':
         #plot_and_save_r_eff(r_eff_list, save_figure=True, **kwargs_plot)
         #plot_and_save_encounters(encounters_number_list,  save_figure=True, **kwargs_plot)
         #plot_and_save_contacts(contacts_list, used_scenario['modeledWorld'],  save_figure=True, **kwargs_plot)
-        
+
 
         save_number_of_infected_households(number_of_infected_households_list, **kwargs_plot)
         save_infection_timecourse(infection_timecourse_list, **kwargs_plot)
@@ -930,5 +930,5 @@ if __name__ == '__main__':
 
         #del(currentWorld)
 
-    print(df_dict_list)
+    #print(df_dict_list)
     print('time:  ', stop-start)
