@@ -1,4 +1,4 @@
-# GEospacially Referenced Demographic Agent-based (*GERDA*)
+# *GERDA* - GEospacially Referenced Demographic Agent-based model
 ## A model for virus (SARS-CoV-2) transmission and disease (COVID-19) progression
 (c) Theretical Biophysics, Humboldt-Universität zu Berlin
 
@@ -117,7 +117,7 @@ Simulating Gangelt (100% of population and buildings, [input file](https://ford.
 
 ## Integration of external data
 Transition probabilities and time-dependent infectiousness:\
-Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files are found in direction ```./input_data/case_numbers/```.
+Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
 
 <!---
 Location factors:\
