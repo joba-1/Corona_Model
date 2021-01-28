@@ -5,7 +5,7 @@
 ## General Information
 The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
 
-This model is maintained by the [Klipp lab for theoretical biophysics](https://rumo.biologie.hu-berlin.de/tbp/index.php/en/) at the Humboldt Universität zu Berlin. For questions and feedback, please contact us [:email:](mailto:bjoern.goldenbogen.1@biologie.hu-berlin.de)
+This model is maintained by the [Klipp lab for theoretical biophysics](https://rumo.biologie.hu-berlin.de/tbp/index.php/en/) at the Humboldt Universität zu Berlin. For questions and feedback, please contact us [:email:](mailto:bjoern.goldenbogen.1@biologie.hu-berlin.de).
 
 The code in this repository was implemented and tested using python 3.7 on linux and mac operating systems. If you do not have Python installed, please checkout [Python webpage](https://www.python.org/downloads/) for installation information.
 
@@ -30,7 +30,7 @@ However, this is not required and it has no effect to the ability to work with c
 
 Then run the following commands in your local GERDA directory (you can replace 'gerdaenv' by your name of choice):    
     
-    conda create -n gerdaenv python=3.8 geopandas
+    conda create -n gerdaenv python=3.8
     
     conda activate gerdaenv
 
@@ -117,7 +117,7 @@ Simulating Gangelt (100% of population and buildings, [input file](https://ford.
 
 ## Integration of external data
 Transition probabilities and time-dependent infectiousness:\
-Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific.
+Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files are found in direction ```./input_data/case_numbers/```.
 
 <!---
 Location factors:\
@@ -127,6 +127,9 @@ CHECK BACK IF THIS REFERS TO ./input_data/coefficients/location_coefficients.csv
 --->
 Geodata:\
 Files with geo-information for each modelled world which are required to initiate the respective world are found as csv-files in the directory ```./input_data/geo/```.
+
+Demographic information:\
+We used data about household sizes and household compositions from the German Zensus 2011 to initialize demographically reasonable agent populations. The corresponding input files are found in directory ```./input_data/demographics```.
 
 Schedule Definition:\
 The schedules which define agent-routines are provided as csv-files in the directory ```./input_data/schedules/```.
