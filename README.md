@@ -41,7 +41,7 @@ We are developing on linux and on mac, currently we are working on windows compa
     cd /path/to/this/repository
     ```
     ```
-    conda env create --file gerdaenv.yml
+    conda env create -m gerdaenv python=3.8
     ```
     ```
     conda activate gerdaenv
@@ -54,9 +54,9 @@ We are developing on linux and on mac, currently we are working on windows compa
 
 ### Testing the successful cloning of the repository and the setup of environment and installation of the gerda package
 In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
-```
-python3 testrunner.py
-```
+    ```
+    python3 -m testing.testrunner
+    ```
 Note: this could take a few minutes and might result in figures popping up, which have to be closed manually after inspection.
 
 That was it. You can now proceed to the 'Usage' part. Make sure to activate the 'gerdaenv' environment again if it is no longer activated before moving on.
@@ -72,24 +72,24 @@ For personal demo purposes we provide differenet jupyter notebooks (ipynb-files)
 To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type "jupyter notebook" or "jupyter-notebook"), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
-This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
+This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.
 
 This notebook contains the following code blocks:
-1. importing required libraries and initializing a dictionary for the real world communities that can be used)\
-2. "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)\
-3. "Info on world" - plot of age distribution + information on infected agents\
+1. importing required libraries and initializing a dictionary for the real world communities that can be used)
+2. "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+3. "Info on world" - plot of age distribution + information on infected agents
 4. "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
 ### [Demo_Vaccination.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_Vaccination.ipynb)
-In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.
 
 This notebook contains the following code blocks:
-1. importing required libraries and initializing a dictionary for the real world communities that can be used) "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+1. importing required libraries and initializing a dictionary for the real world communities that can be used: "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
 2. Running an initial infection-wave to be used in defining one of the tested strategies
 	—> Be aware that here exists a checkpoint for the user 
-3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies.
-4. Running simulations with different vaccination-fractions of the population, for the different strategies.
-5. Generating a plot, resembling figure 3 in our manuscript.
+3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies
+4. Running simulations with different vaccination-fractions of the population, for the different strategies
+5. Generating a plot, resembling figure 3 in our manuscript
 
 Please be aware, that we set the default world to be used to the small version, in order to avoid excessive runtimes for this demonstration. 
 Since this world is not fully representative to the large world, we used for the manuscript; the infection-dynamics differ and thus the results of the vaccintion-screens do too.
@@ -98,12 +98,14 @@ Furthermore we have set the vaccination-fraction increments to 20% (where we use
 The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
 
 ### [Demo_new_strain.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_new_strain.ipynb)
-This notebook allows to consider not only the propagation of the original SARS-CoV-2 virus but also of the recently found (end of 2020) mutated variant originating from Great Britain. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
+This notebook allows to consider not only the propagation of the original SARS-CoV-2 virus but also of the recently found (end of 2020) mutated variant originating from Great Britain. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.
 
  DESCRIPTION OF NOTEBOOK STILL REQUIRED.
 
 ## Executable scripts
-For advanced users, the reporsitory provides the following directly executable scripts in direction './scripts/':
+For advanced users, the reporsitory provides the following directly executable scripts in direction './scripts/'. Help functionality (--help or -h) is enabled for all of those scripts.
+
+CHECK BACK IF FILE DESCRIPTIONS ARE SUFFICIENT
 
 ### generate_worlds.py
 This script allows to generate gerda worlds, the required prerequisite for simulating virus propagation throughout a defined community.
@@ -126,11 +128,10 @@ Hourly transition probabilities between agent states and hourly infection-emissi
 Location factors:\
 File with relative infectivities for different location-types (Currently default-factor 1 for all location-types).
 
+CHECK BACK IF THIS REFERS TO ./input_data/coefficients/location_coefficients.csv
+
 Geodata:\
 Files with geo-information on each world to be modelled to initiate world are found as csv-files in the directory './input_data/geo/'.
 
 Schedule Definition:\
 The schedules, which define agent-routines are provided as csv-files in the directory './input_data/schedules/'.
-
-## Disclaimer
-Files not mentioned in this README are required but can be ignored by any non-developer. We still have to update our folder structure and apologize for any resulting confusion.
