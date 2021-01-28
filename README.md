@@ -41,7 +41,7 @@ We are developing on linux and on mac, currently we are working on windows compa
     cd /path/to/this/repository
     ```
     ```
-    conda env create -m gerdaenv python=3.8
+    conda create -n gerdaenv python=3.8
     ```
     ```
     conda activate gerdaenv
