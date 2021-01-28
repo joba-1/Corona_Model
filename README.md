@@ -117,7 +117,7 @@ Simulating Gangelt (100% of population and buildings, [input file](https://ford.
 
 ## Integration of external data
 Transition probabilities and time-dependent infectiousness:\
-Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
+Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration and representing the default data, used in our study are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
 
 <!---
 Location factors:\
@@ -126,10 +126,11 @@ File with relative infectivities for different location-types (Currently default
 CHECK BACK IF THIS REFERS TO ./input_data/coefficients/location_coefficients.csv
 --->
 Geodata:\
-Files with geo-information for each modelled world which are required to initiate the respective world are found as csv-files in the directory ```./input_data/geo/```.
+Files with geo-information for each modelled world which are required to initiate the respective world are found as csv-files in the directory ```./input_data/geo/```.\ 
+For the two communities mainly used in our studies, Gangelt and Heinsberg, we provide two different geo-information files, one reflecting the entire community and population, one representing only 10% of the buildings and population. The reduced geofile can be used for faster testing of model features.
 
 Demographic information:\
-We used data about household sizes and household compositions from the German Zensus 2011 to initialize demographically reasonable agent populations. The corresponding input files are found in directory ```./input_data/demographics```.
+We used data about household sizes and household compositions from the German Zensus 2011 to initialize demographically reasonable agent populations and household compositions. The corresponding input files are found in directory ```./input_data/demographics```.
 
 Schedule Definition:\
 The schedules which define agent-routines are provided as csv-files in the directory ```./input_data/schedules/```.
