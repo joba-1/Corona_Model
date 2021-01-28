@@ -111,10 +111,6 @@ This script generates gerda worlds, required for repeated simulation of virus pr
 This script runs several parallel simulations (using the same world and the same input parameters) on a multi-core computer. This allows to account for the inherent stochasticity of gerda models and provides a more reliable simulation output than a single run.
 Note: Simulations are memory expensive. We use AMD-based servers with 96 cores and 512 GB RAM for most simulations. As the bottleneck is the RAM, for larger/longer simulations (e.g. >10000 agents for >=2000 time steps) we can use just 24 cores.
 
-# Technical details
-## Expected run time
-Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about 10 minutes on a personal desktop computer.
-
 ## Integration of external data
 Transition probabilities and time-dependent infectiousness:\
 Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration and representing the default data, used in our study are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
@@ -134,3 +130,9 @@ We used data about household sizes and household compositions from the German Ze
 
 Schedule Definition:\
 The schedules which define agent-routines are provided as csv-files in the directory ```./input_data/schedules/```.
+
+# Technical details
+## Expected run time
+Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about 10 minutes on a personal desktop computer.
+
+
