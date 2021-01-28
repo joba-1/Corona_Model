@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 ## define setup variables
 NAME='gerda'
 VERSION='2.0'
-DESCRIPTION='A GEospacially Referenced Demographic Agent-based (GERDA) model for virus (SARS-CoV-2) transmission and disease (COVID-19) progression.'
+DESCRIPTION='GEospacially Referenced Demographic Agent-based (GERDA) model for virus (SARS-CoV-2) transmission and disease (COVID-19) progression.'
 LONG_description=''
 AUTHOR=['Björn Goldenbogen', 
         'Stephan O. Adler', 
