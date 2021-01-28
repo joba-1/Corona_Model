@@ -483,26 +483,10 @@ def simulate_scenario(input_dict):
 
         if not simulation1.time+1 == max_time:
             simulation1.time_steps = times[i+1]-t
-            for p in simulation1.people:
-                if p.loc not in simulation1.locations.values():
-                    print('ploc:',p.loc.ID,'; ltype:',p.loc.location_type,'; agent:',p.ID,'; diagnosed:',p.diagnosed,'; was diagnosed:',p.was_diagnosed)
-                    print('times:', p.stati_times)
-                    print(simulation1.locations[p.loc.ID].location_type)
-                    print(id(simulation1.locations[p.loc.ID]), id(p.loc))
-                else:
-                    print('no additional locations found')
             # print(simulation1.time_steps)
             print(simulation1.time)
             simulation1.simulate(timecourse_keys=timecourse_keys)
             # simulation1.simulate()
-        for p in simulation1.people:
-            if p.loc not in simulation1.locations.values():
-                print('ploc:',p.loc.ID,'; ltype:',p.loc.location_type,'; agent:',p.ID,'; diagnosed:',p.diagnosed,'; was diagnosed:',p.was_diagnosed)
-                print('times:', p.stati_times)
-                print(simulation1.locations[p.loc.ID].location_type)
-                print(id(simulation1.locations[p.loc.ID]), id(p.loc))
-            else:
-                print('no additional locations found')
 
     # print(my_dict['name']+'_'+str(my_dict['run']))
     print(name+'_'+str(my_dict['run']))
