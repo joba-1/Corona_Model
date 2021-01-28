@@ -13,20 +13,33 @@ Only this version or newer versions of python are supported. However, if you run
 For code checkout, you need git.
 We are developing on linux and on mac, currently we are working on windows compatibility as well.
 
-### Quick setup using pip
+### Quick setup using Anaconda/Miniconda3 and pip from terminal/command line
 
 1. First, clone this repository to your local machine if you have not done so yet.
     ```
     git clone https://ford.biologie.hu-berlin.de/jwodke/corona_model.git
     ```
 
-2. To allow running of the different notebooks (compare section 'Usage') and other parts of the GERDA code, please install the gerda package via pip by going to the main folder of your cloned repository and using the following command in the terminal/command line:
+2. Then, make sure you have Anaconda/Miniconda3 installed by running the following code in your terminal
     ```
-    pip install -e .
+    conda --v
     ```
+    This should return something like `conda 4.X.X`. If it doesn't, [install the latest Miniconda3](https://docs.conda.io/en/latest/miniconda.html). \
+    To make sure you have the latest version, run
+    ```
+    conda update conda
+    ```
+    If you don't want to permanently activate the conda base environment,
+    run following command (after opening a new shell/relogin):
+    ```
+    conda config --set auto_activate_base false
+    ```
+    This has no effect to the work with conda, (the "conda" command is available), but after the login you have the "normal" python environment.
 
-
-Alternatively, you can use Anaconda/Miniconda3 to use the provided virtual environment (gerdaenv.yml) by typing the following two lines in you terminal/comman line (provided that Anaconda/Miniconda3 is already installed on your machine):
+3. Then run the following pieces of code to set up the local environment:
+    ```
+    cd /path/to/this/repository
+    ```
     ```
     conda env create --file gerdaenv.yml
     ```
@@ -34,6 +47,10 @@ Alternatively, you can use Anaconda/Miniconda3 to use the provided virtual envir
     conda activate gerdaenv
     ```
 
+4. Finally, to allow import-error free running of the different notebooks (compare section 'Usage') and other parts of the GERDA code (e.g. executable scripts, compare section 'Usage'), please install the gerda package via pip by going to the main folder of your cloned repository and using the following command:
+    ```
+    pip install -e .
+    ```
 
 ### Testing the successful cloning of the repository and the setup of environment and installation of the gerda package
 In case you want to test if the environment setup worked correctly, you can run our test suite and see if you get any errors with the following command
@@ -45,8 +62,17 @@ Note: this could take a few minutes and might result in figures popping up, whic
 That was it. You can now proceed to the 'Usage' part. Make sure to activate the 'gerdaenv' environment again if it is no longer activated before moving on.
 
 # Usage
-## Demo jupyter notebook
-For personal demo purposes we provide a jupyter notebook [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb) for single runs (i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server). This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'. 
+There are several ways to use the provided code and simulate virus propagation throughout defined communities using gerda models (compare subsections 'Demo notebooks' and 'Executable scripts' below).\
+For parallel computing on high end memory servers, we provide a directly executable script sim_parallel.py (compare below) in directory './scripts/'. We use AMD-based servers with 96 cores and 512 GB RAM. In general, you need a lot of RAM, depending on your input data files and other settings. As the bottleneck is the RAM, for longer simulations (e.g. >10000 agents for >=2000 time steps) we can use just 24 cores.
+
+For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
+
+## Demo jupyter notebooks
+For personal demo purposes we provide differenet jupyter notebooks (ipynb-files) for testing different features of gerda models in single runs, i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server.\
+To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type "jupyter notebook" or "jupyter-notebook"), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
+
+### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
+This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used)\
@@ -54,14 +80,9 @@ This notebook contains the following code blocks:
 3. "Info on world" - plot of age distribution + information on infected agents\
 4. "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
-To use it, start jupyter notebook (e.g. in the terminal with the activated gerdaenv type "jupyter notebook"), navigate to the corona_model directory and select "Demo.ipynb". To run the full simulation, click on "Cell --> Run All" or run cells individually.
+### [Demo_Vaccination.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_Vaccination.ipynb)
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
 
-For parallel computing on high end memory servers, we provide different other scripts, simulate_scenarios*.py (* = wildcard character) in directory './sim_parallel/'. We use AMD-based servers with 96 cores and 512 GB RAM. In general, you need a lot of RAM, depending on your input data files and other settings. As the bottleneck is the RAM, for longer simulations (>10000 agents for >=2000 time steps) we can use just 24 cores.
-
-For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
-
-## Demo_Vaccination jupyter notebook
-In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to get familiar with the Demo notebook first, in order to get an intuition for our model and its basic application and characteristics. 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used) "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
 2. Running an initial infection-wave to be used in defining one of the tested strategies
@@ -76,7 +97,22 @@ Furthermore we have set the vaccination-fraction increments to 20% (where we use
 
 The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
 
-## Demo_new_strain jupyter notebook
+### [Demo_new_strain.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_new_strain.ipynb)
+This notebook allows to consider not only the propagation of the original SARS-CoV-2 virus but also of the recently found (end of 2020) mutated variant originating from Great Britain. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
+
+ DESCRIPTION OF NOTEBOOK STILL REQUIRED.
+
+## Executable scripts
+For advanced users, the reporsitory provides the following directly executable scripts in direction './scripts/':
+
+### generate_worlds.py
+This script allows to generate gerda worlds, the required prerequisite for simulating virus propagation throughout a defined community.
+
+### read_geodata.py
+This script creates the georeferenced input data files (.geojson, .csv files) required to rebuild a georeferenced gerda world with generate_worlds.py.
+
+### sim_parallel.py
+This script allows to run several parallel simulations (using the same world and the same input parameters) on a big server. This allows to account for the inherent stochasticity of gerda models and provides a more reliable simulation output than a single run.
 
 
 # Technical details
