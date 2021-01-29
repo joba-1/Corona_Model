@@ -34,7 +34,12 @@ Then run the following commands in your local GERDA directory (you can replace '
     
     conda activate gerdaenv
 
+For windows (10) please install geopandas in the created environment via conda:
+
+    conda install geopandas    
+
 Now, please proceed as described in [Quick install](#quick-install)
+
 
 ### Quick install
 If you are not already there, please navigate to your GERDA repository directory on your local machine, e.g. ``` mypath/GERDA/```. To assure the correct package dependencies (required!), please install the gerda package via pip:
@@ -99,7 +104,7 @@ This notebook allows to consider not only the propagation of the original SARS-C
 --->
 ## Executable scripts
 The reporsitory provides the following directly executable scripts in direction './scripts/'. Help functionality (--help or -h) is enabled for all of those scripts.\
-If installed in [Conda](#installing-in-conda-environment-recommended) environment, those scripts can be directly executed from the main directory (e.g. ```generate_worlds.py -h```), in case of the [Quick install](#quick-install), the path starting from the repository main directory is required (e.g. ```scripts/generate_worlds.py -h```).
+If installed in [Conda](#installing-in-conda-environment-recommended) environment, those scripts can be directly executed from the main directory (e.g. ```generate_worlds.py -h```), in case of the [Quick install](#quick-install), the path starting from the repository main directory is required (e.g. ``` python scripts/generate_worlds.py -h```).
 
 ### read_geodata.py
 This script creates the georeferenced input data files (.geojson, .csv files) required to rebuild a georeferenced gerda world with ```generate_worlds.py```. Geodata files are stored in ```./input_data/geo``` by default.
