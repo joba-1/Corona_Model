@@ -32,6 +32,12 @@ REQUIRED=['geopandas>=0.8.1',
           'scipy>=1.5.2',
           'shapely>=1.7.1'] ## external packages as dependencies (versions have been tested, might also work with more recent versions)
 LICENSE='GNU GPL v3.0'
+SCRIPTS=[
+       'scripts/generate_worlds.py',
+       'scripts/sim_parallel.py',
+       'scripts/read_geodata.py',
+       'testing/testrunner.py'
+       ]
 
 ## check for readme file, otherwise use description as long_description
 here = os.path.abspath(os.path.dirname(__file__))
@@ -58,12 +64,7 @@ setup(
    #include_package_data=True,
    license=LICENSE,
    url=URL,
-   scripts=[
-       'scripts/generate_worlds.py',
-       'scripts/sim_parallel.py',
-       'scripts/read_geodata.py',
-       'testing/testrunner.py'
-       ]
+   scripts=SCRIPTS
    )
 
 """
