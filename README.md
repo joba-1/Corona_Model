@@ -30,14 +30,15 @@ However, this is not required and it has no effect to the ability to work with c
 
 Then run the following commands in your local GERDA directory (you can replace 'gerdaenv' by your name of choice):    
     
-    conda create -n gerdaenv python=3.8
+    conda create -n gerdaenv python=3.8 geopandas
     
     conda activate gerdaenv
 
-For windows (10) please install geopandas in the created environment via conda:
+<!---For windows (10) please install geopandas in the created environment via conda:
 
     conda install geopandas    
 
+--->
 Now, please proceed as described in [Quick install](#quick-install)
 
 
