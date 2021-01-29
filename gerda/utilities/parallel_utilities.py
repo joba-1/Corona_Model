@@ -3,6 +3,8 @@ import glob
 import sys
 import os
 import timeit
+import matplotlib
+matplotlib.use("Agg")
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -216,10 +218,8 @@ def plot_and_save_patterns(df_list, save_figure=True,
     plt.ylabel(pattern+' object (age-groups)')
     #plt.show()
     if save_figure:
-        plt.savefig(output_folder+'plots/' + filename +
-                    '_age_group_dependent_'+pattern+'_patterns.svg', bbox_inches='tight')
-        plt.savefig(output_folder+'plots/' + filename +
-                    '_age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
+        plt.savefig(output_folder+'plots/' + filename +'_age_group_dependent_'+pattern+'_patterns.svg', bbox_inches='tight')
+        plt.savefig(output_folder+'plots/' + filename +'_age_group_dependent_'+pattern+'_patterns.png', bbox_inches='tight')
     plt.close()                
     Interaction_Patterns.to_csv(
         output_folder+filename + '_' + 'age_group_dependent' + '_' + pattern+'_patterns.csv')
