@@ -141,12 +141,22 @@ try:
     graph = ox.graph_from_place(places[loc][0])
     area = ox.gdf_from_place(places[loc][0])
 
+    # save gdf as geojason objects
+    area.to_file('Area_'+places[loc][0].split(',')[0].replace(' ', '_') +
+             '_MA_'+str(min_area).replace('.', '_')+'.geojson', driver='GeoJSON')
+    print('generate: input_data/geo/Area_' +
+          places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
 except:
     print('graph and or area not passed')
+
 try:
     # traffic network
     edges = ox.graph_to_gdfs(graph, nodes=False)
     streets = edges[['access', 'geometry']].copy()  # saving without this caused problems
+    streets.to_file('Streets_'+places[loc][0].split(',')[0].replace(' ', '_') +
+                    '_MA_'+str(min_area).replace('.', '_')+'.geojson', driver='GeoJSON')
+    print('generate: input_data/geo/Streets_' +
+          places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
 except:
     print('streets not passed')
 
@@ -182,17 +192,6 @@ red_buildings['neighbourhood'] = neighbourhoods
 
 locations = exclude_small_buildings(red_buildings, min_area)
 
-# save gdf as geojason objects
-area.to_file('Area_'+places[loc][0].split(',')[0].replace(' ', '_') +
-             '_MA_'+str(min_area).replace('.', '_')+'.geojson', driver='GeoJSON')
-# streets export is buggy, thus small catcher build
-try:
-    streets.to_file('Streets_'+places[loc][0].split(',')[0].replace(' ', '_') +
-                    '_MA_'+str(min_area).replace('.', '_')+'.geojson', driver='GeoJSON')
-    print('generate: input_data/geo/Streets_' +
-          places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
-except:
-    pass
 locations.to_file('Buildings_'+places[loc][0].split(',')[0].replace(' ', '_') +
                   '_MA_'+str(min_area).replace('.', '_')+'.geojson', driver='GeoJSON')
 df = pd.DataFrame(locations)
@@ -201,7 +200,5 @@ df.to_csv('Buildings_'+places[loc][0].split(',')[0].replace(' ',
 
 print('generate: input_data/geo/Buildings_' +
       places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.csv')
-print('generate: input_data/geo/Area_' +
-      places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
 print('generate: input_data/geo/Buildings_' +
       places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
