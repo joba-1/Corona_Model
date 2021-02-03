@@ -1,8 +1,0 @@
-Files to fix imports:
-CORE:
-
-UTILITIES:
-utilities/save_tcs_from_simobject.py delete!
-
-sim_parallel:
-all

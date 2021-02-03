@@ -8,27 +8,27 @@ NAME='gerda'
 VERSION='2.0'
 DESCRIPTION='GEospacially Referenced Demographic Agent-based (GERDA) model for virus (SARS-CoV-2) transmission and disease (COVID-19) progression.'
 LONG_description=''
-AUTHOR=['Björn Goldenbogen', 
-        'Stephan O. Adler', 
-        'Oliver Bodeit', 
-        'Judith A.H. Wodke', 
-        'Aviv Korman', 
-        'Lasse Bonn', 
-        'Johanna E.L. Haffner', 
-        'Maxim Karnetzki', 
-        'Ivo Maintz', 
+AUTHOR=['Björn Goldenbogen',
+        'Stephan O. Adler',
+        'Oliver Bodeit',
+        'Judith A.H. Wodke',
+        'Aviv Korman',
+        'Lasse Bonn',
+        'Johanna E.L. Haffner',
+        'Maxim Karnetzki',
+        'Ivo Maintz',
         'Martin Seeger']
 EMAIL=['bjoern.goldenbogen@hu-berlin.de','edda.klipp@hu-berlin.de']
 URL='https://tbp-klipp.science/GERDA/code/'
 REQUIRES_PYTHON='>=3.6.9' ## with this version everything got tested
-REQUIRED=['geopandas>=0.8.1', 
-          'jupyter>=1.0.0', 
-          'matplotlib>=3.3.2', 
-          'numpy>=1.19.2', 
-          'osmnx>=0.16.2', 
-          'pandas>=1.1.2', 
-          'rtree>=0.9.4', 
-          'seaborn>=0.11.0', 
+REQUIRED=['geopandas>=0.8.1',
+          'jupyter>=1.0.0',
+          'matplotlib>=3.3.2',
+          'numpy>=1.19.2',
+          'osmnx==0.16.2',
+          'pandas>=1.1.2',
+          'rtree>=0.9.4',
+          'seaborn>=0.11.0',
           'scipy>=1.5.2',
           'shapely>=1.7.1'] ## external packages as dependencies (versions have been tested, might also work with more recent versions)
 LICENSE='GNU GPL v3.0'
