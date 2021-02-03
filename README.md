@@ -30,7 +30,7 @@ However, this is not required and it has no effect to the ability to work with c
 
 Then run the following commands in your local GERDA directory (you can replace 'gerdaenv' by your name of choice):    
     
-    conda create -n gerdaenv python=3.8 geopandas osmnx
+    conda create -n gerdaenv python=3.8 geopandas
     
     conda activate gerdaenv
 
