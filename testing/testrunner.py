@@ -8,7 +8,7 @@ from gerda.core.virusPropagationModel import *
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(initial_infections=10,world_from_file=True, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv')
+        self.modeledWorld1 = ModeledPopulatedWorld(initial_infections=10, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv')
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_modeled_pop_world_plotting(self):
