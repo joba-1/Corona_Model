@@ -325,13 +325,12 @@ def plot_status_timecourse(simulation_object, specific_statuses=None, specific_p
 def plot_age_groups_status_timecourse(simulation_object, age_groups_step=10, save_figure=False):
     trajectories_df = simulation_object.get_distribution_of_statuses_per_age(
         age_groups_step=age_groups_step)
-    fig = plt.figure()
-    nr_of_figure_rows = round(age_groups_step / 2, 0) + (age_groups_step % 2)
-    fig.set_figwidth(9)
-    fig.set_figheight(3*nr_of_figure_rows)
+    nr_of_figure_rows = int(round(age_groups_step / 2, 0) + (age_groups_step % 2))
+    fig, axes = plt.subplots(nr_of_figure_rows, 2, figsize=(9, 3*nr_of_figure_rows))
+    all_axes = axes.flatten()
     for i, age_group_category in enumerate(trajectories_df.index.get_level_values(0).categories):
         age_group_df = trajectories_df.loc[age_group_category]
-        ax = fig.add_subplot(nr_of_figure_rows, 2, i+1)
+        ax = all_axes[i]
         statuses = age_group_df.columns
         for status in statuses:
             ax.plot(age_group_df.index.get_level_values('time'),
