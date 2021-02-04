@@ -3,11 +3,11 @@
 (c) Theretical Biophysics, Humboldt-Universität zu Berlin
 
 ## General Information
-The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
+The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home) as well as  in our preprint, published on MedRxiv: [Goldenbogen et al. 2020a](https://www.medrxiv.org/content/10.1101/2020.05.03.20089235v2) and [Goldenbogen et al. 2020b](https://www.medrxiv.org/content/10.1101/2020.12.16.20248301v1).
 
 This model is maintained by the [Klipp lab for theoretical biophysics](https://rumo.biologie.hu-berlin.de/tbp/index.php/en/) at the Humboldt Universität zu Berlin. For questions and feedback, please contact us [:email:](mailto:bjoern.goldenbogen.1@biologie.hu-berlin.de).
 
-The code in this repository was implemented and tested using python 3.7 on linux and mac operating systems. If you do not have Python installed, please checkout [Python webpage](https://www.python.org/downloads/) for installation information.
+The code in this repository was implemented using python 3.7 on linux and mac operating systems and tested on different linux, mac and windows machines. If you do not have Python installed, please checkout [Python webpage](https://www.python.org/downloads/) for installation information.
 
 ## Setup
 For code checkout, you need gitlab. To download the repository information onto your local machine, navigate to the directory of your choice and clone this repository to your local machine if you have not done so yet (using terminal/command line):
@@ -71,7 +71,7 @@ For testing different features of gerda models in single runs, i.e. running one 
 To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type ```jupyter notebook``` or ```jupyter-notebook```), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
-This notebook contains the commands required to initialize a modeled world (using a small version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.
+This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used)
@@ -139,6 +139,6 @@ The schedules which define agent-routines are provided as csv-files in the direc
 
 # Technical details
 ## Expected run time
-Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about 10 minutes on a personal desktop computer.
+Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv)) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run of 2000 time steps. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about 10 minutes for 2000 time steps on a personal desktop computer.
 
 
