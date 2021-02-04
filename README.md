@@ -73,7 +73,8 @@ For testing different features of gerda models in single runs, i.e. running one 
 To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type ```jupyter notebook``` or ```jupyter-notebook```), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
-This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'. Running the entire notebook takes about 20 to 25 minutes.
+This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
+Please note: Running the entire notebook takes about 20 to 25 minutes.
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used)
@@ -82,7 +83,8 @@ This notebook contains the following code blocks:
 4. "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
 ### [Demo_Vaccination.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_Vaccination.ipynb)
-In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
+Please note: Running the entire notebook using the reduced Gangelt takes about 2 hours, using the complete Gangelt takes about 12 hours.
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used: "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
