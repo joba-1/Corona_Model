@@ -8,22 +8,15 @@ from gerda.core.virusPropagationModel import *
 class TestVPM(unittest.TestCase):
 
     def setUp(self):  # runs automatically before each one of the tests
-        self.modeledWorld1 = ModeledPopulatedWorld(1000, 10,
-                                                   world_from_file=True, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv',
-                                                   agent_agent_infection=True)
+        self.modeledWorld1 = ModeledPopulatedWorld(initial_infections=10, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv')
         self.simulation1 = Simulation(self.modeledWorld1, 100)
 
     def test_modeled_pop_world_plotting(self):
         self.modeledWorld1.plot_distribution_of_location_types()
         self.modeledWorld1.plot_initial_distribution_of_ages_and_infected()
 
-    def test_ModeledPopulatedWorld_initialization(self):
-        self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
-                         " # initialized: " +
-                         str(self.modeledWorld1.number_of_locs))
-
     def test_multiple_sims_and_worlds_parallel(self):
-        self.modeledWorld2 = ModeledPopulatedWorld(500, 50)
+        self.modeledWorld2 = ModeledPopulatedWorld(initial_infections=50)
         self.simulation2 = Simulation(self.modeledWorld1, 100)
         self.simulation3 = Simulation(self.modeledWorld1, 50)
         self.simulation4 = Simulation(self.modeledWorld2, 10)
@@ -69,7 +62,7 @@ class TestVPM(unittest.TestCase):
             os.remove(file)  # files cleanup
 
     def test_infection_mechanism(self):
-        self.testWorld_2 = ModeledPopulatedWorld(1000, 200, agent_agent_infection=True)
+        self.testWorld_2 = ModeledPopulatedWorld(initial_infections=200)
         self.simulation_a_a_inf = Simulation(self.testWorld_2, 100)
         self.simulation_a_a_inf.plot_status_timecourse()
         self.simulation_a_a_inf.plot_flags_timecourse()

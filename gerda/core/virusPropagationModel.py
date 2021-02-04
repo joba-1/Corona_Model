@@ -61,18 +61,13 @@ class ModeledPopulatedWorld(object):
         :param amount: int. amount of people to initially infect
     """
 
-    def __init__(self, number_of_locs, initial_infections=1, world_from_file=False, agent_agent_infection=False,
-                 geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
-        self.world_from_file = world_from_file
-        self.agent_agent_infection = agent_agent_infection
-        self.number_of_locs = number_of_locs
+    def __init__(self, initial_infections=1,geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv', input_schedules='schedules_standard', automatic_initial_infections=True):
         self.initial_infections = initial_infections
         self.geofile_name = geofile_name
-        self.world = World(from_file=self.world_from_file, number_of_locs=self.number_of_locs,
-                           geofile_name=self.geofile_name)
+        self.world = World(geofile_name=self.geofile_name)
         self.locations = self.world.locations
         self.input_schedules = input_schedules
-        self.people = self.initialize_people(self.agent_agent_infection)
+        self.people = self.initialize_people() 
         self.number_of_people = len(self.people)
         if automatic_initial_infections:
             self.initialize_infection(amount=self.initial_infections)
@@ -92,7 +87,7 @@ class ModeledPopulatedWorld(object):
         else:
             vpm_save_load.save_simulation_object(self, filename, date_suffix, folder=folder)
 
-    def initialize_people(self, agent_agent_infection):
+    def initialize_people(self):
         """
         initializes a set of people (human objects) with assigned ages and schedules
         :return people: set. a set of human objects
@@ -107,8 +102,7 @@ class ModeledPopulatedWorld(object):
                     age = 99
                 elif age < 0:
                     age = 0
-                people.add(Human(n, age, schedule, diagnosed_schedule, home,
-                                 enable_infection_interaction=agent_agent_infection))
+                people.add(Human(n, age, schedule, diagnosed_schedule, home))
         return people
 
     def create_schedule(self, age, home):

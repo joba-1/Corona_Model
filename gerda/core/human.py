@@ -176,13 +176,12 @@ class Human(object):
         on the times and place of certain events
     """
 
-    def __init__(self, ID, age, schedule, diagnosed_schedule, loc, status='S', enable_infection_interaction=False):
+    def __init__(self, ID, age, schedule, diagnosed_schedule, loc, status='S'):
         """
         Creates human-object with initial status 'S'.
         Arguments to provide are: ID (int), age (int), schedule (dict), loc (location.Location)
         """
         # initialize properties
-        self.infection_interaction_enabled = enable_infection_interaction
         self.ID = ID
         # all humans are initialized as 'S' (susceptible), except for a number of infected defined by the simulation parameters
         self.status = status

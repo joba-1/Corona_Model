@@ -8,16 +8,11 @@ from gerda.core.location import Location
 
 
 class World(object):
-    def __init__(self, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv', from_file=True, number_of_locs=100):
-        self.from_file = from_file
+    def __init__(self, geofile_name='input_data/geo/Buildings_Gangelt_MA_3.csv'):
+    
         self.geofile_name = geofile_name
-        self.number_of_locs = number_of_locs
         self.df_buildings = pd.read_csv(self.geofile_name)
-
-        if self.from_file:
-            self.locations = self.initialize_locs_from_file()
-        else:
-            self.locations = self.initialize_locs_random()
+        self.locations = self.initialize_locs_from_file()
         self.neighbourhoods = self.initialize_neighbourhoods()
         self.calculate_proximity_matrix()
 
@@ -28,16 +23,6 @@ class World(object):
             self.locations[l].special_locations['hospital'] = self.locations[l].get_other_loc_by_id(
                 self.locations[l].next_location_of_type('hospital'))
         self.loc_class_dic = self.assign_location_classifier()
-
-    def initialize_locs_random(self):  # orginal
-        locations = {}
-        for n in range(self.number_of_locs):
-            loc_type = random.sample(['home', 'work', 'public', 'school'], 1)[0]
-            locations[n] = Location(n, (n, 0), loc_type, 1, 1e-8)
-
-        locations[3] = Location(3, (3, 0), 'hospital', 1, 1e-8)
-        locations[0] = Location(0, (0, 0), 'morgue', 1, 1e-8)
-        return locations
 
     def assign_location_classifier(self):
         '''Build reference lists for assign_building_type() from given dataframe.
@@ -169,17 +154,13 @@ class World(object):
         return building_type
 
     def initialize_neighbourhoods(self):
-        if self.from_file:
-            neighbourhoods = {}
-            for loc in self.locations.values():
-                neighbourhood_id = loc.neighbourhood_ID
-                if neighbourhood_id in neighbourhoods.keys():
-                    neighbourhoods[neighbourhood_id][loc.ID] = loc
-                else:
-                    neighbourhoods[neighbourhood_id] = {
-                        loc.ID: loc}  # 1 schould be neighbourhood_id
-        else:
-            neighbourhoods = {1: Neighbourhood(self.locations)}
+        neighbourhoods = {}
+        for loc in self.locations.values():
+            neighbourhood_id = loc.neighbourhood_ID
+            if neighbourhood_id in neighbourhoods.keys():
+                neighbourhoods[neighbourhood_id][loc.ID] = loc
+            else:
+                neighbourhoods[neighbourhood_id] = {loc.ID: loc}  # 1 schould be neighbourhood_id
         return neighbourhoods
 
     def calculate_proximity_matrix(self):  # create distances
