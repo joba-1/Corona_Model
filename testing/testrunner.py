@@ -15,11 +15,6 @@ class TestVPM(unittest.TestCase):
         self.modeledWorld1.plot_distribution_of_location_types()
         self.modeledWorld1.plot_initial_distribution_of_ages_and_infected()
 
-#    def test_ModeledPopulatedWorld_initialization(self):
- #       self.assertEqual(1000, self.modeledWorld1.number_of_locs, "not all given amount of locations was initialized."
-  #                       " # initialized: " +
-   #                      str(self.modeledWorld1.number_of_locs))
-
     def test_multiple_sims_and_worlds_parallel(self):
         self.modeledWorld2 = ModeledPopulatedWorld(initial_infections=50)
         self.simulation2 = Simulation(self.modeledWorld1, 100)
