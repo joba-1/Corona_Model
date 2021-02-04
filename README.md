@@ -3,7 +3,7 @@
 (c) Theretical Biophysics, Humboldt-Universität zu Berlin
 
 ## General Information
-The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home) as well as  in our preprint, published on MedRxiv:
+The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home) as well as in our preprints, published on MedRxiv:
 - [Geospatial precision simulations of community confined human interactions during SARS-CoV-2 transmission reveals bimodal intervention outcomes](https://www.medrxiv.org/content/10.1101/2020.05.03.20089235v2)
 - [Optimality in COVID-19 vaccination strategies determined by heterogeneity in human-human interaction networks](https://www.medrxiv.org/content/10.1101/2020.12.16.20248301v1).
 
