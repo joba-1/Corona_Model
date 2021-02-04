@@ -685,7 +685,7 @@ if __name__ == '__main__':
     options = getOptions(sys.argv[1:])
     #input_folder =  '/home/basar/corona_simulations_save/saved_objects/worlds_V2_RPM2_Gangel/'
     input_folder = 'models/worlds/'
-    world_name = 'new_sim_obj_partial_imnty_sus_'
+    world_name = 'test_'
     world_list = os.listdir(input_folder)
     print(world_list[0])
     # and x.startswith('sim')] needs to be sorted if several simualtions in folder

@@ -297,7 +297,7 @@ class ModeledPopulatedWorld(object):
         status_by_age_range.index.name = 'age groups'
         return status_by_age_range
 
-    def get_remaining_possible_initial_infections(self, ini_I_list, exclude_list):
+    def get_remaining_possible_initial_infections(self, ini_I_list, exclude_list=[]):
         """
         Compares list of agent IDs to initally infect with IDs of initially recovered agents.
         Rewrites a list of possible agents.
