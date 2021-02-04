@@ -108,7 +108,7 @@ scenarios = [{'run': 0, 'max_time': 2000, 'start_2': 50, 'start_3': 100, 'closed
 
 def getOptions(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default \n \
+    parser.add_argument("-st", "--scenario_type", type=int, help="Choose your scenario_type else default 13 \n \
                         13: no_mitigation  IF03\n \
                         15: close_all IF03\n \
                         16: close_all_reopen_all IF03\n \
@@ -118,13 +118,13 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument("-c", "--cores", type=int, help="default 50, used cpu's cores")
     parser.add_argument("-n", "--number", type=int, help="Number of simularions default 100 ")
     parser.add_argument("-w", "--world", type=int,
-                        help="number of world in '/home/basar/corona_simulations/saved_objects/worlds' ")
+                        help="number of world in models/worlds/' ")
     parser.add_argument("-f", "--folder", type=str,
-                        help="defalut '/home/basar/corona_simulations/saved_objects/scenario_output/' ")
+                        help="defalut '' ")
     parser.add_argument("-sc", "--scenario", type=str,
                         help="define the simulated scenario_type else: 'default' ")
     parser.add_argument("-p", "--parameter", type=str,
-                        help="define the parameter to scan: max_time, start_2, start_3, infectivity, recover_frac")
+                        help="define the parameter to scan (default: None): max_time, start_2, start_3, infectivity, recover_frac")
     parser.add_argument("-pr", "--p_range", nargs='+', type=float,
                         help="define the parameter range (2 inputs): e.g. 1 2 ")
     parser.add_argument("-ps", "--p_steps", type=int,
@@ -543,7 +543,7 @@ def get_simualtion_settings(options):
     if options.scenario_type:  # take scenario type as argument or take default
         input_parameter_dict['scenario_type'] = options.scenario_type
     else:
-        input_parameter_dict['scenario_type'] = 0
+        input_parameter_dict['scenario_type'] = 13
 
     if options.cores:  # used cores
         input_parameter_dict['cores'] = options.cores
@@ -559,7 +559,6 @@ def get_simualtion_settings(options):
         input_parameter_dict['modeledWorld'] = vpm_save_load.load_world_object(
             world_files[options.world], folder=input_folder)
     else:
-        # '/home/basar/corona_simulations/saved_objects/worlds')
         input_parameter_dict['modeledWorld'] = vpm_save_load.load_world_object(
             world_files[0], folder=input_folder)
 

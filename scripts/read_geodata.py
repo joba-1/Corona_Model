@@ -8,8 +8,9 @@ import sys
 
 
 def getOptions(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
-    parser.add_argument("-l", "--location", type=int, help="""Choose your location
+    parser = argparse.ArgumentParser(
+        description="This script generates different world objects from a geofile, in parallel.")
+    parser.add_argument("-l", "--location", type=int, help="""Choose your location (default: 2)
 		1: Heinsberg,
 		2: Gangelt,
 		3: Penkridge,
@@ -20,10 +21,7 @@ def getOptions(args=sys.argv[1:]):
 		8: Bornholms Regionskommune,
 		9: Bad Feilnbach,""")
     parser.add_argument("-ma", "--min_area", type=float,
-                        help="default 3  (*1e-8) to reduce locations")
-    parser.add_argument("-fa", "--from_adress", type=bool,
-                        help=" uses osmnx footprints_from_address with 2000 m")
-    #parser.add_argument("-v", "--verbose",dest='verbose',action='store_true', help="Verbose mode.")
+                        help="default: 3  (*1e-8) to reduce locations")
     options = parser.parse_args(args)
     return options
 
@@ -36,7 +34,6 @@ def reduce_GDF(gdf, cols):
 
 def getCentromerCoordiantes(buildings):
     centroid_coords = [x.centroid for x in buildings['geometry']]
-    #centroid_coords_y = [x.centroid.y for x  in buildings['geometry']]
     return centroid_coords
 
 
@@ -57,16 +54,12 @@ def closest_n(list_of_n, point):
 options = getOptions(sys.argv[1:])
 
 if options.location:
-    # try:
     loc = options.location
-    # except:
 else:
     loc = 2
 
 if options.min_area:
-    # try:
     min_area = options.min_area
-    # except:
 else:
     min_area = 3
 
@@ -129,12 +122,7 @@ places = {1: [place_name_1, list_of_n_1],
           14: [place_name_14, list_of_n_14]
           }
 
-# Fetch OSM street network from the location, only once! takes forever
-#graph = ox.graph_from_place(places[loc][0])
-#area = ox.gdf_from_place(places[loc][0])
-
 buildings = ox.footprints_from_place(places[loc][0])
-
 
 try:
     # Fetch OSM street network from the location, only once! takes forever
@@ -160,12 +148,9 @@ try:
 except:
     print('streets not passed')
 
-# reduced columns
-#cols = ['building','geometry','amenity','shop','leisure', 'sport','healthcare','healthcare:speciality','building:levels']
 cols = ['building', 'geometry', 'amenity', 'shop', 'leisure',
         'sport', 'healthcare', 'building:levels', 'name']
 
-print(buildings.columns)
 try:
     red_buildings = reduce_GDF(buildings, cols)
 except:
@@ -184,9 +169,6 @@ red_buildings['building_area'] = getArea(buildings)
 
 # add neighbourhoods
 
-# definied center of neihbourhoods - freely choosen
-#list_of_n = [Point(6.1,51.06),Point(6.075,51.05),Point(6.145,51.035),Point(6.07,51.10)]
-
 neighbourhoods = [closest_n(places[loc][1], x) for x in centroid_coords]
 red_buildings['neighbourhood'] = neighbourhoods
 
@@ -202,3 +184,4 @@ print('generate: input_data/geo/Buildings_' +
       places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.csv')
 print('generate: input_data/geo/Buildings_' +
       places[loc][0].split(',')[0].replace(' ', '_')+'_MA_'+str(min_area).replace('.', '_')+'.geojson')
+print('Warning from osmx package can be neglected')
