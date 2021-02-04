@@ -7,7 +7,7 @@ The information regarding the data used in this model as well as its documentati
 
 This model is maintained by the [Klipp lab for theoretical biophysics](https://rumo.biologie.hu-berlin.de/tbp/index.php/en/) at the Humboldt Universität zu Berlin. For questions and feedback, please contact us [:email:](mailto:bjoern.goldenbogen.1@biologie.hu-berlin.de).
 
-The code in this repository was implemented using python 3.7 on linux and mac operating systems and tested on different linux, mac and windows machines. If you do not have Python installed, please checkout [Python webpage](https://www.python.org/downloads/) for installation information.
+The code in this repository was implemented using python 3.7 on linux and mac operating systems and tested on different linux (OS Ubuntu 18 and 20, CentOS 7.8), mac (OS Mojave 10.1.4) and windows (OS Windows 10) machines. If you do not have Python installed, please checkout [Python webpage](https://www.python.org/downloads/) for installation information.
 
 ## Setup
 For code checkout, you need gitlab. To download the repository information onto your local machine, navigate to the directory of your choice and clone this repository to your local machine if you have not done so yet (using terminal/command line):
