@@ -11,31 +11,29 @@ from gerda.core.virusPropagationModel import *
 
 
 def ini_and_save_world(i, output_folder='models/worlds/', size='1', schedule='schedules_v2', town='Gangelt', **kwargs):
-    world = ModeledPopulatedWorld(1000, 10, world_from_file=True,
+    world = ModeledPopulatedWorld(10, 
                                   geofile_name='input_data/geo/Buildings_'+town+'_MA_'+size+'.csv',
-                                  agent_agent_infection=True,
                                   automatic_initial_infections=False,
                                   input_schedules=schedule)
-    # '/home/basar/corona_simulations/saved_objects/worlds/')
     world.save(town+'_MA_'+size+'_'+schedule+'_'+str(i),
                date_suffix=False, folder=output_folder)
     print('worlds/'+town+'_MA_'+size+'_'+schedule+'_'+str(i)+' created')
 
 
 def getOptions(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description="Parses command.")
+    parser = argparse.ArgumentParser(description="This script generates different world objects from a geofile, in parallel.")
     parser.add_argument("-f", "--folder", type=str,
-                        help="save folder")
+                        help="save folder, default: models/worlds/")
     parser.add_argument("-n", "--number", type=int,
-                        help="number of worlds")
+                        help="number of worlds, default: 5")
     parser.add_argument("-c", "--cores", type=int,
-                        help="number of used cores")
+                        help="number of used cores, default: 2")
     parser.add_argument("-s", "--size", type=str,
                         help="1 or 3 -> min area for buildings: default 1 ")
     parser.add_argument("-t", "--town", type=str,
-                        help="choose town in datafiles/: default Gangelt")
+                        help="choose town in datafiles/, default: Gangelt")
     parser.add_argument("-sc", "--schedule", type=str,
-                        help="choose schedule in inputs/: default schedules_v2")
+                        help="choose schedule in inputs/, default: schedules_v2")
     options = parser.parse_args(args)
     return options
 
@@ -58,13 +56,13 @@ if __name__ == '__main__':
     if options.cores:
         cores = options.cores
     else:
-        cores = 50
+        cores = 2
     options_dict['cores'] = cores
 
     if options.number:
         number = options.number
     else:
-        number = 100
+        number = 5
     options_dict['number'] = number
 
     if options.size:
