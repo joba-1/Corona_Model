@@ -16,7 +16,7 @@ For code checkout, you need gitlab. To download the repository information onto 
 
     git clone https://ford.biologie.hu-berlin.de/jwodke/corona_model.git
 
-There exist two options to setup GERDA. We recommend installing Gerda in a [Conda environment](#installing-in-conda-environment-recommended). Alternatively, you can only apply [Quick install](#quick-install).
+There exist two options to setup GERDA. We recommend installing GERDA in a [Conda environment](#installing-in-conda-environment-recommended). Alternatively, you can only apply [Quick install](#quick-install).
 
 ### Installing in Conda environment (recommended)
 If you do not have Conda installed, go to [Conda webpage](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).\
@@ -69,7 +69,7 @@ For parallel computing on high end memory servers, we provide a directly executa
 For advanced simulations please refer to our repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home).
 
 ## Demo jupyter notebooks
-For testing different features of gerda models in single runs, i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server, we provide different interactive jupyter notebooks (ipynb-files).\
+For testing different features of GERDA models in single runs, i.e. running one simulation on a personal desktop computer but not running each simulation 100 times in parallel on a high end memory server, we provide different interactive jupyter notebooks (ipynb-files).\
 To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type ```jupyter notebook``` or ```jupyter-notebook```), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
@@ -112,13 +112,13 @@ If installed in [Conda](#installing-in-conda-environment-recommended) environmen
 Please note: All scripts of this section might be time consuming (i.e. depending on the size of the generated geofiles or modelled worlds). Especially the parallel simulations on a multi-core computer can even take up to days (depending on size of modelled world and number of time steps simulated).
 
 ### read_geodata.py
-This script creates the georeferenced input data files (.geojson, .csv files) required to rebuild a georeferenced gerda world with ```generate_worlds.py```. Geodata files are stored in ```./input_data/geo``` by default.
+This script creates the georeferenced input data files (.geojson, .csv files) required to rebuild a GERDA world with ```generate_worlds.py```. Geodata files are stored in ```./input_data/geo``` by default.
 
 ### generate_worlds.py
-This script generates gerda worlds, required for repeated simulation of virus propagation throughout a defined community with the same initial conditions (seed), i.e. for getting meaningful conclusions from stochastic simulations. Generated world files are stored in ```./models/worlds/``` by default.
+This script generates GERDA worlds, required for repeated simulation of virus propagation throughout a defined community with the same initial conditions (seed), i.e. for getting meaningful conclusions from stochastic simulations. Generated world files are stored in ```./models/worlds/``` by default.
 
 ### sim_parallel.py
-This script runs several parallel simulations (using the same world and the same input parameters) on a multi-core computer. This allows to account for the inherent stochasticity of gerda models and provides a more reliable simulation output than a single run.\
+This script runs several parallel simulations (using the same world and the same input parameters) on a multi-core computer. This allows to account for the inherent stochasticity of GERDA models and provides a more reliable simulation output than a single run.\
 Please note: Simulations are memory expensive. We use AMD-based servers with 96 cores and 512 GB RAM for most simulations. As the bottleneck is the RAM, for larger/longer simulations (e.g. >10000 agents for >=2000 time steps) we can use just 24 cores.
 
 ## Integration of external data
