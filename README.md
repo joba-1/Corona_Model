@@ -123,7 +123,7 @@ Please note: Simulations are memory expensive. We use AMD-based servers with 96 
 
 ## Integration of external data
 Transition probabilities and time-dependent infectiousness:\
-Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration and representing the default data, used in our study are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
+Hourly transition probabilities between agent states and hourly infection-emission rates are defined in distinct csv-files. The file [```simulation_configuration.csv```](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/input_data/simulation_configuration.csv) defines the path to the source-file for each transition, the dependency on the duration in specific states and whether the transition rates are to be considered age-specific. The different input files specified in the simulation configuration and representing the default data, used in our study are found in direction ```./input_data/probabilities/default/```. Additional information used to generate the (age-specific) probability input files is found in direction ```./input_data/case_numbers/```.
 
 <!---
 Location factors:\
@@ -143,6 +143,6 @@ The schedules which define agent-routines are provided as csv-files in the direc
 
 # Technical details
 ## Expected run time
-Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv)) takes about **30 minutes** on a personal desktop computer (core I7, 16GB RAM) for one simulation run of 2000 time steps. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about **10 minutes** for 2000 time steps on a personal desktop computer.
+Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/input_data/geo/Buildings_Gangelt_MA_1.csv)) takes about **30 minutes** on a personal desktop computer (core I7, 16GB RAM) for one simulation run of 2000 time steps. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about **10 minutes** for 2000 time steps on a personal desktop computer.
 
 
