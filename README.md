@@ -74,7 +74,7 @@ To use a jupyter notebook, start the jupyter notebook application (e.g. in the t
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
 This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
-**Please note:** Running the entire notebook takes about **20 to 25 minutes runtime**.
+**Please note:** Running the entire notebook with **default settings** (complete version of modelled community Gangelt) takes about **20 to 25 minutes runtime**. The **reduced version** of modelled community Gangelt takes about **5 minutes runtime**.
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used)
