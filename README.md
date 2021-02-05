@@ -73,32 +73,31 @@ For testing different features of gerda models in single runs, i.e. running one 
 To use a jupyter notebook, start the jupyter notebook application (e.g. in the terminal with the activated gerdaenv type ```jupyter notebook``` or ```jupyter-notebook```), navigate to the corona_model directory and select the desired notebook (ipynb-file). To run the full simulation, click on "Cell --> Run All" or run cells individually.
 
 ### [Demo.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo.ipynb)
-This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt -> modeledWorld_small) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
-Please note: Running the entire notebook takes about 20 to 25 minutes.
+This notebook contains the commands required to initialize a modeled world (using a reduced version (10%) of Gangelt) and to run GERDA simulations, including possibilities for manual adjustment of parameters 'time_steps' and 'general_infectivity'.\
+**Please note:** Running the entire notebook takes about **20 to 25 minutes runtime**.
 
 This notebook contains the following code blocks:
 1. importing required libraries and initializing a dictionary for the real world communities that can be used)
-2. "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+2. "Initiate world" - initialize reduced or complete world for Gangelt (reduced = 10% of population and buildings, complete = 100% of population and buildings)
 3. "Info on world" - plot of age distribution + information on infected agents
-4. "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using small Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
+4. "Sample simulation" - the first cell of this code block runs the baseline scenario for Gangelt (by default using reduced Gangelt); furthermore 'time_steps' and 'general_infectivity' can be adjusted by the user. The subsequent cells provide example result plots (health (sub)states over time, heat maps for interaction and infection patterns; overrepresentation and underrepresentation of schedule types or location types, respectively, for infection transmissions)
 
 ### [Demo_Vaccination.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_Vaccination.ipynb)
-In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our manuscript, we generated a jupyter notebook. We suggest to first get familiar with the Demo.ipynb (compare above), in order to get an intuition for our model and its basic application and characteristics.\
-Please note: Running the entire notebook using the reduced Gangelt takes about 2 hours, using the complete Gangelt takes about 12 hours.
+In order to demonstrate the simulations, which were performed to evaluate the different vaccination-strategies in our [preprint](https://www.medrxiv.org/content/10.1101/2020.12.16.20248301v1), we generated a jupyter notebook. We suggest to first get familiar with the [Demo.ipynb](#demo-jupyter-notebooks), in order to get an intuition for our model and its basic application and characteristics.
 
 This notebook contains the following code blocks:
-1. importing required libraries and initializing a dictionary for the real world communities that can be used: "Initiate world" - initialize small or large world for Gangelt (small = 10% of population and buildings, large = 100% of population and buildings)
+1. importing required libraries and initializing a dictionary for the real world communities that can be used: "Initiate world" - initialize reduced or complete world for Gangelt (reduced = 10% of population and buildings, complete = 100% of population and buildings)
 2. Running an initial infection-wave to be used in defining one of the tested strategies
 	—> Be aware that here exists a checkpoint for the user 
 3. Derivation of ordered list of agents, to be vaccinated, according to different vaccination-strategies
 4. Running simulations with different vaccination-fractions of the population, for the different strategies
 5. Generating a plot, resembling figure 3 in our manuscript
 
-Please be aware, that we set the default world to be used to the small version, in order to avoid excessive runtimes for this demonstration. 
-Since this world is not fully representative to the large world, we used for the manuscript; the infection-dynamics differ and thus the results of the vaccintion-screens do too.
-Furthermore we have set the vaccination-fraction increments to 20% (where we used 5%-steps in the manuscript), also to reduce runtime.
+**Please be aware,** that we set the default world to be used to the reduced version, in order to avoid excessive runtimes for this demonstration. 
+Since this world is not fully representative of the complete world we used for the manuscript, the infection-dynamics differ and thus the results of the vaccintion-screens do too.
+Furthermore, we have set the vaccination-fraction increments to 20% (where we used 5%-steps in the manuscript), also to reduce runtime.
 
-The (default) reduced version of the vaccination screens has a runtime of around 1-2 hours, but there exists the possibility to use the non-reduced version (as we did in the manuscript); however be aware, that we expect a runtime of 1-2 days for this.
+**Please note:** The (default) reduced version of the vaccination screens has a **runtime of around 1 to 2 hours**, but there exists the possibility to use the complete version (as we did in the manuscript). However, be aware, that we expect a **runtime of around 12 to 36 hours** for this.
 
 <!---
 ### [Demo_new_strain.ipynb](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/master/Demo_new_strain.ipynb)
@@ -108,7 +107,7 @@ This notebook allows to consider not only the propagation of the original SARS-C
 
 --->
 ## Executable scripts
-The reporsitory provides the following directly executable scripts in direction './scripts/'. Help functionality (--help or -h) is enabled for all of those scripts.\
+The reporsitory provides the following directly executable scripts in direction ```./scripts/```. Help functionality (```--help``` or ```-h```) is enabled for all of those scripts.\
 If installed in [Conda](#installing-in-conda-environment-recommended) environment, those scripts can be directly executed from the main directory (e.g. ```generate_worlds.py -h```), in case of the [Quick install](#quick-install), the path starting from the repository main directory is required (e.g. ``` python scripts/generate_worlds.py -h```).\
 Please note: All scripts of this section might be time consuming (i.e. depending on the size of the generated geofiles or modelled worlds). Especially the parallel simulations on a multi-core computer can even take up to days (depending on size of modelled world and number of time steps simulated).
 
@@ -144,6 +143,6 @@ The schedules which define agent-routines are provided as csv-files in the direc
 
 # Technical details
 ## Expected run time
-Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv)) takes about 30 minutes on a personal desktop computer (core I7, 16GB RAM) for one simulation run of 2000 time steps. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about 10 minutes for 2000 time steps on a personal desktop computer.
+Simulating Gangelt (100% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_1.csv)) takes about **30 minutes** on a personal desktop computer (core I7, 16GB RAM) for one simulation run of 2000 time steps. For Demo purpose, we recommend to simulate the reduced Gangelt (10% of population and buildings, [input file](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/blob/Cleaned_up_development/input_data/geo/Buildings_Gangelt_MA_3.csv)), which takes about **10 minutes** for 2000 time steps on a personal desktop computer.
 
 
