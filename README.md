@@ -16,7 +16,7 @@ For code checkout, you need gitlab. To download the repository information onto 
 
     git clone https://ford.biologie.hu-berlin.de/jwodke/corona_model.git
 
-There exist two options to setup GERDA. We recommend installing GERDA in a [Conda environment](#installing-in-conda-environment-recommended). Alternatively, you can only apply [Quick install](#quick-install).
+There exist two options to setup GERDA. We recommend installing the gerda package in a [Conda environment](#installing-in-conda-environment-recommended). Alternatively, you can only apply [Quick install](#quick-install).
 
 ### Installing in Conda environment (recommended)
 If you do not have Conda installed, go to [Conda webpage](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).\
