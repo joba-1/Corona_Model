@@ -2,6 +2,14 @@
 ## A model for virus (SARS-CoV-2) transmission and disease (COVID-19) progression
 (c) Theretical Biophysics, Humboldt-Universität zu Berlin
 
+## Warning
+This repo has been cleaned from deleted big files above the 100MB github limit. 
+
+                              | Before   | After   
+        -------------------------------------------
+        First modified commit | e3263b94 | 6612a27a
+        Last dirty commit     | ee98e22d | 2d946e51
+
 ## General Information
 The information regarding the data used in this model as well as its documentation and developer information can be found in this repository's [wiki](https://ford.biologie.hu-berlin.de/jwodke/corona_model/-/wikis/home) as well as in our preprints, published on MedRxiv:
 - [Geospatial precision simulations of community confined human interactions during SARS-CoV-2 transmission reveals bimodal intervention outcomes](https://www.medrxiv.org/content/10.1101/2020.05.03.20089235v2)
